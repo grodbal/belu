@@ -6,6 +6,8 @@ import SeguridadClientas from "@/components/clientas/SeguridadClientas";
 import GarantiaClientas from "@/components/clientas/GarantiaClientas";
 import PanelPreviewClientas from "@/components/clientas/PanelPreviewClientas";
 import FaqClientas from "@/components/clientas/FaqClientas";
+import CtaFinalClientas from "@/components/clientas/CtaFinalClientas";
+import FooterClientas from "@/components/clientas/FooterClientas";
 
 export default function Home() {
   return (
@@ -18,6 +20,8 @@ export default function Home() {
       <GarantiaClientas />
       <PanelPreviewClientas />
       <FaqClientas />
+      <CtaFinalClientas />
+      <FooterClientas />
     </>
   );
 }
