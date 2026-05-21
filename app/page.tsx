@@ -3,6 +3,7 @@ import HeroClientas from "@/components/clientas/HeroClientas";
 import ServiciosClientas from "@/components/clientas/ServiciosClientas";
 import BeluersPreviewClientas from "@/components/clientas/BeluersPreviewClientas";
 import SeguridadClientas from "@/components/clientas/SeguridadClientas";
+import GarantiaClientas from "@/components/clientas/GarantiaClientas";
 
 export default function Home() {
   return (
@@ -12,6 +13,7 @@ export default function Home() {
       <ServiciosClientas />
       <BeluersPreviewClientas />
       <SeguridadClientas />
+      <GarantiaClientas />
     </>
   );
 }
