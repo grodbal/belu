@@ -2,6 +2,7 @@ import MainNav from "@/components/layout/MainNav";
 import HeroClientas from "@/components/clientas/HeroClientas";
 import ServiciosClientas from "@/components/clientas/ServiciosClientas";
 import BeluersPreviewClientas from "@/components/clientas/BeluersPreviewClientas";
+import SeguridadClientas from "@/components/clientas/SeguridadClientas";
 
 export default function Home() {
   return (
@@ -10,6 +11,7 @@ export default function Home() {
       <HeroClientas />
       <ServiciosClientas />
       <BeluersPreviewClientas />
+      <SeguridadClientas />
     </>
   );
 }
