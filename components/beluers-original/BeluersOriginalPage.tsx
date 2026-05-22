@@ -6,6 +6,8 @@ import StatsBeluersOriginal from "./StatsBeluersOriginal";
 import ProblemaBeluersOriginal from "./ProblemaBeluersOriginal";
 import SolucionBeluersOriginal from "./SolucionBeluersOriginal";
 import ImageBreakBeluersOriginal from "./ImageBreakBeluersOriginal";
+import ComoFuncionaBeluersOriginal from "./ComoFuncionaBeluersOriginal";
+import CalculadoraBeluersOriginal from "./CalculadoraBeluersOriginal";
 
 export default function BeluersOriginalPage() {
   return (
@@ -18,6 +20,8 @@ export default function BeluersOriginalPage() {
       <ProblemaBeluersOriginal />
       <SolucionBeluersOriginal />
       <ImageBreakBeluersOriginal />
+      <ComoFuncionaBeluersOriginal />
+      <CalculadoraBeluersOriginal />
     </div>
   );
 }

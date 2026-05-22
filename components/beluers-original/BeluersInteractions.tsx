@@ -180,7 +180,51 @@ export default function BeluersInteractions() {
           (progress - 0.5) * 40
         }px)`;
       }
-    };  
+    }; 
+    
+        const svcSlider = document.getElementById("svcSlider") as HTMLInputElement | null;
+    const ticketSlider = document.getElementById("ticketSlider") as HTMLInputElement | null;
+    const svcVal = document.getElementById("svcVal");
+    const ticketVal = document.getElementById("ticketVal");
+    const rBruto = document.getElementById("rBruto");
+    const rNeto = document.getElementById("rNeto");
+
+    const setRangeBg = (input: HTMLInputElement) => {
+      const percentage =
+        ((Number(input.value) - Number(input.min)) /
+          (Number(input.max) - Number(input.min))) *
+        100;
+
+      input.style.background = `linear-gradient(to right,var(--r) 0%,var(--r) ${percentage}%,rgba(255,255,255,.15) ${percentage}%,rgba(255,255,255,.15) 100%)`;
+    };
+
+    const updateCalc = () => {
+      if (!svcSlider || !ticketSlider || !svcVal || !ticketVal || !rBruto || !rNeto) {
+        return;
+      }
+
+      const services = Number(svcSlider.value);
+      const ticket = Number(ticketSlider.value);
+
+      svcVal.textContent = String(services);
+      ticketVal.textContent = `S/. ${ticket}`;
+
+      const totalServices = services * 4;
+      const gross = totalServices * ticket;
+      const commission = Math.round(gross * 0.13);
+      const bonus = totalServices * 5;
+      const net = gross - commission + bonus;
+
+      rBruto.textContent = `S/. ${gross.toLocaleString("es-PE")}`;
+      rNeto.textContent = `S/. ${net.toLocaleString("es-PE")}`;
+
+      setRangeBg(svcSlider);
+      setRangeBg(ticketSlider);
+    };
+
+    svcSlider?.addEventListener("input", updateCalc);
+    ticketSlider?.addEventListener("input", updateCalc);
+    updateCalc();
     
     window.addEventListener("scroll", handleScroll);
     window.addEventListener("scroll", handleParallax, { passive: true });
@@ -193,6 +237,8 @@ export default function BeluersInteractions() {
         compObserver.disconnect();
         document.removeEventListener("keydown", handleKeydown);
         revealObserver.disconnect();
+              svcSlider?.removeEventListener("input", updateCalc);
+      ticketSlider?.removeEventListener("input", updateCalc);
 
         openButtons.forEach((button) => {
           button.removeEventListener("click", openModal);
