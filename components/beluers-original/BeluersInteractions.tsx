@@ -95,13 +95,104 @@ export default function BeluersInteractions() {
         }, 500);
       }, 3500);
 
-      window.addEventListener("scroll", handleScroll);
+          const revealEls = document.querySelectorAll(".beluers-original .rev, .beluers-original .rev-l, .beluers-original .rev-r");
+
+    const revealObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("in");
+            revealObserver.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.08 }
+    );
+
+    revealEls.forEach((el) => revealObserver.observe(el));
+
+        let compAnimated = false;
+
+    const animateComp = () => {
+      if (compAnimated) return;
+      compAnimated = true;
+
+      document.querySelectorAll(".beluers-original .count-num").forEach((el) => {
+        const target = Number((el as HTMLElement).dataset.val || "0");
+        const prefix = (el as HTMLElement).dataset.prefix || "";
+        const duration = 1200;
+        const steps = 50;
+        const increment = target / steps;
+
+        let current = 0;
+
+        const timer = window.setInterval(() => {
+          current = Math.min(current + increment, target);
+          el.textContent = prefix + Math.round(current).toLocaleString("es-PE");
+
+          if (current >= target) {
+            window.clearInterval(timer);
+          }
+        }, duration / steps);
+      });
+
+      document
+        .querySelectorAll(".beluers-original .comp-bar-fill")
+        .forEach((bar) => {
+          const width = (bar as HTMLElement).dataset.width || "0%";
+
+          window.setTimeout(() => {
+            (bar as HTMLElement).style.width = width;
+          }, 200);
+        });
+    };
+
+    const compEl = document.querySelector(".beluers-original .comp-outer");
+
+    const compObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            animateComp();
+            compObserver.disconnect();
+          }
+        });
+      },
+      { threshold: 0.3 }
+    );
+
+    if (compEl) {
+      compObserver.observe(compEl);
+    }
+
+    const parallaxBg = document.getElementById("parallaxBg");
+
+    const handleParallax = () => {
+      if (!parallaxBg || !parallaxBg.parentElement) return;
+
+      const rect = parallaxBg.parentElement.getBoundingClientRect();
+
+      if (rect.top < window.innerHeight && rect.bottom > 0) {
+        const progress =
+          (window.innerHeight - rect.top) / (window.innerHeight + rect.height);
+
+        parallaxBg.style.transform = `scale(1.1) translateY(${
+          (progress - 0.5) * 40
+        }px)`;
+      }
+    };  
+    
+    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleParallax, { passive: true });
       handleScroll();
 
       return () => {
         window.clearInterval(slider);
         window.removeEventListener("scroll", handleScroll);
+        window.removeEventListener("scroll", handleParallax);
+        compObserver.disconnect();
         document.removeEventListener("keydown", handleKeydown);
+        revealObserver.disconnect();
 
         openButtons.forEach((button) => {
           button.removeEventListener("click", openModal);
