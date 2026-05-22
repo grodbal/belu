@@ -1,0 +1,227 @@
+﻿
+.cliente-panel-shell,
+.cliente-panel-shell * {
+  box-sizing: border-box;
+}
+
+.cliente-panel-shell {
+  min-height: 100vh;
+  background: radial-gradient(ellipse at 30% 10%, #fff5f7 0%, #fce4ec 40%, #f8f8f8 100%);
+  font-family: Arial, sans-serif;
+  color: #111;
+}
+
+.cliente-panel-app {
+  display: flex;
+  min-height: 100vh;
+}
+
+.cliente-panel-sidebar {
+  width: 280px;
+  background: rgba(255,255,255,.85);
+  border-right: 1px solid rgba(0,0,0,.08);
+  padding: 2rem 1.5rem;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+}
+
+.cliente-panel-sidebar-logo {
+  font-size: 2rem;
+  font-weight: 900;
+  margin-bottom: 2rem;
+}
+
+.cliente-panel-sidebar-logo span {
+  color: #E60023;
+}
+
+.cliente-panel-sidebar-nav {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.cliente-panel-sidebar-nav li {
+  margin-bottom: .5rem;
+}
+
+.cliente-panel-sidebar-nav button {
+  width: 100%;
+  border: none;
+  background: transparent;
+  text-align: left;
+  padding: .9rem 1rem;
+  border-radius: 1rem;
+  font-size: .9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cliente-panel-sidebar-nav button.active,
+.cliente-panel-sidebar-nav button:hover {
+  background: rgba(230,0,35,.1);
+  color: #E60023;
+}
+
+.cliente-panel-sidebar-footer {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(0,0,0,.08);
+}
+
+.cliente-panel-sidebar-footer a {
+  color: #777;
+  text-decoration: none;
+  font-size: .85rem;
+}
+
+.cliente-panel-main {
+  margin-left: 280px;
+  padding: 3rem;
+  width: 100%;
+}
+
+.cliente-panel-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+}
+
+.cliente-panel-greeting h1 {
+  font-size: 1.7rem;
+  font-weight: 800;
+  margin: 0;
+}
+
+.cliente-panel-greeting p {
+  color: #777;
+  margin-top: .3rem;
+}
+
+.cliente-panel-user-pill {
+  display: flex;
+  align-items: center;
+  gap: .7rem;
+  background: white;
+  border-radius: 2rem;
+  padding: .6rem 1rem;
+  box-shadow: 0 10px 25px rgba(0,0,0,.05);
+}
+
+.cliente-panel-avatar {
+  width: 36px;
+  height: 36px;
+  background: #E60023;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+
+.cliente-panel-empty-state {
+  background: rgba(255,255,255,.7);
+  border: 1px solid rgba(255,255,255,.8);
+  border-radius: 1.5rem;
+  padding: 4rem 2rem;
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.cliente-panel-empty-state h2 {
+  font-size: 2.5rem;
+  line-height: 1.1;
+  margin: 0 0 1rem;
+}
+
+.cliente-panel-empty-state p {
+  max-width: 520px;
+  margin: 0 auto 2rem;
+  color: #666;
+}
+
+.cliente-panel-btn-r {
+  background: #E60023;
+  color: white;
+  border: none;
+  padding: .9rem 1.8rem;
+  border-radius: 2rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.cliente-panel-card-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.2rem;
+}
+
+.cliente-panel-card {
+  background: rgba(255,255,255,.75);
+  border: 1px solid rgba(255,255,255,.8);
+  border-radius: 1.4rem;
+  padding: 1.5rem;
+  box-shadow: 0 10px 30px rgba(0,0,0,.04);
+}
+
+.cliente-panel-card h3 {
+  margin: 0 0 .5rem;
+  font-size: 1.1rem;
+}
+
+.cliente-panel-card p {
+  color: #666;
+  font-size: .85rem;
+}
+
+.cliente-panel-btn-ghost {
+  border: 1px solid rgba(0,0,0,.12);
+  background: transparent;
+  padding: .7rem 1.2rem;
+  border-radius: 2rem;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.cliente-panel-menu-btn {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .cliente-panel-sidebar {
+    transform: translateX(-100%);
+  }
+
+  .cliente-panel-sidebar.cliente-panel-sidebar-open {
+    transform: translateX(0);
+  }
+
+  .cliente-panel-main {
+    margin-left: 0;
+    padding: 5rem 1.5rem 1.5rem;
+  }
+
+  .cliente-panel-menu-btn {
+    display: flex;
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    z-index: 200;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: none;
+    background: white;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .cliente-panel-card-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
