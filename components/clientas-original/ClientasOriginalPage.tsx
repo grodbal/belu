@@ -2,7 +2,6 @@ import AuthModalClientas from "./AuthModalClientas";
 import NavbarClientasOriginal from "./NavbarClientasOriginal";
 import HeroClientasOriginal from "./HeroClientasOriginal";
 import EspecialidadesClientasOriginal from "./EspecialidadesClientasOriginal";
-import ClientasInteractions from "./ClientasInteractions";
 import CatalogoServiciosClientasOriginal from "./CatalogoServiciosClientasOriginal";
 import ModosReservaClientasOriginal from "./ModosReservaClientasOriginal";
 import BeluersClientasOriginal from "./BeluersClientasOriginal";
@@ -13,13 +12,12 @@ import CoberturaClientasOriginal from "./CoberturaClientasOriginal";
 import PlataformaClientasOriginal from "./PlataformaClientasOriginal";
 import FaqClientasOriginal from "./FaqClientasOriginal";
 import CtaFooterClientasOriginal from "./CtaFooterClientasOriginal";
+import ClientasInteractions from "./ClientasInteractions";
 
 export default function ClientasOriginalPage() {
   return (
-    <>
+    <div className="clientas-original">
       <div className="noise-overlay"></div>
-      <div id="cDot"></div>
-      <div id="cRing"></div>
 
       <ClientasInteractions />
       <AuthModalClientas />
@@ -36,6 +34,6 @@ export default function ClientasOriginalPage() {
       <PlataformaClientasOriginal />
       <FaqClientasOriginal />
       <CtaFooterClientasOriginal />
-    </>
+    </div>
   );
 }

@@ -276,7 +276,8 @@ body.cursor-hover #cRing{
 
 /* NAV */
 /* ══ NAV ══ */
-nav{
+/* ══ NAV CLIENTAS ORIGINAL ══ */
+.clientas-original nav{
   position:fixed;
   top:0;
   left:0;
@@ -290,34 +291,56 @@ nav{
   background:transparent;
 }
 
-nav.scrolled{
+.clientas-original nav.scrolled{
   background:rgba(255,255,255,.96);
   backdrop-filter:blur(10px);
   box-shadow:0 1px 0 rgba(0,0,0,.07);
   padding:.9rem 5%;
 }
 
-.nav-logo{
+.clientas-original .nav-logo{
+  position:relative;
   display:flex;
   align-items:center;
   cursor:pointer !important;
 }
 
-.belu-logo-img{
+.clientas-original .belu-logo-img{
   height:42px;
   width:auto;
   display:block;
   object-fit:contain;
+  transition:opacity .25s ease;
 }
 
-.nav-right{
+.clientas-original .logo-red{
+  position:absolute;
+  left:0;
+  top:50%;
+  transform:translateY(-50%);
+  opacity:0;
+}
+
+.clientas-original .logo-white{
+  opacity:1;
+}
+
+.clientas-original nav.scrolled .logo-white{
+  opacity:0;
+}
+
+.clientas-original nav.scrolled .logo-red{
+  opacity:1;
+}
+
+.clientas-original .nav-right{
   display:flex;
   align-items:center;
   gap:.75rem;
 }
 
-.nav-login,
-.nav-reservar{
+.clientas-original .nav-login,
+.clientas-original .nav-reservar{
   cursor:pointer !important;
   border:none;
   border-radius:2rem;
@@ -329,7 +352,7 @@ nav.scrolled{
   white-space:nowrap;
 }
 
-.nav-login{
+.clientas-original .nav-login{
   background:rgba(255,255,255,.12);
   border:1.5px solid rgba(255,255,255,.35);
   color:var(--w);
@@ -337,36 +360,63 @@ nav.scrolled{
   backdrop-filter:blur(8px);
 }
 
-nav.scrolled .nav-login{
+.clientas-original nav.scrolled .nav-login{
   background:#fff;
   border-color:rgba(0,0,0,.16);
   color:var(--negro);
 }
 
-.nav-login:hover{
+.clientas-original .nav-login:hover{
   background:rgba(255,255,255,.22);
 }
 
-nav.scrolled .nav-login:hover{
+.clientas-original nav.scrolled .nav-login:hover{
   border-color:var(--r);
   color:var(--r);
 }
 
-.nav-reservar{
+.clientas-original .nav-reservar{
   background:var(--r);
   color:var(--w);
   padding:.85rem 1.65rem;
   box-shadow:0 10px 24px rgba(230,0,35,.26);
 }
 
-.nav-reservar:hover{
+.clientas-original .nav-reservar:hover{
   background:var(--r2);
   transform:translateY(-2px);
 }
 
+@media(max-width:640px){
+  .clientas-original nav{
+    padding:1rem 6%;
+  }
+
+  .clientas-original nav.scrolled{
+    padding:.85rem 6%;
+  }
+
+  .clientas-original .belu-logo-img{
+    height:36px;
+  }
+
+  .clientas-original .nav-right{
+    gap:.5rem;
+  }
+
+  .clientas-original .nav-login{
+    display:none;
+  }
+
+  .clientas-original .nav-reservar{
+    padding:.75rem 1.2rem;
+    font-size:.75rem;
+  }
+}
+
 /* Responsive nav */
 @media(max-width:640px){
-  nav{
+  .clientas-original nav{
     padding:1rem 6%;
   }
 
@@ -485,7 +535,7 @@ nav.scrolled .nav-login:hover{
   to{opacity:1;transform:translateY(0)}
 }
 
-.btn-r{
+.clientas-original .btn-r{
   background:var(--r);
   color:var(--w);
   padding:1rem 2.4rem;
@@ -505,7 +555,7 @@ nav.scrolled .nav-login:hover{
   box-shadow:0 15px 30px rgba(230,0,35,.4);
 }
 
-.btn-ghost{
+.clientas-original .btn-ghost{
   background:rgba(255,255,255,.1);
   color:var(--w);
   padding:1rem 2rem;
@@ -603,7 +653,7 @@ nav.scrolled .nav-login:hover{
   .auth-card{grid-template-columns:1fr}
   .auth-visual{display:none}
   .hero-content{padding:7rem 6% 11rem}
-  nav{padding:1rem 6%}
+  .clientas-original nav{padding:1rem 6%}
   .marquee-overlap-container{
     bottom:-40px;
     width:125vw;
@@ -636,7 +686,7 @@ nav.scrolled .nav-login:hover{
   }
 }
 /* ══ SERVICES GRID ══ */
-.sec{
+.clientas-original .sec{
   padding:8.5rem 5%;
   position:relative;
 }
@@ -815,7 +865,7 @@ nav.scrolled .nav-login:hover{
 }
 
 @media(max-width:640px){
-  .sec{
+  .clientas-original .sec{
     padding:6rem 6%;
   }
 
@@ -1719,7 +1769,7 @@ nav.scrolled .nav-login:hover{
 .cta-huge span{color:var(--rosa)}
 .cta-sub{font-size:clamp(1rem,2vw,1.2rem);color:rgba(255,255,255,.85);max-width:600px;margin:0 auto 3rem;line-height:1.6;position:relative;z-index:2;font-weight:300}
 
-.footer{background:transparent;position:relative;overflow:hidden;padding:6rem 5% 3rem;color:var(--w)}
+.clientas-original .footer{background:transparent;position:relative;overflow:hidden;padding:6rem 5% 3rem;color:var(--w)}
 .footer-grid{position:relative;z-index:1;display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:4rem;padding-bottom:4rem;border-bottom:1px solid rgba(255,255,255,.12)}
 .footer-brand-logo{font-size:2.5rem;font-weight:900;letter-spacing:-.05em;color:var(--w);display:block;margin-bottom:.8rem}
 .footer-brand-logo .dot{color:var(--rosa)}
@@ -1738,11 +1788,11 @@ nav.scrolled .nav-login:hover{
 .fbb-links a:hover{color:var(--w)}
 
 /* ══ REVEAL ══ */
-.rev{opacity:0;transform:translateY(30px);transition:opacity .8s cubic-bezier(.22,1,.36,1),transform .8s cubic-bezier(.22,1,.36,1)}
+.clientas-original .rev{opacity:0;transform:translateY(30px);transition:opacity .8s cubic-bezier(.22,1,.36,1),transform .8s cubic-bezier(.22,1,.36,1)}
 .rev.in{opacity:1;transform:translateY(0)}
-.rev-l{opacity:0;transform:translateX(-40px);transition:opacity .8s ease,transform .8s ease}
+.clientas-original .rev-l{opacity:0;transform:translateX(-40px);transition:opacity .8s ease,transform .8s ease}
 .rev-l.in{opacity:1;transform:translateX(0)}
-.rev-r{opacity:0;transform:translateX(40px);transition:opacity .8s ease,transform .8s ease}
+.clientas-original .rev-r{opacity:0;transform:translateX(40px);transition:opacity .8s ease,transform .8s ease}
 .rev-r.in{opacity:1;transform:translateX(0)}
 .d1{transition-delay:.1s}.d2{transition-delay:.2s}.d3{transition-delay:.3s}.d4{transition-delay:.4s}
 
@@ -1753,7 +1803,7 @@ nav.scrolled .nav-login:hover{
 }
 
 @media(max-width:640px){
-  .footer{padding:5rem 6% 2.5rem;text-align:center}
+  .clientas-original .footer{padding:5rem 6% 2.5rem;text-align:center}
   .footer-grid{grid-template-columns:1fr;gap:2.5rem;text-align:center}
   .footer-brand-logo,.footer-tagline,.footer-desc{text-align:center;margin-left:auto;margin-right:auto}
   .footer-col{text-align:center}
@@ -1852,10 +1902,10 @@ select,
   opacity:1;
 }
 
-nav.scrolled .logo-white{
+.clientas-original nav.scrolled .logo-white{
   opacity:0;
 }
 
-nav.scrolled .logo-red{
+.clientas-original nav.scrolled .logo-red{
   opacity:1;
 }
