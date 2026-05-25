@@ -727,10 +727,15 @@ const toggleBeluerFavorita = (nombre: string) => {
   />
 )}
 
+{activeSection === "historial" && (
+  <HistorialSection goToReserva={() => goToSection("reserva")} />
+)}
+
 {activeSection !== "dashboard" &&
   activeSection !== "reserva" &&
   activeSection !== "beluers" &&
-  activeSection !== "favoritas" && (
+  activeSection !== "favoritas" &&
+  activeSection !== "historial" && (
     <section className="cliente-panel-section active">
       <div className="cliente-panel-top-bar">
         <div className="cliente-panel-greeting">
@@ -1071,6 +1076,120 @@ function DashboardSection({
           button="Ver pagos →"
           onClick={() => goToSection("pagos")}
         />
+      </div>
+    </section>
+  );
+}
+function HistorialSection({
+  goToReserva,
+}: {
+  goToReserva: () => void;
+}) {
+  const historial = [
+    {
+      id: 1,
+      servicio: "Efecto Rímel + Depilación con hilo",
+      beluer: "Camila V.",
+      fecha: "2026-04-24",
+      hora: "15:30",
+      total: 165,
+      metodo: "Yape",
+      rating: 5,
+      comentario:
+        "Me encantó el resultado. Súper puntual, cuidadosa y el acabado quedó natural pero con presencia.",
+      foto: crearPlaceholder("Efecto Rímel", "AD1457"),
+      estado: "Completado",
+    },
+    {
+      id: 2,
+      servicio: "Rubber + Retiro de gel",
+      beluer: "Sofía T.",
+      fecha: "2026-04-03",
+      hora: "11:00",
+      total: 125,
+      metodo: "Tarjeta",
+      rating: 5,
+      comentario:
+        "Las uñas quedaron impecables y duraron bastante. Volvería a reservar.",
+      foto: crearPlaceholder("Rubber", "D81B60"),
+      estado: "Completado",
+    },
+    {
+      id: 3,
+      servicio: "Lifting de pestañas",
+      beluer: "Andrea Robles",
+      fecha: "2026-03-12",
+      hora: "17:00",
+      total: 120,
+      metodo: "Plin",
+      rating: 4,
+      comentario:
+        "Buen servicio y muy cómoda la atención en casa. El resultado quedó bonito.",
+      foto: crearPlaceholder("Lifting", "C2185B"),
+      estado: "Completado",
+    },
+  ];
+
+  return (
+    <section className="cliente-panel-section active">
+      <div className="cliente-panel-top-bar">
+        <div className="cliente-panel-greeting">
+          <h1>Tu historial</h1>
+          <p>Revisa tus servicios anteriores y repite tus reservas favoritas.</p>
+        </div>
+
+        <UserPill />
+      </div>
+
+      <div className="cliente-panel-historial-grid">
+        {historial.map((item) => (
+          <article className="cliente-panel-historial-card" key={item.id}>
+            <div className="cliente-panel-historial-img">
+              <img src={item.foto} alt={item.servicio} />
+              <span>{item.estado}</span>
+            </div>
+
+            <div className="cliente-panel-historial-body">
+              <div className="cliente-panel-historial-header">
+                <div>
+                  <h3>{item.servicio}</h3>
+                  <p>Realizado por {item.beluer}</p>
+                </div>
+
+                <strong>S/ {item.total}</strong>
+              </div>
+
+              <div className="cliente-panel-historial-meta">
+                <span>📅 {item.fecha}</span>
+                <span>🕒 {item.hora}</span>
+                <span>💳 {item.metodo}</span>
+              </div>
+
+              <div className="cliente-panel-historial-rating">
+                {"★".repeat(item.rating)}
+                {"☆".repeat(5 - item.rating)}
+              </div>
+
+              <p className="cliente-panel-historial-comment">
+                “{item.comentario}”
+              </p>
+
+              <div className="cliente-panel-historial-actions">
+                <button
+                  type="button"
+                  className="cliente-panel-btn-r"
+                  onClick={goToReserva}
+                >
+                  Repetir reserva ✦
+                </button>
+
+                <button type="button" className="cliente-panel-btn-ghost">
+                  Ver detalle
+                </button>
+              </div>
+            </div>
+          </article>
+        ))}
       </div>
     </section>
   );
