@@ -331,6 +331,13 @@ const [reservaConfirmada, setReservaConfirmada] = useState(false);
 const [beluersFavoritas, setBeluersFavoritas] = useState<string[]>([
   "Andrea Robles",
 ]);
+const [modalGestion, setModalGestion] = useState<
+  "reprogramar" | "cambiarBeluer" | "cancelar" | null
+>(null);
+
+const [nuevaFecha, setNuevaFecha] = useState(fecha);
+const [nuevaHora, setNuevaHora] = useState(hora);
+const [nuevaBeluer, setNuevaBeluer] = useState("");
 
   const goToSection = (section: PanelSection) => {
     setActiveSection(section);
@@ -421,6 +428,30 @@ const toggleBeluerFavorita = (nombre: string) => {
       : [...current, nombre]
   );
 };
+const handleReprogramarReserva = () => {
+  setFecha(nuevaFecha);
+  setHora(nuevaHora);
+  setModalGestion(null);
+  alert("Tu cita ha sido reprogramada correctamente.");
+};
+
+const handleCambiarBeluer = () => {
+  if (!nuevaBeluer) {
+    alert("Selecciona una nueva Beluer.");
+    return;
+  }
+
+  setBeluerSeleccionada(nuevaBeluer);
+  setModoAsignacion("libre");
+  setModalGestion(null);
+  alert(`Tu Beluer ha sido cambiada a ${nuevaBeluer}.`);
+};
+
+const handleCancelarReserva = () => {
+  setReservaConfirmada(false);
+  setModalGestion(null);
+  alert("Tu reserva ha sido cancelada.");
+};
 
   return (
     <div className="cliente-panel-shell">
@@ -479,6 +510,7 @@ const toggleBeluerFavorita = (nombre: string) => {
     total={total}
     modoAsignacion={modoAsignacion}
     beluerSeleccionada={beluerSeleccionada}
+    onOpenGestion={setModalGestion}
   />
 )}
 
@@ -930,6 +962,161 @@ activeSection !== "perfil" && (
     </div>
   </div>
 )}
+    {modalGestion === "reprogramar" && (
+  <div className="cliente-panel-modal-overlay">
+    <div className="cliente-panel-gestion-modal">
+      <button
+        className="cliente-panel-modal-close"
+        type="button"
+        onClick={() => setModalGestion(null)}
+        aria-label="Cerrar modal"
+      >
+        ×
+      </button>
+
+      <h3>📅 Reprogramar cita</h3>
+      <p className="subtitulo">
+        Elige una nueva fecha y hora para tu servicio.
+      </p>
+
+      <div className="cliente-panel-gestion-aviso">
+        Las reprogramaciones gratuitas se permiten hasta 4 horas antes del
+        servicio. Después, puede aplicar una tarifa de S/ 10.
+      </div>
+
+      <div className="cliente-panel-form-group">
+        <label>Nueva fecha</label>
+        <input
+          type="date"
+          value={nuevaFecha}
+          onChange={(event) => setNuevaFecha(event.target.value)}
+        />
+      </div>
+
+      <div className="cliente-panel-form-group">
+        <label>Nueva hora</label>
+        <input
+          type="time"
+          value={nuevaHora}
+          onChange={(event) => setNuevaHora(event.target.value)}
+        />
+      </div>
+
+      <button
+        className="cliente-panel-btn-r cliente-panel-full-btn"
+        type="button"
+        onClick={handleReprogramarReserva}
+      >
+        Confirmar nuevo horario
+      </button>
+    </div>
+  </div>
+)}
+
+{modalGestion === "cambiarBeluer" && (
+  <div className="cliente-panel-modal-overlay">
+    <div className="cliente-panel-gestion-modal">
+      <button
+        className="cliente-panel-modal-close"
+        type="button"
+        onClick={() => setModalGestion(null)}
+        aria-label="Cerrar modal"
+      >
+        ×
+      </button>
+
+      <h3>👩‍🎨 Cambiar tu Beluer</h3>
+      <p className="subtitulo">
+        Elige otra especialista disponible para tu servicio.
+      </p>
+
+      <div className="cliente-panel-gestion-aviso">
+        El cambio es gratuito si se realiza hasta 2 horas antes. Solo se
+        muestran Beluers compatibles con los servicios reservados.
+      </div>
+
+      <div className="cliente-panel-beluer-selection-grid">
+        {beluersDisponibles.length > 0 ? (
+          beluersDisponibles.map((beluer) => (
+            <button
+              key={beluer.nombre}
+              type="button"
+              className={`cliente-panel-beluer-mini-card ${
+                nuevaBeluer === beluer.nombre ? "selected" : ""
+              }`}
+              onClick={() => setNuevaBeluer(beluer.nombre)}
+            >
+              <img src={beluer.foto} alt={beluer.nombre} />
+              <h4>{beluer.nombre}</h4>
+              <span>
+                ⭐ {beluer.rating} · {beluer.citas} citas
+              </span>
+            </button>
+          ))
+        ) : (
+          <p className="cliente-panel-empty-grid">
+            No hay Beluers disponibles para este servicio.
+          </p>
+        )}
+      </div>
+
+      <button
+        className="cliente-panel-btn-r cliente-panel-full-btn"
+        type="button"
+        onClick={handleCambiarBeluer}
+      >
+        Confirmar cambio
+      </button>
+    </div>
+  </div>
+)}
+
+{modalGestion === "cancelar" && (
+  <div className="cliente-panel-modal-overlay">
+    <div className="cliente-panel-gestion-modal">
+      <button
+        className="cliente-panel-modal-close"
+        type="button"
+        onClick={() => setModalGestion(null)}
+        aria-label="Cerrar modal"
+      >
+        ×
+      </button>
+
+      <h3>❌ Cancelar reserva</h3>
+      <p className="subtitulo">
+        ¿Estás segura de que deseas cancelar tu cita?
+      </p>
+
+      <div className="cliente-panel-gestion-aviso danger">
+        <strong>Política de cancelación:</strong>
+        <br />
+        • Hasta 4h antes: reembolso completo.
+        <br />
+        • Entre 4h y 1h antes: reembolso del 50%.
+        <br />• Menos de 1h antes: sin reembolso.
+      </div>
+
+      <div className="cliente-panel-gestion-actions">
+        <button
+          className="cliente-panel-btn-ghost"
+          type="button"
+          onClick={() => setModalGestion(null)}
+        >
+          Mantener mi cita
+        </button>
+
+        <button
+          className="cliente-panel-btn-r cliente-panel-btn-muted"
+          type="button"
+          onClick={handleCancelarReserva}
+        >
+          Sí, cancelar
+        </button>
+      </div>
+    </div>
+  </div>
+)}
     </div>
   );
 }
@@ -944,6 +1131,7 @@ function DashboardSection({
   total,
   modoAsignacion,
   beluerSeleccionada,
+  onOpenGestion,
 }: {
   goToSection: (section: PanelSection) => void;
   reservaConfirmada: boolean;
@@ -954,6 +1142,9 @@ function DashboardSection({
   total: number;
   modoAsignacion: AssignmentMode;
   beluerSeleccionada: string;
+  onOpenGestion: (
+    modal: "reprogramar" | "cambiarBeluer" | "cancelar"
+  ) => void;
 }) {
   return (
     <section className="cliente-panel-section active">
@@ -1041,10 +1232,18 @@ function DashboardSection({
           </div>
 
           <div className="cliente-panel-ra-acciones">
-            <button type="button">📅 Reprogramar</button>
-            <button type="button">👩‍🎨 Cambiar Beluer</button>
-            <button type="button">❌ Cancelar</button>
-          </div>
+  <button type="button" onClick={() => onOpenGestion("reprogramar")}>
+    📅 Reprogramar
+  </button>
+
+  <button type="button" onClick={() => onOpenGestion("cambiarBeluer")}>
+    👩‍🎨 Cambiar Beluer
+  </button>
+
+  <button type="button" onClick={() => onOpenGestion("cancelar")}>
+    ❌ Cancelar
+  </button>
+</div>
         </div>
       )}
 

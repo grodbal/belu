@@ -2124,3 +2124,81 @@
     gap: 0;
   }
 }
+/* ================================
+   MODALES GESTIÓN RESERVA ACTIVA
+================================ */
+
+.cliente-panel-shell .cliente-panel-gestion-modal {
+  position: relative !important;
+  width: min(500px, 100%) !important;
+  max-height: 88vh !important;
+  overflow-y: auto !important;
+  background: #ffffff !important;
+  border-radius: 2rem !important;
+  padding: 2rem !important;
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.25) !important;
+  color: var(--negro) !important;
+}
+
+.cliente-panel-gestion-modal h3 {
+  font-size: 1.35rem;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  margin: 0 0 0.4rem;
+}
+
+.cliente-panel-gestion-modal .subtitulo {
+  color: #666;
+  font-size: 0.9rem;
+  margin: 0 0 1.4rem;
+  line-height: 1.5;
+}
+
+.cliente-panel-gestion-aviso {
+  background: rgba(230, 0, 35, 0.045);
+  border-left: 3px solid var(--r);
+  padding: 0.9rem 1rem;
+  border-radius: 0.8rem;
+  font-size: 0.84rem;
+  color: #555;
+  line-height: 1.5;
+  margin-bottom: 1.2rem;
+}
+
+.cliente-panel-gestion-aviso.danger {
+  background: rgba(0, 0, 0, 0.035);
+  border-left-color: #888;
+}
+
+.cliente-panel-gestion-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.7rem;
+  margin-top: 1.2rem;
+}
+
+.cliente-panel-gestion-actions .cliente-panel-btn-ghost,
+.cliente-panel-gestion-actions .cliente-panel-btn-r {
+  margin-top: 0;
+  width: 100%;
+}
+
+.cliente-panel-btn-muted {
+  background: #777 !important;
+  box-shadow: none !important;
+}
+
+.cliente-panel-btn-muted:hover {
+  background: #555 !important;
+}
+
+@media (max-width: 900px) {
+  .cliente-panel-shell .cliente-panel-gestion-modal {
+    border-radius: 1.5rem !important;
+    padding: 1.5rem !important;
+  }
+
+  .cliente-panel-gestion-actions {
+    grid-template-columns: 1fr;
+  }
+}
