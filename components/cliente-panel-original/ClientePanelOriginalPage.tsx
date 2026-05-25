@@ -697,26 +697,35 @@ const handleIrDashboard = () => {
             </section>
           )}
 
-          {activeSection !== "dashboard" && activeSection !== "reserva" && (
-            <section className="cliente-panel-section active">
-              <div className="cliente-panel-top-bar">
-                <div className="cliente-panel-greeting">
-                  <h1>{getSectionTitle(activeSection)}</h1>
-                  <p>Esta sección se construirá en el siguiente bloque.</p>
-                </div>
+          {activeSection === "beluers" && (
+  <EspecialistasSection
+    beluers={beluersData}
+    goToReserva={() => goToSection("reserva")}
+  />
+)}
 
-                <UserPill />
-              </div>
+{activeSection !== "dashboard" &&
+  activeSection !== "reserva" &&
+  activeSection !== "beluers" && (
+    <section className="cliente-panel-section active">
+      <div className="cliente-panel-top-bar">
+        <div className="cliente-panel-greeting">
+          <h1>{getSectionTitle(activeSection)}</h1>
+          <p>Esta sección se construirá en el siguiente bloque.</p>
+        </div>
 
-              <div className="cliente-panel-card">
-                <h3>{getSectionTitle(activeSection)}</h3>
-                <p>
-                  Panel base conectado correctamente. Esta sección se migrará en
-                  un siguiente bloque.
-                </p>
-              </div>
-            </section>
-          )}
+        <UserPill />
+      </div>
+
+      <div className="cliente-panel-card">
+        <h3>{getSectionTitle(activeSection)}</h3>
+        <p>
+          Panel base conectado correctamente. Esta sección se migrará en
+          un siguiente bloque.
+        </p>
+      </div>
+    </section>
+  )}
         </main>
       </div>
 
@@ -1050,6 +1059,145 @@ function UserPill() {
       <span>María Claudia R.</span>
     </div>
   );
+}
+
+function EspecialistasSection({
+  beluers,
+  goToReserva,
+}: {
+  beluers: Beluer[];
+  goToReserva: () => void;
+}) {
+  const [filtroCategoria, setFiltroCategoria] = useState<
+    "todas" | "lashes" | "nails" | "mixta"
+  >("todas");
+
+  const [favoritas, setFavoritas] = useState<string[]>(["Andrea Robles"]);
+
+  const beluersFiltradas = beluers.filter((beluer) => {
+    if (filtroCategoria === "todas") return true;
+    return beluer.categoria === filtroCategoria;
+  });
+
+  const toggleFavorita = (nombre: string) => {
+    setFavoritas((current) =>
+      current.includes(nombre)
+        ? current.filter((item) => item !== nombre)
+        : [...current, nombre]
+    );
+  };
+
+  return (
+    <section className="cliente-panel-section active">
+      <div className="cliente-panel-top-bar">
+        <div className="cliente-panel-greeting">
+          <h1>Nuestras Especialistas</h1>
+          <p>Beluers verificadas para lashes, nails y servicios mixtos.</p>
+        </div>
+
+        <UserPill />
+      </div>
+
+      <div className="cliente-panel-beluers-toolbar">
+        <button
+          type="button"
+          className={filtroCategoria === "todas" ? "active" : ""}
+          onClick={() => setFiltroCategoria("todas")}
+        >
+          Todas
+        </button>
+
+        <button
+          type="button"
+          className={filtroCategoria === "lashes" ? "active" : ""}
+          onClick={() => setFiltroCategoria("lashes")}
+        >
+          Lashes
+        </button>
+
+        <button
+          type="button"
+          className={filtroCategoria === "nails" ? "active" : ""}
+          onClick={() => setFiltroCategoria("nails")}
+        >
+          Nails
+        </button>
+
+        <button
+          type="button"
+          className={filtroCategoria === "mixta" ? "active" : ""}
+          onClick={() => setFiltroCategoria("mixta")}
+        >
+          Mixtas
+        </button>
+      </div>
+
+      <div className="cliente-panel-beluers-grid">
+        {beluersFiltradas.map((beluer) => {
+          const esFavorita = favoritas.includes(beluer.nombre);
+
+          return (
+            <article className="cliente-panel-beluer-card" key={beluer.nombre}>
+              <div className="cliente-panel-beluer-card-header">
+                <img src={beluer.foto} alt={beluer.nombre} />
+
+                <button
+                  type="button"
+                  className={`cliente-panel-fav-btn ${
+                    esFavorita ? "active" : ""
+                  }`}
+                  onClick={() => toggleFavorita(beluer.nombre)}
+                  aria-label="Marcar como favorita"
+                >
+                  ♥
+                </button>
+              </div>
+
+              <div className="cliente-panel-beluer-card-body">
+                <div className="cliente-panel-beluer-badge">
+                  {getBeluerBadge(beluer.categoria)}
+                </div>
+
+                <h3>{beluer.nombre}</h3>
+                <p>{beluer.espec}</p>
+
+                <div className="cliente-panel-beluer-meta">
+                  <span>⭐ {beluer.rating}</span>
+                  <span>{beluer.citas} citas</span>
+                </div>
+
+                <div className="cliente-panel-beluer-services">
+                  {beluer.serviciosActivos.slice(0, 5).map((servicio) => (
+                    <span key={servicio}>{servicio}</span>
+                  ))}
+
+                  {beluer.serviciosActivos.length > 5 && (
+                    <span>+{beluer.serviciosActivos.length - 5} más</span>
+                  )}
+                </div>
+
+                <div className="cliente-panel-beluer-actions">
+                  <button
+                    type="button"
+                    className="cliente-panel-btn-ghost"
+                    onClick={goToReserva}
+                  >
+                    Reservar con ella →
+                  </button>
+                </div>
+              </div>
+            </article>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function getBeluerBadge(categoria: Beluer["categoria"]) {
+  if (categoria === "lashes") return "Beluer Lashes";
+  if (categoria === "nails") return "Beluer Nails";
+  return "Beluer Mixta ✦";
 }
 
 function DashboardCard({

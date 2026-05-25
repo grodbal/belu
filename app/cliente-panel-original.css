@@ -1450,3 +1450,173 @@
     text-align: left !important;
   }
 }
+/* ================================
+   SECCIÓN ESPECIALISTAS
+================================ */
+
+.cliente-panel-beluers-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-bottom: 1.5rem;
+}
+
+.cliente-panel-beluers-toolbar button {
+  border: 1.5px solid rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.75);
+  color: #555;
+  border-radius: 2rem;
+  padding: 0.7rem 1.2rem;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cliente-panel-beluers-toolbar button:hover,
+.cliente-panel-beluers-toolbar button.active {
+  background: rgba(230, 0, 35, 0.08);
+  color: var(--r);
+  border-color: rgba(230, 0, 35, 0.2);
+}
+
+.cliente-panel-beluers-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+  gap: 1.4rem;
+}
+
+.cliente-panel-beluer-card {
+  background: rgba(255, 255, 255, 0.74);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  border-radius: 1.6rem;
+  overflow: hidden;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.045);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cliente-panel-beluer-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.07);
+}
+
+.cliente-panel-beluer-card-header {
+  position: relative;
+  height: 190px;
+  overflow: hidden;
+  background: #ffd6e2;
+}
+
+.cliente-panel-beluer-card-header img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  filter: saturate(1.05);
+}
+
+.cliente-panel-fav-btn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.9);
+  color: #aaa;
+  font-size: 1.25rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.09);
+  transition: all 0.2s ease;
+}
+
+.cliente-panel-fav-btn:hover,
+.cliente-panel-fav-btn.active {
+  color: var(--r);
+  transform: scale(1.04);
+}
+
+.cliente-panel-beluer-card-body {
+  padding: 1.4rem;
+}
+
+.cliente-panel-beluer-badge {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(230, 0, 35, 0.08);
+  color: var(--r);
+  border-radius: 2rem;
+  padding: 0.3rem 0.75rem;
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin-bottom: 0.75rem;
+}
+
+.cliente-panel-beluer-card-body h3 {
+  font-size: 1.25rem;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  margin: 0;
+  color: var(--negro);
+}
+
+.cliente-panel-beluer-card-body p {
+  font-size: 0.88rem;
+  color: #666;
+  margin: 0.25rem 0 0.8rem;
+}
+
+.cliente-panel-beluer-meta {
+  display: flex;
+  gap: 0.7rem;
+  margin-bottom: 1rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #444;
+}
+
+.cliente-panel-beluer-meta span {
+  background: rgba(0, 0, 0, 0.035);
+  border-radius: 2rem;
+  padding: 0.35rem 0.65rem;
+}
+
+.cliente-panel-beluer-services {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-bottom: 1.2rem;
+}
+
+.cliente-panel-beluer-services span {
+  background: rgba(255, 214, 226, 0.55);
+  color: #555;
+  border-radius: 2rem;
+  padding: 0.35rem 0.65rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.cliente-panel-beluer-actions {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.cliente-panel-beluer-actions .cliente-panel-btn-ghost {
+  margin-top: 0;
+}
+
+@media (max-width: 900px) {
+  .cliente-panel-beluers-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cliente-panel-beluer-card-header {
+    height: 220px;
+  }
+}
