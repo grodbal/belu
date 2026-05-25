@@ -2202,3 +2202,198 @@
     grid-template-columns: 1fr;
   }
 }
+/* ================================
+   PULIDO VISUAL FINAL PANEL CLIENTA
+================================ */
+
+.cliente-panel-shell {
+  background:
+    radial-gradient(circle at 15% 8%, rgba(255, 214, 226, 0.95) 0%, rgba(255, 214, 226, 0.25) 32%, transparent 58%),
+    radial-gradient(circle at 85% 18%, rgba(230, 0, 35, 0.08) 0%, transparent 34%),
+    radial-gradient(ellipse at 30% 10%, #fff5f7 0%, #fce4ec 40%, #f8f8f8 100%);
+}
+
+.cliente-panel-sidebar {
+  background: rgba(255, 255, 255, 0.82);
+  border-right: 1px solid rgba(230, 0, 35, 0.06);
+}
+
+.cliente-panel-sidebar-logo {
+  min-height: 3rem;
+}
+
+.cliente-panel-sidebar-nav button {
+  position: relative;
+  overflow: hidden;
+}
+
+.cliente-panel-sidebar-nav button::before {
+  content: "";
+  position: absolute;
+  left: 0.5rem;
+  top: 50%;
+  width: 4px;
+  height: 0;
+  border-radius: 999px;
+  background: var(--r);
+  transform: translateY(-50%);
+  transition: height 0.2s ease;
+}
+
+.cliente-panel-sidebar-nav button.active::before {
+  height: 42%;
+}
+
+.cliente-panel-sidebar-nav button.active {
+  padding-left: 1.15rem;
+  box-shadow: inset 0 0 0 1px rgba(230, 0, 35, 0.04);
+}
+
+.cliente-panel-main {
+  max-width: 1440px;
+}
+
+.cliente-panel-top-bar {
+  padding-bottom: 0.25rem;
+}
+
+.cliente-panel-greeting h1 {
+  font-size: clamp(1.45rem, 2vw, 1.85rem);
+}
+
+.cliente-panel-user-pill {
+  border: 1px solid rgba(255, 255, 255, 0.85);
+}
+
+.cliente-panel-empty-state,
+.cliente-panel-card,
+.cliente-panel-beluer-card,
+.cliente-panel-historial-card,
+.cliente-panel-pago-card,
+.cliente-panel-perfil-card,
+.cliente-panel-perfil-form-card {
+  background: rgba(255, 255, 255, 0.76);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.cliente-panel-card h3,
+.cliente-panel-beluer-card-body h3,
+.cliente-panel-historial-header h3,
+.cliente-panel-pago-main h3,
+.cliente-panel-perfil-form-card h3 {
+  letter-spacing: -0.025em;
+}
+
+.cliente-panel-btn-r {
+  letter-spacing: -0.01em;
+}
+
+.cliente-panel-btn-r:active,
+.cliente-panel-btn-ghost:active,
+.cliente-panel-sidebar-nav button:active,
+.cliente-panel-servicio-card:active,
+.cliente-panel-addon-item:active,
+.cliente-panel-beluer-mini-card:active {
+  transform: scale(0.985);
+}
+
+.cliente-panel-servicio-card,
+.cliente-panel-beluer-card,
+.cliente-panel-historial-card,
+.cliente-panel-pago-card {
+  will-change: transform;
+}
+
+.cliente-panel-reserva-activa-card {
+  border: 1px solid rgba(230, 0, 35, 0.14);
+}
+
+.cliente-panel-ra-badge::before {
+  content: "✦";
+  font-size: 0.72rem;
+}
+
+.cliente-panel-ra-acciones button {
+  min-height: 44px;
+}
+
+.cliente-panel-modal,
+.cliente-panel-gestion-modal,
+.cliente-panel-popup-content {
+  animation: clientePanelModalIn 0.22s ease both;
+}
+
+@keyframes clientePanelModalIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.cliente-panel-modal-overlay,
+.cliente-panel-popup-confirmacion {
+  animation: clientePanelOverlayIn 0.18s ease both;
+}
+
+@keyframes clientePanelOverlayIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.cliente-panel-form-group input,
+.cliente-panel-form-group select,
+.cliente-panel-form-group textarea {
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cliente-panel-form-group input:hover,
+.cliente-panel-form-group select:hover,
+.cliente-panel-form-group textarea:hover {
+  border-color: rgba(230, 0, 35, 0.18);
+}
+
+@media (max-width: 900px) {
+  .cliente-panel-main {
+    padding: 5.2rem 1rem 1.25rem;
+  }
+
+  .cliente-panel-top-bar {
+    margin-bottom: 1.4rem;
+  }
+
+  .cliente-panel-user-pill {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .cliente-panel-card,
+  .cliente-panel-empty-state,
+  .cliente-panel-reserva-activa-card,
+  .cliente-panel-perfil-card,
+  .cliente-panel-perfil-form-card {
+    border-radius: 1.25rem;
+  }
+
+  .cliente-panel-card-grid {
+    gap: 1rem;
+  }
+
+  .cliente-panel-servicios-grid {
+    gap: 0.8rem;
+  }
+
+  .cliente-panel-sidebar {
+    width: min(280px, 86vw);
+  }
+}
