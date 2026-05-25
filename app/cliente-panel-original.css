@@ -1620,3 +1620,43 @@
     height: 220px;
   }
 }
+/* ================================
+   SECCIÓN FAVORITAS
+================================ */
+
+.cliente-panel-favoritas-empty {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: rgba(255, 255, 255, 0.58);
+  border-radius: 1.6rem;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.035);
+}
+
+.cliente-panel-empty-heart {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: rgba(230, 0, 35, 0.08);
+  color: var(--r);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: 900;
+  margin: 0 auto 1.2rem;
+}
+
+.cliente-panel-favoritas-empty h2 {
+  font-size: 2rem;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  margin: 0 0 0.6rem;
+}
+
+.cliente-panel-favoritas-empty p {
+  max-width: 520px;
+  margin: 0 auto 1.7rem;
+  color: #666;
+  line-height: 1.6;
+}

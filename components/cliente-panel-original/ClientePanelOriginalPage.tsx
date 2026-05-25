@@ -328,6 +328,9 @@ const [metodoPago, setMetodoPago] = useState<"tarjeta" | "yape" | "plin">(
   "tarjeta"
 );
 const [reservaConfirmada, setReservaConfirmada] = useState(false);
+const [beluersFavoritas, setBeluersFavoritas] = useState<string[]>([
+  "Andrea Robles",
+]);
 
   const goToSection = (section: PanelSection) => {
     setActiveSection(section);
@@ -410,6 +413,13 @@ const handleConfirmarPago = () => {
 const handleIrDashboard = () => {
   setConfirmacionOpen(false);
   setActiveSection("dashboard");
+};
+const toggleBeluerFavorita = (nombre: string) => {
+  setBeluersFavoritas((current) =>
+    current.includes(nombre)
+      ? current.filter((item) => item !== nombre)
+      : [...current, nombre]
+  );
 };
 
   return (
@@ -700,13 +710,27 @@ const handleIrDashboard = () => {
           {activeSection === "beluers" && (
   <EspecialistasSection
     beluers={beluersData}
+    favoritas={beluersFavoritas}
+    onToggleFavorita={toggleBeluerFavorita}
     goToReserva={() => goToSection("reserva")}
+  />
+)}
+
+
+{activeSection === "favoritas" && (
+  <FavoritasSection
+    beluers={beluersData}
+    favoritas={beluersFavoritas}
+    onToggleFavorita={toggleBeluerFavorita}
+    goToReserva={() => goToSection("reserva")}
+    goToEspecialistas={() => goToSection("beluers")}
   />
 )}
 
 {activeSection !== "dashboard" &&
   activeSection !== "reserva" &&
-  activeSection !== "beluers" && (
+  activeSection !== "beluers" &&
+  activeSection !== "favoritas" && (
     <section className="cliente-panel-section active">
       <div className="cliente-panel-top-bar">
         <div className="cliente-panel-greeting">
@@ -1062,30 +1086,25 @@ function UserPill() {
 }
 
 function EspecialistasSection({
+
   beluers,
+  favoritas,
+  onToggleFavorita,
   goToReserva,
 }: {
   beluers: Beluer[];
+  favoritas: string[];
+  onToggleFavorita: (nombre: string) => void;
   goToReserva: () => void;
 }) {
   const [filtroCategoria, setFiltroCategoria] = useState<
     "todas" | "lashes" | "nails" | "mixta"
   >("todas");
 
-  const [favoritas, setFavoritas] = useState<string[]>(["Andrea Robles"]);
-
   const beluersFiltradas = beluers.filter((beluer) => {
     if (filtroCategoria === "todas") return true;
     return beluer.categoria === filtroCategoria;
   });
-
-  const toggleFavorita = (nombre: string) => {
-    setFavoritas((current) =>
-      current.includes(nombre)
-        ? current.filter((item) => item !== nombre)
-        : [...current, nombre]
-    );
-  };
 
   return (
     <section className="cliente-panel-section active">
@@ -1133,64 +1152,144 @@ function EspecialistasSection({
       </div>
 
       <div className="cliente-panel-beluers-grid">
-        {beluersFiltradas.map((beluer) => {
-          const esFavorita = favoritas.includes(beluer.nombre);
-
-          return (
-            <article className="cliente-panel-beluer-card" key={beluer.nombre}>
-              <div className="cliente-panel-beluer-card-header">
-                <img src={beluer.foto} alt={beluer.nombre} />
-
-                <button
-                  type="button"
-                  className={`cliente-panel-fav-btn ${
-                    esFavorita ? "active" : ""
-                  }`}
-                  onClick={() => toggleFavorita(beluer.nombre)}
-                  aria-label="Marcar como favorita"
-                >
-                  ♥
-                </button>
-              </div>
-
-              <div className="cliente-panel-beluer-card-body">
-                <div className="cliente-panel-beluer-badge">
-                  {getBeluerBadge(beluer.categoria)}
-                </div>
-
-                <h3>{beluer.nombre}</h3>
-                <p>{beluer.espec}</p>
-
-                <div className="cliente-panel-beluer-meta">
-                  <span>⭐ {beluer.rating}</span>
-                  <span>{beluer.citas} citas</span>
-                </div>
-
-                <div className="cliente-panel-beluer-services">
-                  {beluer.serviciosActivos.slice(0, 5).map((servicio) => (
-                    <span key={servicio}>{servicio}</span>
-                  ))}
-
-                  {beluer.serviciosActivos.length > 5 && (
-                    <span>+{beluer.serviciosActivos.length - 5} más</span>
-                  )}
-                </div>
-
-                <div className="cliente-panel-beluer-actions">
-                  <button
-                    type="button"
-                    className="cliente-panel-btn-ghost"
-                    onClick={goToReserva}
-                  >
-                    Reservar con ella →
-                  </button>
-                </div>
-              </div>
-            </article>
-          );
-        })}
+        {beluersFiltradas.map((beluer) => (
+          <BeluerCard
+            key={beluer.nombre}
+            beluer={beluer}
+            esFavorita={favoritas.includes(beluer.nombre)}
+            onToggleFavorita={() => onToggleFavorita(beluer.nombre)}
+            goToReserva={goToReserva}
+          />
+        ))}
       </div>
     </section>
+  );
+}
+function FavoritasSection({
+  beluers,
+  favoritas,
+  onToggleFavorita,
+  goToReserva,
+  goToEspecialistas,
+}: {
+  beluers: Beluer[];
+  favoritas: string[];
+  onToggleFavorita: (nombre: string) => void;
+  goToReserva: () => void;
+  goToEspecialistas: () => void;
+}) {
+  const beluersFavoritas = beluers.filter((beluer) =>
+    favoritas.includes(beluer.nombre)
+  );
+
+  return (
+    <section className="cliente-panel-section active">
+      <div className="cliente-panel-top-bar">
+        <div className="cliente-panel-greeting">
+          <h1>Tus beluers favoritas</h1>
+          <p>
+            Accede rápido a las especialistas que más te gustan y reserva con
+            ellas en menos pasos.
+          </p>
+        </div>
+
+        <UserPill />
+      </div>
+
+      {beluersFavoritas.length === 0 ? (
+        <div className="cliente-panel-favoritas-empty">
+          <div className="cliente-panel-empty-heart">♥</div>
+          <h2>Aún no tienes favoritas.</h2>
+          <p>
+            Marca con corazón a tus Beluers preferidas para encontrarlas más
+            rápido la próxima vez.
+          </p>
+
+          <button
+            className="cliente-panel-btn-r"
+            type="button"
+            onClick={goToEspecialistas}
+          >
+            Ver especialistas ✦
+          </button>
+        </div>
+      ) : (
+        <div className="cliente-panel-beluers-grid">
+          {beluersFavoritas.map((beluer) => (
+            <BeluerCard
+              key={beluer.nombre}
+              beluer={beluer}
+              esFavorita={favoritas.includes(beluer.nombre)}
+              onToggleFavorita={() => onToggleFavorita(beluer.nombre)}
+              goToReserva={goToReserva}
+            />
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function BeluerCard({
+  beluer,
+  esFavorita,
+  onToggleFavorita,
+  goToReserva,
+}: {
+  beluer: Beluer;
+  esFavorita: boolean;
+  onToggleFavorita: () => void;
+  goToReserva: () => void;
+}) {
+  return (
+    <article className="cliente-panel-beluer-card">
+      <div className="cliente-panel-beluer-card-header">
+        <img src={beluer.foto} alt={beluer.nombre} />
+
+        <button
+          type="button"
+          className={`cliente-panel-fav-btn ${esFavorita ? "active" : ""}`}
+          onClick={onToggleFavorita}
+          aria-label="Marcar como favorita"
+        >
+          ♥
+        </button>
+      </div>
+
+      <div className="cliente-panel-beluer-card-body">
+        <div className="cliente-panel-beluer-badge">
+          {getBeluerBadge(beluer.categoria)}
+        </div>
+
+        <h3>{beluer.nombre}</h3>
+        <p>{beluer.espec}</p>
+
+        <div className="cliente-panel-beluer-meta">
+          <span>⭐ {beluer.rating}</span>
+          <span>{beluer.citas} citas</span>
+        </div>
+
+        <div className="cliente-panel-beluer-services">
+          {beluer.serviciosActivos.slice(0, 5).map((servicio) => (
+            <span key={servicio}>{servicio}</span>
+          ))}
+
+          {beluer.serviciosActivos.length > 5 && (
+            <span>+{beluer.serviciosActivos.length - 5} más</span>
+          )}
+        </div>
+
+        <div className="cliente-panel-beluer-actions">
+          <button
+            type="button"
+            className="cliente-panel-btn-ghost"
+            onClick={goToReserva}
+          >
+            Reservar con ella →
+          </button>
+        </div>
+      </div>
+    </article>
   );
 }
 
