@@ -731,13 +731,15 @@ const toggleBeluerFavorita = (nombre: string) => {
   <HistorialSection goToReserva={() => goToSection("reserva")} />
 )}
 {activeSection === "pagos" && <PagosSection />}
+{activeSection === "perfil" && <PerfilSection />}
 
 {activeSection !== "dashboard" &&
   activeSection !== "reserva" &&
   activeSection !== "beluers" &&
   activeSection !== "favoritas" &&
   activeSection !== "historial" &&
-activeSection !== "pagos" && (
+activeSection !== "pagos" &&
+activeSection !== "perfil" && (
     <section className="cliente-panel-section active">
       <div className="cliente-panel-top-bar">
         <div className="cliente-panel-greeting">
@@ -1309,6 +1311,159 @@ function PagosSection() {
             </div>
           </article>
         ))}
+      </div>
+    </section>
+  );
+}
+function PerfilSection() {
+  const [nombre, setNombre] = useState("María Claudia Rodríguez");
+  const [email, setEmail] = useState("maria.cr@gmail.com");
+  const [whatsapp, setWhatsapp] = useState("+51 987 654 321");
+  const [distrito, setDistrito] = useState("Miraflores");
+  const [direccion, setDireccion] = useState(
+    "Av. Comandante Espinar 456, Miraflores"
+  );
+  const [preferencia, setPreferencia] = useState("Lashes naturales");
+  const [notificaciones, setNotificaciones] = useState(true);
+
+  const handleGuardarPerfil = () => {
+    alert(
+      `Perfil actualizado correctamente.\n\nNombre: ${nombre}\nWhatsApp: ${whatsapp}\nDistrito: ${distrito}`
+    );
+  };
+
+  return (
+    <section className="cliente-panel-section active">
+      <div className="cliente-panel-top-bar">
+        <div className="cliente-panel-greeting">
+          <h1>Mi perfil</h1>
+          <p>Actualiza tus datos para que tu experiencia belu sea más precisa.</p>
+        </div>
+
+        <UserPill />
+      </div>
+
+      <div className="cliente-panel-perfil-layout">
+        <aside className="cliente-panel-perfil-card">
+          <div className="cliente-panel-perfil-avatar">MC</div>
+          <h2>María Claudia</h2>
+          <p>Clienta belu ✦</p>
+
+          <div className="cliente-panel-perfil-stats">
+            <div>
+              <strong>3</strong>
+              <span>Reservas</span>
+            </div>
+
+            <div>
+              <strong>2</strong>
+              <span>Favoritas</span>
+            </div>
+
+            <div>
+              <strong>5.0</strong>
+              <span>Rating</span>
+            </div>
+          </div>
+
+          <div className="cliente-panel-perfil-note">
+            <strong>Recordatorio día 21</strong>
+            <span>
+              Activaremos tu recordatorio automático de retoque después de cada
+              servicio completado.
+            </span>
+          </div>
+        </aside>
+
+        <div className="cliente-panel-perfil-form-card">
+          <h3>Datos personales</h3>
+
+          <div className="cliente-panel-form-grid">
+            <div className="cliente-panel-form-group">
+              <label>Nombre completo</label>
+              <input
+                type="text"
+                value={nombre}
+                onChange={(event) => setNombre(event.target.value)}
+              />
+            </div>
+
+            <div className="cliente-panel-form-group">
+              <label>Email</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+              />
+            </div>
+
+            <div className="cliente-panel-form-group">
+              <label>WhatsApp</label>
+              <input
+                type="tel"
+                value={whatsapp}
+                onChange={(event) => setWhatsapp(event.target.value)}
+              />
+            </div>
+
+            <div className="cliente-panel-form-group">
+              <label>Distrito</label>
+              <select
+                value={distrito}
+                onChange={(event) => setDistrito(event.target.value)}
+              >
+                <option value="Miraflores">Miraflores</option>
+                <option value="San Isidro">San Isidro</option>
+                <option value="Surco">Surco</option>
+                <option value="La Molina">La Molina</option>
+                <option value="Barranco">Barranco</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="cliente-panel-form-group">
+            <label>Dirección principal</label>
+            <input
+              type="text"
+              value={direccion}
+              onChange={(event) => setDireccion(event.target.value)}
+            />
+          </div>
+
+          <div className="cliente-panel-form-group">
+            <label>Preferencia de belleza</label>
+            <select
+              value={preferencia}
+              onChange={(event) => setPreferencia(event.target.value)}
+            >
+              <option value="Lashes naturales">Lashes naturales</option>
+              <option value="Lashes con volumen">Lashes con volumen</option>
+              <option value="Nails minimalistas">Nails minimalistas</option>
+              <option value="Nails protagonistas">Nails protagonistas</option>
+              <option value="Lashes y nails">Lashes y nails</option>
+            </select>
+          </div>
+
+          <label className="cliente-panel-perfil-toggle">
+            <input
+              type="checkbox"
+              checked={notificaciones}
+              onChange={(event) => setNotificaciones(event.target.checked)}
+            />
+            <span>
+              Quiero recibir recordatorios por WhatsApp, incluyendo mi retoque
+              del día 21.
+            </span>
+          </label>
+
+          <button
+            className="cliente-panel-btn-r cliente-panel-full-btn"
+            type="button"
+            onClick={handleGuardarPerfil}
+          >
+            Guardar cambios
+          </button>
+        </div>
       </div>
     </section>
   );
