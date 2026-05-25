@@ -730,12 +730,14 @@ const toggleBeluerFavorita = (nombre: string) => {
 {activeSection === "historial" && (
   <HistorialSection goToReserva={() => goToSection("reserva")} />
 )}
+{activeSection === "pagos" && <PagosSection />}
 
 {activeSection !== "dashboard" &&
   activeSection !== "reserva" &&
   activeSection !== "beluers" &&
   activeSection !== "favoritas" &&
-  activeSection !== "historial" && (
+  activeSection !== "historial" &&
+activeSection !== "pagos" && (
     <section className="cliente-panel-section active">
       <div className="cliente-panel-top-bar">
         <div className="cliente-panel-greeting">
@@ -1187,6 +1189,123 @@ function HistorialSection({
                   Ver detalle
                 </button>
               </div>
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+function PagosSection() {
+  const pagos = [
+    {
+      id: "BLU-2026-00031",
+      fecha: "2026-04-24",
+      concepto: "Efecto Rímel + Depilación con hilo + cargo logístico",
+      metodo: "Yape",
+      monto: 165,
+      estado: "Pagado",
+      operacion: "YP-884219",
+      beluer: "Camila V.",
+    },
+    {
+      id: "BLU-2026-00022",
+      fecha: "2026-04-03",
+      concepto: "Rubber + Retiro de gel + cargo logístico",
+      metodo: "Tarjeta",
+      monto: 125,
+      estado: "Pagado",
+      operacion: "CARD-193820",
+      beluer: "Sofía T.",
+    },
+    {
+      id: "BLU-2026-00014",
+      fecha: "2026-03-12",
+      concepto: "Lifting de pestañas + cargo logístico",
+      metodo: "Plin",
+      monto: 120,
+      estado: "Pagado",
+      operacion: "PL-552901",
+      beluer: "Andrea Robles",
+    },
+  ];
+
+  const totalPagado = pagos.reduce((acc, pago) => acc + pago.monto, 0);
+
+  return (
+    <section className="cliente-panel-section active">
+      <div className="cliente-panel-top-bar">
+        <div className="cliente-panel-greeting">
+          <h1>Historial de pagos</h1>
+          <p>Consulta tus pagos, métodos usados y comprobantes.</p>
+        </div>
+
+        <UserPill />
+      </div>
+
+      <div className="cliente-panel-pagos-summary">
+        <div>
+          <span>Total pagado</span>
+          <strong>S/ {totalPagado}</strong>
+        </div>
+
+        <div>
+          <span>Transacciones</span>
+          <strong>{pagos.length}</strong>
+        </div>
+
+        <div>
+          <span>Último método</span>
+          <strong>{pagos[0].metodo}</strong>
+        </div>
+      </div>
+
+      <div className="cliente-panel-pagos-list">
+        {pagos.map((pago) => (
+          <article className="cliente-panel-pago-card" key={pago.id}>
+            <div className="cliente-panel-pago-main">
+              <div>
+                <div className="cliente-panel-pago-id">{pago.id}</div>
+                <h3>{pago.concepto}</h3>
+                <p>Atención realizada por {pago.beluer}</p>
+              </div>
+
+              <div className="cliente-panel-pago-monto">
+                <span>{pago.estado}</span>
+                <strong>S/ {pago.monto}</strong>
+              </div>
+            </div>
+
+            <div className="cliente-panel-pago-meta">
+              <span>📅 {pago.fecha}</span>
+              <span>💳 {pago.metodo}</span>
+              <span>🔐 Operación {pago.operacion}</span>
+            </div>
+
+            <div className="cliente-panel-pago-actions">
+              <button
+                type="button"
+                className="cliente-panel-btn-ghost"
+                onClick={() =>
+                  alert(
+                    `Comprobante simulado\n\nCódigo: ${pago.id}\nOperación: ${pago.operacion}\nMonto: S/ ${pago.monto}`
+                  )
+                }
+              >
+                Ver comprobante
+              </button>
+
+              <button
+                type="button"
+                className="cliente-panel-btn-ghost"
+                onClick={() =>
+                  alert(
+                    "Más adelante este botón descargará el comprobante real generado por la pasarela de pago."
+                  )
+                }
+              >
+                Descargar
+              </button>
             </div>
           </article>
         ))}
