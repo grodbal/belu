@@ -866,3 +866,587 @@
     text-align: left;
   }
 }
+.cliente-panel-modal-overlay,
+.cliente-panel-popup-confirmacion {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.cliente-panel-modal {
+  background: #fff;
+  border-radius: 2rem;
+  padding: 2rem;
+  max-width: 550px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 30px 50px rgba(0, 0, 0, 0.2);
+  position: relative;
+}
+
+.cliente-panel-modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1.5rem;
+  border: none;
+  background: transparent;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #888;
+}
+
+.cliente-panel-modal-close:hover {
+  color: var(--r);
+}
+
+.cliente-panel-modal h2 {
+  font-size: 1.4rem;
+  font-weight: 800;
+  margin: 0 0 1rem;
+}
+
+.cliente-panel-detalle-pago {
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: 1rem;
+  padding: 1rem;
+  margin: 1rem 0;
+}
+
+.cliente-panel-detalle-pago .linea-pago {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.35rem;
+  font-size: 0.9rem;
+}
+
+.cliente-panel-detalle-pago .linea-pago.addon {
+  color: #555;
+  font-size: 0.85rem;
+  padding-left: 0.5rem;
+}
+
+.cliente-panel-detalle-pago .linea-pago.express {
+  color: var(--r);
+  font-weight: 700;
+}
+
+.cliente-panel-detalle-pago .linea-pago.total {
+  font-weight: 800;
+  font-size: 1.05rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  padding-top: 0.6rem;
+  margin-top: 0.5rem;
+  color: var(--r);
+}
+
+.cliente-panel-beluer-info-pago {
+  margin-top: 0.8rem;
+  padding: 0.8rem 1rem;
+  background: linear-gradient(
+    135deg,
+    rgba(230, 0, 35, 0.06) 0%,
+    rgba(255, 214, 226, 0.4) 100%
+  );
+  border-radius: 0.8rem;
+  border-left: 3px solid var(--r);
+  font-size: 0.85rem;
+}
+
+.cliente-panel-beluer-info-pago strong {
+  color: var(--r);
+}
+
+.cliente-panel-beluer-info-pago.gestionado {
+  font-style: italic;
+}
+
+.cliente-panel-metodos-pago {
+  display: flex;
+  gap: 0.5rem;
+  margin: 1.5rem 0;
+}
+
+.cliente-panel-metodos-pago button {
+  flex: 1;
+  padding: 0.8rem;
+  border: 2px solid #eee;
+  border-radius: 1rem;
+  background: #fff;
+  cursor: pointer;
+  text-align: center;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.cliente-panel-metodos-pago button:hover,
+.cliente-panel-metodos-pago button.seleccionado {
+  border-color: var(--r);
+  background: rgba(230, 0, 35, 0.03);
+}
+
+.cliente-panel-popup-content {
+  background: linear-gradient(135deg, #fff5f7 0%, #ffd6e2 100%);
+  border-radius: 2rem;
+  padding: 2.5rem;
+  max-width: 500px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 30px 50px rgba(0, 0, 0, 0.2);
+  position: relative;
+}
+
+.cliente-panel-popup-logo {
+  font-size: 2rem;
+  font-weight: 900;
+  color: var(--r);
+  margin-bottom: 1rem;
+}
+
+.cliente-panel-popup-content h2 {
+  font-size: 1.8rem;
+  font-weight: 800;
+  margin: 0 0 0.5rem;
+}
+
+.cliente-panel-popup-content > p {
+  color: #555;
+  margin: 0 0 1.5rem;
+}
+
+.cliente-panel-detalle-reserva {
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 1rem;
+  padding: 1.2rem;
+  margin: 1rem 0;
+  text-align: left;
+  font-size: 0.88rem;
+}
+
+.cliente-panel-detalle-reserva p {
+  margin: 0 0 0.5rem;
+  color: #333;
+}
+
+.cliente-panel-detalle-reserva .addon-line {
+  color: #666;
+  font-size: 0.83rem;
+  padding-left: 0.8rem;
+  border-left: 2px solid rgba(230, 0, 35, 0.2);
+  margin-bottom: 0.3rem;
+}
+
+.cliente-panel-detalle-reserva .beluer-confirm {
+  background: linear-gradient(
+    135deg,
+    rgba(230, 0, 35, 0.08) 0%,
+    rgba(255, 214, 226, 0.5) 100%
+  );
+  padding: 0.8rem 1rem;
+  border-radius: 0.8rem;
+  border-left: 3px solid var(--r);
+  margin: 0.8rem 0;
+}
+
+.cliente-panel-detalle-reserva .beluer-confirm strong {
+  color: var(--r);
+}
+
+.cliente-panel-reserva-activa-card {
+  background: linear-gradient(135deg, #fff5f7 0%, #ffe5ed 60%, #ffd6e2 100%);
+  border: 1px solid rgba(230, 0, 35, 0.15);
+  border-radius: 1.8rem;
+  padding: 2rem;
+  box-shadow: 0 15px 40px rgba(230, 0, 35, 0.12);
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+
+.cliente-panel-reserva-activa-card::before {
+  content: "✦";
+  position: absolute;
+  top: -2rem;
+  right: -1.5rem;
+  font-size: 14rem;
+  color: rgba(230, 0, 35, 0.05);
+  line-height: 1;
+  pointer-events: none;
+}
+
+.cliente-panel-ra-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: rgba(230, 0, 35, 0.1);
+  color: var(--r);
+  padding: 0.35rem 0.9rem;
+  border-radius: 2rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 0.8rem;
+}
+
+.cliente-panel-reserva-activa-card h2 {
+  font-size: 1.8rem;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  margin: 0 0 0.3rem;
+}
+
+.cliente-panel-reserva-activa-card p {
+  color: #666;
+  font-size: 0.9rem;
+  margin: 0 0 1.5rem;
+}
+
+.cliente-panel-ra-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.2rem;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 1.2rem;
+  padding: 1.4rem;
+  margin-bottom: 1.5rem;
+  position: relative;
+  z-index: 1;
+}
+
+.cliente-panel-ra-grid div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.cliente-panel-ra-grid div.full {
+  grid-column: 1 / -1;
+}
+
+.cliente-panel-ra-grid span {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #888;
+}
+
+.cliente-panel-ra-grid strong {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--negro);
+}
+
+.cliente-panel-ra-acciones {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.6rem;
+  position: relative;
+  z-index: 1;
+}
+
+.cliente-panel-ra-acciones button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.8rem 1rem;
+  border-radius: 1rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: 1.5px solid rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.85);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  color: var(--negro);
+}
+
+.cliente-panel-ra-acciones button:hover {
+  border-color: var(--r);
+  background: #fff;
+  transform: translateY(-1px);
+  color: var(--r);
+}
+
+@media (max-width: 900px) {
+  .cliente-panel-metodos-pago {
+    flex-direction: column;
+  }
+
+  .cliente-panel-ra-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cliente-panel-reserva-activa-card h2 {
+    font-size: 1.4rem;
+  }
+}
+/* ================================
+   FIX MODAL PAGO + CONFIRMACIÓN
+================================ */
+
+.cliente-panel-shell .cliente-panel-modal-overlay,
+.cliente-panel-shell .cliente-panel-popup-confirmacion {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: rgba(17, 17, 17, 0.62) !important;
+  z-index: 99999 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 1.25rem !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+}
+
+.cliente-panel-shell .cliente-panel-modal {
+  position: relative !important;
+  width: min(540px, 100%) !important;
+  max-height: 88vh !important;
+  overflow-y: auto !important;
+  background: #ffffff !important;
+  border-radius: 2rem !important;
+  padding: 2rem !important;
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.25) !important;
+  color: var(--negro) !important;
+  margin: 0 !important;
+}
+
+.cliente-panel-shell .cliente-panel-modal-close {
+  position: absolute !important;
+  top: 1rem !important;
+  right: 1.25rem !important;
+  width: 34px !important;
+  height: 34px !important;
+  border: none !important;
+  border-radius: 50% !important;
+  background: rgba(0, 0, 0, 0.04) !important;
+  color: #777 !important;
+  font-size: 1.4rem !important;
+  line-height: 1 !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.cliente-panel-shell .cliente-panel-modal-close:hover {
+  background: rgba(230, 0, 35, 0.08) !important;
+  color: var(--r) !important;
+}
+
+.cliente-panel-shell .cliente-panel-modal h2 {
+  font-size: 1.45rem !important;
+  font-weight: 900 !important;
+  margin: 0 0 1.2rem !important;
+  letter-spacing: -0.02em !important;
+  color: var(--negro) !important;
+}
+
+.cliente-panel-shell .cliente-panel-detalle-pago {
+  background: rgba(0, 0, 0, 0.025) !important;
+  border-radius: 1.2rem !important;
+  padding: 1rem !important;
+  margin: 1rem 0 1.3rem !important;
+  border: 1px solid rgba(0, 0, 0, 0.04) !important;
+}
+
+.cliente-panel-shell .linea-pago {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: flex-start !important;
+  gap: 1rem !important;
+  font-size: 0.9rem !important;
+  margin-bottom: 0.5rem !important;
+  color: #333 !important;
+}
+
+.cliente-panel-shell .linea-pago strong {
+  text-align: right !important;
+  color: var(--negro) !important;
+  font-weight: 800 !important;
+}
+
+.cliente-panel-shell .linea-pago.addon {
+  color: #666 !important;
+  font-size: 0.85rem !important;
+  padding-left: 0.5rem !important;
+}
+
+.cliente-panel-shell .linea-pago.express {
+  color: var(--r) !important;
+  font-weight: 700 !important;
+}
+
+.cliente-panel-shell .linea-pago.express strong {
+  color: var(--r) !important;
+}
+
+.cliente-panel-shell .linea-pago.total {
+  border-top: 1px dashed rgba(0, 0, 0, 0.12) !important;
+  padding-top: 0.75rem !important;
+  margin-top: 0.75rem !important;
+  font-size: 1.05rem !important;
+  color: var(--r) !important;
+}
+
+.cliente-panel-shell .linea-pago.total strong {
+  color: var(--r) !important;
+  font-size: 1.15rem !important;
+}
+
+.cliente-panel-shell .cliente-panel-beluer-info-pago {
+  margin-top: 0.9rem !important;
+  padding: 0.9rem 1rem !important;
+  background: linear-gradient(
+    135deg,
+    rgba(230, 0, 35, 0.06) 0%,
+    rgba(255, 214, 226, 0.45) 100%
+  ) !important;
+  border-left: 3px solid var(--r) !important;
+  border-radius: 0.9rem !important;
+  font-size: 0.85rem !important;
+  line-height: 1.45 !important;
+  color: #444 !important;
+}
+
+.cliente-panel-shell .cliente-panel-beluer-info-pago strong {
+  color: var(--r) !important;
+}
+
+.cliente-panel-shell .cliente-panel-metodos-pago {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 0.65rem !important;
+  margin: 1.4rem 0 !important;
+}
+
+.cliente-panel-shell .cliente-panel-metodos-pago button {
+  width: 100% !important;
+  padding: 0.85rem 0.75rem !important;
+  border-radius: 1rem !important;
+  border: 2px solid rgba(0, 0, 0, 0.07) !important;
+  background: #fff !important;
+  color: var(--negro) !important;
+  font-family: inherit !important;
+  font-size: 0.85rem !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+
+.cliente-panel-shell .cliente-panel-metodos-pago button:hover,
+.cliente-panel-shell .cliente-panel-metodos-pago button.seleccionado {
+  border-color: var(--r) !important;
+  background: rgba(230, 0, 35, 0.04) !important;
+  color: var(--r) !important;
+}
+
+.cliente-panel-shell .cliente-panel-modal .cliente-panel-full-btn {
+  width: 100% !important;
+  position: static !important;
+  display: block !important;
+  margin-top: 1rem !important;
+}
+
+/* Popup de confirmación */
+
+.cliente-panel-shell .cliente-panel-popup-content {
+  width: min(500px, 100%) !important;
+  background: linear-gradient(135deg, #fff5f7 0%, #ffd6e2 100%) !important;
+  border-radius: 2rem !important;
+  padding: 2.5rem !important;
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.25) !important;
+  text-align: center !important;
+  color: var(--negro) !important;
+}
+
+.cliente-panel-shell .cliente-panel-popup-logo {
+  font-size: 2rem !important;
+  font-weight: 900 !important;
+  color: var(--r) !important;
+  margin-bottom: 1rem !important;
+}
+
+.cliente-panel-shell .cliente-panel-popup-content h2 {
+  font-size: 1.8rem !important;
+  font-weight: 900 !important;
+  margin: 0 0 0.5rem !important;
+  letter-spacing: -0.03em !important;
+}
+
+.cliente-panel-shell .cliente-panel-popup-content > p {
+  color: #555 !important;
+  margin: 0 0 1.4rem !important;
+}
+
+.cliente-panel-shell .cliente-panel-detalle-reserva {
+  background: rgba(255, 255, 255, 0.85) !important;
+  border-radius: 1.2rem !important;
+  padding: 1.2rem !important;
+  margin: 1.2rem 0 !important;
+  text-align: left !important;
+  font-size: 0.88rem !important;
+}
+
+.cliente-panel-shell .cliente-panel-detalle-reserva p {
+  margin: 0 0 0.5rem !important;
+  color: #333 !important;
+}
+
+.cliente-panel-shell .cliente-panel-detalle-reserva .addon-line {
+  color: #666 !important;
+  font-size: 0.83rem !important;
+  padding-left: 0.8rem !important;
+  border-left: 2px solid rgba(230, 0, 35, 0.2) !important;
+}
+
+.cliente-panel-shell .cliente-panel-detalle-reserva .beluer-confirm {
+  background: linear-gradient(
+    135deg,
+    rgba(230, 0, 35, 0.08) 0%,
+    rgba(255, 214, 226, 0.5) 100%
+  ) !important;
+  padding: 0.8rem 1rem !important;
+  border-radius: 0.8rem !important;
+  border-left: 3px solid var(--r) !important;
+  margin: 0.8rem 0 !important;
+}
+
+.cliente-panel-shell .cliente-panel-detalle-reserva .beluer-confirm strong {
+  color: var(--r) !important;
+}
+
+@media (max-width: 900px) {
+  .cliente-panel-shell .cliente-panel-modal,
+  .cliente-panel-shell .cliente-panel-popup-content {
+    border-radius: 1.5rem !important;
+    padding: 1.5rem !important;
+  }
+
+  .cliente-panel-shell .cliente-panel-metodos-pago {
+    grid-template-columns: 1fr !important;
+  }
+
+  .cliente-panel-shell .linea-pago {
+    flex-direction: column !important;
+    gap: 0.15rem !important;
+  }
+
+  .cliente-panel-shell .linea-pago strong {
+    text-align: left !important;
+  }
+}

@@ -322,6 +322,12 @@ export default function ClientePanelOriginalPage() {
   const [modoAsignacion, setModoAsignacion] =
     useState<AssignmentMode>("gestionado");
   const [beluerSeleccionada, setBeluerSeleccionada] = useState("");
+  const [pagoOpen, setPagoOpen] = useState(false);
+const [confirmacionOpen, setConfirmacionOpen] = useState(false);
+const [metodoPago, setMetodoPago] = useState<"tarjeta" | "yape" | "plin">(
+  "tarjeta"
+);
+const [reservaConfirmada, setReservaConfirmada] = useState(false);
 
   const goToSection = (section: PanelSection) => {
     setActiveSection(section);
@@ -382,20 +388,29 @@ export default function ClientePanelOriginalPage() {
   };
 
   const handleConfirmarReserva = () => {
-    if (serviciosSeleccionados.length === 0) {
-      alert("Selecciona al menos un servicio.");
-      return;
-    }
+  if (serviciosSeleccionados.length === 0) {
+    alert("Selecciona al menos un servicio.");
+    return;
+  }
 
-    if (modoAsignacion === "libre" && !beluerSeleccionada) {
-      alert("Elige a tu beluer antes de continuar.");
-      return;
-    }
+  if (modoAsignacion === "libre" && !beluerSeleccionada) {
+    alert("Elige a tu beluer antes de continuar.");
+    return;
+  }
 
-    alert(
-      `Reserva lista para pasar al flujo de pago.\nTotal: S/ ${total}\nFecha: ${fecha}\nHora: ${hora}`
-    );
-  };
+  setPagoOpen(true);
+};
+
+const handleConfirmarPago = () => {
+  setPagoOpen(false);
+  setConfirmacionOpen(true);
+  setReservaConfirmada(true);
+};
+
+const handleIrDashboard = () => {
+  setConfirmacionOpen(false);
+  setActiveSection("dashboard");
+};
 
   return (
     <div className="cliente-panel-shell">
@@ -444,8 +459,18 @@ export default function ClientePanelOriginalPage() {
 
         <main className="cliente-panel-main">
           {activeSection === "dashboard" && (
-            <DashboardSection goToSection={goToSection} />
-          )}
+  <DashboardSection
+    goToSection={goToSection}
+    reservaConfirmada={reservaConfirmada}
+    serviciosSeleccionados={serviciosSeleccionados}
+    addonsActivos={addonsActivos}
+    fecha={fecha}
+    hora={hora}
+    total={total}
+    modoAsignacion={modoAsignacion}
+    beluerSeleccionada={beluerSeleccionada}
+  />
+)}
 
           {activeSection === "reserva" && (
             <section className="cliente-panel-section active">
@@ -703,41 +728,283 @@ export default function ClientePanelOriginalPage() {
           aria-label="Cerrar menú"
         />
       )}
+      {pagoOpen && (
+  <div className="cliente-panel-modal-overlay">
+    <div className="cliente-panel-modal">
+      <button
+        className="cliente-panel-modal-close"
+        type="button"
+        onClick={() => setPagoOpen(false)}
+        aria-label="Cerrar modal"
+      >
+        ×
+      </button>
+
+      <h2>💳 Completa tu pago</h2>
+
+      <div className="cliente-panel-detalle-pago">
+        <div className="linea-pago">
+          <span>Servicios</span>
+          <strong>
+            {serviciosSeleccionados
+              .map((servicio) => servicio.nombre)
+              .join(" + ")}
+          </strong>
+        </div>
+
+        {addonsActivos.map((addon) => (
+          <div className="linea-pago addon" key={addon.nombre}>
+            <span>{addon.nombre}</span>
+            <strong>+ S/ {addon.precio}</strong>
+          </div>
+        ))}
+
+        <div className="linea-pago">
+          <span>Cargo logístico</span>
+          <strong>S/ 10</strong>
+        </div>
+
+        {urgencia && (
+          <div className="linea-pago express">
+            <span>Belu Express</span>
+            <strong>+ S/ 20</strong>
+          </div>
+        )}
+
+        <div className="linea-pago total">
+          <span>Total a pagar</span>
+          <strong>S/ {total}</strong>
+        </div>
+
+        {modoAsignacion === "libre" && beluerSeleccionada ? (
+          <div className="cliente-panel-beluer-info-pago">
+            Tu servicio será realizado por <strong>{beluerSeleccionada}</strong>.
+          </div>
+        ) : (
+          <div className="cliente-panel-beluer-info-pago gestionado">
+            belu asignará una Beluer disponible para tu horario.
+          </div>
+        )}
+      </div>
+
+      <div className="cliente-panel-metodos-pago">
+        <button
+          type="button"
+          className={metodoPago === "tarjeta" ? "seleccionado" : ""}
+          onClick={() => setMetodoPago("tarjeta")}
+        >
+          💳 Tarjeta
+        </button>
+
+        <button
+          type="button"
+          className={metodoPago === "yape" ? "seleccionado" : ""}
+          onClick={() => setMetodoPago("yape")}
+        >
+          📱 Yape
+        </button>
+
+        <button
+          type="button"
+          className={metodoPago === "plin" ? "seleccionado" : ""}
+          onClick={() => setMetodoPago("plin")}
+        >
+          📱 Plin
+        </button>
+      </div>
+
+      <button
+        className="cliente-panel-btn-r cliente-panel-full-btn"
+        type="button"
+        onClick={handleConfirmarPago}
+      >
+        Confirmar pago
+      </button>
+    </div>
+  </div>
+)}
+
+{confirmacionOpen && (
+  <div className="cliente-panel-popup-confirmacion">
+    <div className="cliente-panel-popup-content">
+      <div className="cliente-panel-popup-logo">belu ✦</div>
+
+      <h2>¡Reserva confirmada!</h2>
+      <p>Tu servicio ha sido agendado exitosamente.</p>
+
+      <div className="cliente-panel-detalle-reserva">
+        <p>
+          <strong>Servicio:</strong>{" "}
+          {serviciosSeleccionados
+            .map((servicio) => servicio.nombre)
+            .join(" + ")}
+        </p>
+
+        {addonsActivos.map((addon) => (
+          <p className="addon-line" key={addon.nombre}>
+            + {addon.nombre} · S/ {addon.precio}
+          </p>
+        ))}
+
+        <p>
+          <strong>Fecha:</strong> {fecha}
+        </p>
+
+        <p>
+          <strong>Hora:</strong> {hora}
+        </p>
+
+        <p>
+          <strong>Método:</strong>{" "}
+          {metodoPago === "tarjeta"
+            ? "Tarjeta"
+            : metodoPago === "yape"
+            ? "Yape"
+            : "Plin"}
+        </p>
+
+        <p>
+          <strong>Total:</strong> S/ {total}
+        </p>
+
+        <div className="beluer-confirm">
+          {modoAsignacion === "libre" && beluerSeleccionada ? (
+            <>
+              Beluer asignada: <strong>{beluerSeleccionada}</strong>
+            </>
+          ) : (
+            <>belu asignará una Beluer disponible en tu zona.</>
+          )}
+        </div>
+      </div>
+
+      <button
+        className="cliente-panel-btn-r cliente-panel-full-btn"
+        type="button"
+        onClick={handleIrDashboard}
+      >
+        Ir a mi dashboard
+      </button>
+    </div>
+  </div>
+)}
     </div>
   );
 }
 
 function DashboardSection({
   goToSection,
+  reservaConfirmada,
+  serviciosSeleccionados,
+  addonsActivos,
+  fecha,
+  hora,
+  total,
+  modoAsignacion,
+  beluerSeleccionada,
 }: {
   goToSection: (section: PanelSection) => void;
+  reservaConfirmada: boolean;
+  serviciosSeleccionados: Service[];
+  addonsActivos: Addon[];
+  fecha: string;
+  hora: string;
+  total: number;
+  modoAsignacion: AssignmentMode;
+  beluerSeleccionada: string;
 }) {
   return (
     <section className="cliente-panel-section active">
       <div className="cliente-panel-top-bar">
         <div className="cliente-panel-greeting">
           <h1>Bienvenida, María ✦</h1>
-          <p>Aún no tienes reservas activas</p>
+          <p>
+            {reservaConfirmada
+              ? "Tienes una reserva activa"
+              : "Aún no tienes reservas activas"}
+          </p>
         </div>
 
         <UserPill />
       </div>
 
-      <div className="cliente-panel-empty-state">
-        <h2>No tienes ninguna reserva activa.</h2>
-        <p>
-          Tu brillo no espera. Es tu momento de consentirte y recordarle al mundo
-          lo increíble que eres.
-        </p>
+      {!reservaConfirmada ? (
+        <div className="cliente-panel-empty-state">
+          <h2>No tienes ninguna reserva activa.</h2>
+          <p>
+            Tu brillo no espera. Es tu momento de consentirte y recordarle al
+            mundo lo increíble que eres.
+          </p>
 
-        <button
-          className="cliente-panel-btn-r"
-          type="button"
-          onClick={() => goToSection("reserva")}
-        >
-          Agendar mi primera cita ✦
-        </button>
-      </div>
+          <button
+            className="cliente-panel-btn-r"
+            type="button"
+            onClick={() => goToSection("reserva")}
+          >
+            Agendar mi primera cita ✦
+          </button>
+        </div>
+      ) : (
+        <div className="cliente-panel-reserva-activa-card">
+          <div className="cliente-panel-ra-badge">Reserva activa</div>
+
+          <h2>Tu cita belu está confirmada ✦</h2>
+          <p>
+            Tu servicio ya está agendado. Te notificaremos por WhatsApp con los
+            datos de tu Beluer.
+          </p>
+
+          <div className="cliente-panel-ra-grid">
+            <div>
+              <span>Servicios</span>
+              <strong>
+                {serviciosSeleccionados
+                  .map((servicio) => servicio.nombre)
+                  .join(" + ")}
+              </strong>
+            </div>
+
+            <div>
+              <span>Total pagado</span>
+              <strong>S/ {total}</strong>
+            </div>
+
+            <div>
+              <span>Fecha</span>
+              <strong>{fecha}</strong>
+            </div>
+
+            <div>
+              <span>Hora</span>
+              <strong>{hora}</strong>
+            </div>
+
+            {addonsActivos.length > 0 && (
+              <div className="full">
+                <span>Adicionales</span>
+                <strong>
+                  {addonsActivos.map((addon) => addon.nombre).join(" + ")}
+                </strong>
+              </div>
+            )}
+
+            <div className="full">
+              <span>Asignación</span>
+              <strong>
+                {modoAsignacion === "libre" && beluerSeleccionada
+                  ? beluerSeleccionada
+                  : "Gestionado por belu"}
+              </strong>
+            </div>
+          </div>
+
+          <div className="cliente-panel-ra-acciones">
+            <button type="button">📅 Reprogramar</button>
+            <button type="button">👩‍🎨 Cambiar Beluer</button>
+            <button type="button">❌ Cancelar</button>
+          </div>
+        </div>
+      )}
 
       <div className="cliente-panel-card-grid">
         <DashboardCard
