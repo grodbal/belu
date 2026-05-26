@@ -4,7 +4,7 @@
 
 Esta carpeta contiene la estructura base de Supabase para belu.
 
-Por ahora estos archivos no están conectados al proyecto Next.js. Están versionados para dejar preparada la arquitectura de base de datos, permisos, storage, triggers, funciones RPC, vistas de lectura y datos iniciales antes de la integración real.
+Por ahora estos archivos no están conectados al proyecto Next.js. Están versionados para dejar preparada la arquitectura de base de datos, permisos, storage, triggers, funciones RPC, vistas de lectura, auditoría y datos iniciales antes de la integración real.
 
 ---
 
@@ -18,6 +18,7 @@ supabase/storage-policies.sql
 supabase/triggers.sql
 supabase/functions.sql
 supabase/views.sql
+supabase/audit.sql
 ```
 
 ---
@@ -34,9 +35,10 @@ Cuando se cree el proyecto real en Supabase, ejecutar los archivos en este orden
 5. triggers.sql
 6. functions.sql
 7. views.sql
+8. audit.sql
 ```
 
-No cambiar este orden. Algunos archivos dependen de tablas, enums, funciones auxiliares, buckets, triggers o funciones RPC creadas previamente.
+No cambiar este orden. Algunos archivos dependen de tablas, enums, funciones auxiliares, buckets, triggers, funciones RPC o vistas creadas previamente.
 
 ---
 
@@ -255,7 +257,49 @@ v_admin_metrics_by_day
 v_admin_automation_events
 ```
 
-Este archivo debe ejecutarse al final porque depende de todas las tablas principales ya creadas.
+Este archivo debe ejecutarse después de `functions.sql`.
+
+---
+
+## 8. audit.sql
+
+Crea trazabilidad para cambios sensibles.
+
+Incluye:
+
+- Enum de acciones de auditoría.
+- Tabla `audit_log`.
+- Políticas RLS para que solo Admin pueda leer auditoría.
+- Funciones auxiliares para registrar cambios.
+- Triggers de auditoría para tablas sensibles.
+- Vista `v_admin_audit_log`.
+
+Registra cambios en:
+
+```txt
+beluer_profiles
+services
+bookings
+payments
+beluer_photos
+```
+
+Tipos de acciones auditadas:
+
+```txt
+insert
+update
+delete
+status_change
+level_change
+payment_change
+refund
+photo_moderation
+booking_assignment
+booking_status_change
+```
+
+Este archivo debe ejecutarse al final porque depende de tablas, enums, funciones auxiliares y vistas ya creadas.
 
 ---
 
@@ -329,6 +373,7 @@ Ejecutar en el SQL Editor de Supabase:
 5. triggers.sql
 6. functions.sql
 7. views.sql
+8. audit.sql
 ```
 
 ### Fase 3: Crear primer usuario Admin
@@ -420,6 +465,8 @@ No ejecutar `functions.sql` antes de `triggers.sql`.
 
 No ejecutar `views.sql` antes de `functions.sql`.
 
+No ejecutar `audit.sql` antes de `views.sql`.
+
 No compartir la `service role key`.
 
 No conectar pagos reales hasta validar bien reservas, usuarios y permisos.
@@ -440,23 +487,17 @@ No permitir que una Beluer vea pagos completos de clientas. Su vista financiera 
 
 ---
 
-## Próximos archivos recomendados
+## Próximos pasos recomendados
 
 ```txt
-supabase/audit.sql
+1. Crear proyecto Supabase real.
+2. Ejecutar archivos SQL en orden.
+3. Instalar @supabase/supabase-js.
+4. Crear clientes Supabase en Next.js.
+5. Configurar variables .env.local.
+6. Crear Auth y roles.
+7. Conectar primero el Admin panel.
 ```
-
-Posibles responsabilidades:
-
-`audit.sql`
-
-- Historial de cambios sensibles.
-- Auditoría de reservas.
-- Auditoría de pagos.
-- Auditoría de reembolsos.
-- Auditoría de cambios de estado de Beluers.
-- Auditoría de cambios de nivel.
-- Registro de acciones Admin.
 
 ---
 
