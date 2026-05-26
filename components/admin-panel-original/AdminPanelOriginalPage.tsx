@@ -63,6 +63,21 @@ type AdminReserva = {
   modoAsignacion: "gestionado" | "libre";
   instrucciones: string;
 };
+type AdminFotoEstado = "pendiente" | "aprobada" | "rechazada";
+
+type AdminFotoCategoria = "lashes" | "nails" | "brows";
+
+type AdminFoto = {
+  id: string;
+  beluer: string;
+  categoria: AdminFotoCategoria;
+  titulo: string;
+  imagen: string;
+  estado: AdminFotoEstado;
+  destacada: boolean;
+  fechaSubida: string;
+  notaRevision: string;
+};
 
 const icons = {
   dashboard: (
@@ -365,6 +380,68 @@ const reservasIniciales: AdminReserva[] = [
     instrucciones: "Cancelada por solicitud de la clienta.",
   },
 ];
+const fotosIniciales: AdminFoto[] = [
+  {
+    id: "FOTO-001",
+    beluer: "Andrea Robles",
+    categoria: "lashes",
+    titulo: "Volumen natural",
+    imagen:
+      "https://images.unsplash.com/photo-1583001931096-959e9a1a6223?w=800&q=80",
+    estado: "aprobada",
+    destacada: true,
+    fechaSubida: "2026-05-10",
+    notaRevision: "Buena iluminación y resultado limpio.",
+  },
+  {
+    id: "FOTO-002",
+    beluer: "Camila V.",
+    categoria: "nails",
+    titulo: "Rubber nude",
+    imagen:
+      "https://images.unsplash.com/photo-1604654894610-df63bc536371?w=800&q=80",
+    estado: "pendiente",
+    destacada: false,
+    fechaSubida: "2026-05-16",
+    notaRevision: "Revisar nitidez y encuadre antes de aprobar.",
+  },
+  {
+    id: "FOTO-003",
+    beluer: "Sofía T.",
+    categoria: "lashes",
+    titulo: "Efecto Aura",
+    imagen:
+      "https://images.unsplash.com/photo-1516975080664-ed2fc6a32937?w=800&q=80",
+    estado: "pendiente",
+    destacada: false,
+    fechaSubida: "2026-05-17",
+    notaRevision: "Buen resultado, pero falta validar consistencia con el portafolio.",
+  },
+  {
+    id: "FOTO-004",
+    beluer: "Valeria M.",
+    categoria: "brows",
+    titulo: "Brows clean",
+    imagen:
+      "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=800&q=80",
+    estado: "rechazada",
+    destacada: false,
+    fechaSubida: "2026-05-12",
+    notaRevision: "Imagen no cumple con el estándar visual de belu.",
+  },
+  {
+    id: "FOTO-005",
+    beluer: "Lucía P.",
+    categoria: "nails",
+    titulo: "Acrílicas soft pink",
+    imagen:
+      "https://images.unsplash.com/photo-1610992015732-2449b76344bc?w=800&q=80",
+    estado: "aprobada",
+    destacada: false,
+    fechaSubida: "2026-05-08",
+    notaRevision: "Buen acabado, imagen usable para catálogo.",
+  },
+];
 
 const adminAlerts = [
   {
@@ -397,6 +474,8 @@ const [servicios, setServicios] =
   useState<AdminServicio[]>(serviciosIniciales);
   const [reservas, setReservas] = useState<AdminReserva[]>(reservasIniciales);
 const [reservaDetalle, setReservaDetalle] = useState<AdminReserva | null>(null);
+const [fotos, setFotos] = useState<AdminFoto[]>(fotosIniciales);
+const [fotoDetalle, setFotoDetalle] = useState<AdminFoto | null>(null);
 
   const goToSection = (section: AdminSection) => {
     setActiveSection(section);
@@ -500,6 +579,26 @@ const handleAsignarBeluerReserva = (id: string, beluer: string) => {
   );
 
   setReservaDetalle(null);
+};
+const handleCambiarEstadoFoto = (id: string, nuevoEstado: AdminFotoEstado) => {
+  setFotos((current) =>
+    current.map((foto) =>
+      foto.id === id ? { ...foto, estado: nuevoEstado } : foto
+    )
+  );
+
+  setFotoDetalle(null);
+};
+
+const handleMarcarFotoDestacada = (id: string) => {
+  setFotos((current) =>
+    current.map((foto) => ({
+      ...foto,
+      destacada: foto.id === id,
+    }))
+  );
+
+  setFotoDetalle(null);
 };
 
   return (
@@ -653,11 +752,20 @@ const handleAsignarBeluerReserva = (id: string, beluer: string) => {
     onCambiarEstado={handleCambiarEstadoReserva}
   />
 )}
+{activeSection === "fotos" && (
+  <AdminFotosSection
+    fotos={fotos}
+    onVerDetalle={setFotoDetalle}
+    onCambiarEstado={handleCambiarEstadoFoto}
+    onMarcarDestacada={handleMarcarFotoDestacada}
+  />
+)}
 
 {activeSection !== "dashboard" &&
   activeSection !== "beluers" &&
   activeSection !== "servicios" &&
-  activeSection !== "reservas" && (
+  activeSection !== "reservas" &&
+  activeSection !== "fotos" && (
   <section className="admin-panel-section active">
               <div className="admin-panel-top-bar">
                 <div className="admin-panel-greeting">
@@ -932,6 +1040,86 @@ const handleAsignarBeluerReserva = (id: string, beluer: string) => {
             Cancelar
           </button>
         )}
+        {fotoDetalle && (
+  <div className="admin-panel-modal-overlay">
+    <div className="admin-panel-modal">
+      <button
+        className="admin-panel-modal-close"
+        type="button"
+        onClick={() => setFotoDetalle(null)}
+        aria-label="Cerrar detalle"
+      >
+        ×
+      </button>
+
+      <div className="admin-panel-foto-detail-img">
+        <img src={fotoDetalle.imagen} alt={fotoDetalle.titulo} />
+
+        {fotoDetalle.destacada && (
+          <span className="admin-panel-foto-destacada">Destacada</span>
+        )}
+
+        <span className={`admin-panel-foto-status ${fotoDetalle.estado}`}>
+          {getFotoEstadoLabel(fotoDetalle.estado)}
+        </span>
+      </div>
+
+      <h2>{fotoDetalle.titulo}</h2>
+      <p className="admin-panel-modal-subtitle">
+        Subida por {fotoDetalle.beluer}
+      </p>
+
+      <div className="admin-panel-modal-info-grid">
+        <div>
+          <span>Categoría</span>
+          <strong>{fotoDetalle.categoria}</strong>
+        </div>
+
+        <div>
+          <span>Fecha de subida</span>
+          <strong>{fotoDetalle.fechaSubida}</strong>
+        </div>
+
+        <div className="full">
+          <span>Nota de revisión</span>
+          <strong>{fotoDetalle.notaRevision}</strong>
+        </div>
+      </div>
+
+      <div className="admin-panel-modal-actions">
+        {fotoDetalle.estado !== "aprobada" && (
+          <button
+            type="button"
+            className="admin-panel-btn-primary"
+            onClick={() => handleCambiarEstadoFoto(fotoDetalle.id, "aprobada")}
+          >
+            Aprobar
+          </button>
+        )}
+
+        {fotoDetalle.estado !== "rechazada" && (
+          <button
+            type="button"
+            className="admin-panel-btn-secondary"
+            onClick={() => handleCambiarEstadoFoto(fotoDetalle.id, "rechazada")}
+          >
+            Rechazar
+          </button>
+        )}
+
+        {!fotoDetalle.destacada && fotoDetalle.estado === "aprobada" && (
+          <button
+            type="button"
+            className="admin-panel-btn-secondary"
+            onClick={() => handleMarcarFotoDestacada(fotoDetalle.id)}
+          >
+            Marcar destacada
+          </button>
+        )}
+      </div>
+    </div>
+  </div>
+)}
       </div>
     </div>
   </div>
@@ -1543,6 +1731,189 @@ function getReservaEstadoLabel(estado: AdminReservaEstado) {
     confirmada: "Confirmada",
     completada: "Completada",
     cancelada: "Cancelada",
+  };
+
+  return labels[estado];
+}
+
+function AdminFotosSection({
+  fotos,
+  onVerDetalle,
+  onCambiarEstado,
+  onMarcarDestacada,
+}: {
+  fotos: AdminFoto[];
+  onVerDetalle: (foto: AdminFoto) => void;
+  onCambiarEstado: (id: string, estado: AdminFotoEstado) => void;
+  onMarcarDestacada: (id: string) => void;
+}) {
+  const [filtroEstado, setFiltroEstado] = useState<"todas" | AdminFotoEstado>(
+    "todas"
+  );
+
+  const [filtroCategoria, setFiltroCategoria] = useState<
+    "todas" | AdminFotoCategoria
+  >("todas");
+
+  const fotosFiltradas = fotos.filter((foto) => {
+    const matchEstado =
+      filtroEstado === "todas" || foto.estado === filtroEstado;
+    const matchCategoria =
+      filtroCategoria === "todas" || foto.categoria === filtroCategoria;
+
+    return matchEstado && matchCategoria;
+  });
+
+  const pendientes = fotos.filter((foto) => foto.estado === "pendiente");
+  const aprobadas = fotos.filter((foto) => foto.estado === "aprobada");
+  const rechazadas = fotos.filter((foto) => foto.estado === "rechazada");
+
+  return (
+    <section className="admin-panel-section active">
+      <div className="admin-panel-top-bar">
+        <div className="admin-panel-greeting">
+          <h1>Fotos</h1>
+          <p>
+            Valida imágenes de portafolio antes de mostrarlas en el catálogo
+            público.
+          </p>
+        </div>
+
+        <AdminPill />
+      </div>
+
+      <div className="admin-panel-fotos-summary">
+        <div>
+          <span>Total</span>
+          <strong>{fotos.length}</strong>
+        </div>
+
+        <div>
+          <span>Pendientes</span>
+          <strong>{pendientes.length}</strong>
+        </div>
+
+        <div>
+          <span>Aprobadas</span>
+          <strong>{aprobadas.length}</strong>
+        </div>
+
+        <div>
+          <span>Rechazadas</span>
+          <strong>{rechazadas.length}</strong>
+        </div>
+      </div>
+
+      {pendientes.length > 0 && (
+        <div className="admin-panel-fotos-alert">
+          <strong>{pendientes.length} foto(s) pendientes de revisión</strong>
+          <span>
+            Las imágenes pendientes no deben mostrarse en el catálogo hasta que
+            admin las apruebe.
+          </span>
+        </div>
+      )}
+
+      <div className="admin-panel-fotos-toolbar">
+        <div className="admin-panel-fotos-filters">
+          {(["todas", "pendiente", "aprobada", "rechazada"] as const).map(
+            (item) => (
+              <button
+                key={item}
+                type="button"
+                className={filtroEstado === item ? "active" : ""}
+                onClick={() => setFiltroEstado(item)}
+              >
+                {item === "todas" ? "Todas" : getFotoEstadoLabel(item)}
+              </button>
+            )
+          )}
+        </div>
+
+        <div className="admin-panel-fotos-filters">
+          {(["todas", "lashes", "nails", "brows"] as const).map((item) => (
+            <button
+              key={item}
+              type="button"
+              className={filtroCategoria === item ? "active" : ""}
+              onClick={() => setFiltroCategoria(item)}
+            >
+              {item === "todas" ? "Categorías" : item}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="admin-panel-fotos-grid">
+        {fotosFiltradas.map((foto) => (
+          <article className="admin-panel-foto-card" key={foto.id}>
+            <div className="admin-panel-foto-img">
+              <img src={foto.imagen} alt={foto.titulo} />
+
+              {foto.destacada && (
+                <span className="admin-panel-foto-destacada">Destacada</span>
+              )}
+
+              <span className={`admin-panel-foto-status ${foto.estado}`}>
+                {getFotoEstadoLabel(foto.estado)}
+              </span>
+            </div>
+
+            <div className="admin-panel-foto-body">
+              <div>
+                <span>{foto.categoria}</span>
+                <h3>{foto.titulo}</h3>
+                <p>{foto.beluer}</p>
+              </div>
+
+              <div className="admin-panel-foto-actions">
+                <button type="button" onClick={() => onVerDetalle(foto)}>
+                  Ver detalle
+                </button>
+
+                {foto.estado === "pendiente" && (
+                  <>
+                    <button
+                      type="button"
+                      className="primary"
+                      onClick={() => onCambiarEstado(foto.id, "aprobada")}
+                    >
+                      Aprobar
+                    </button>
+
+                    <button
+                      type="button"
+                      className="secondary"
+                      onClick={() => onCambiarEstado(foto.id, "rechazada")}
+                    >
+                      Rechazar
+                    </button>
+                  </>
+                )}
+
+                {foto.estado === "aprobada" && !foto.destacada && (
+                  <button
+                    type="button"
+                    className="secondary"
+                    onClick={() => onMarcarDestacada(foto.id)}
+                  >
+                    Destacar
+                  </button>
+                )}
+              </div>
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function getFotoEstadoLabel(estado: AdminFotoEstado) {
+  const labels: Record<AdminFotoEstado, string> = {
+    pendiente: "Pendiente",
+    aprobada: "Aprobada",
+    rechazada: "Rechazada",
   };
 
   return labels[estado];

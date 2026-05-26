@@ -1390,3 +1390,264 @@
     flex-direction: column;
   }
 }
+/* ================================
+   ADMIN PANEL - FOTOS
+================================ */
+
+.admin-panel-fotos-summary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.2rem;
+  margin-bottom: 1.4rem;
+}
+
+.admin-panel-fotos-summary div {
+  background: rgba(255, 255, 255, 0.76);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  border-radius: 1.4rem;
+  padding: 1.3rem;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.035);
+}
+
+.admin-panel-fotos-summary span {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.35rem;
+}
+
+.admin-panel-fotos-summary strong {
+  color: var(--r);
+  font-size: 1.35rem;
+  font-weight: 900;
+}
+
+.admin-panel-fotos-alert {
+  background: linear-gradient(
+    135deg,
+    rgba(230, 0, 35, 0.07) 0%,
+    rgba(255, 214, 226, 0.55) 100%
+  );
+  border-left: 3px solid var(--r);
+  border-radius: 1rem;
+  padding: 1rem 1.1rem;
+  margin-bottom: 1.4rem;
+}
+
+.admin-panel-fotos-alert strong {
+  display: block;
+  color: var(--r);
+  font-size: 0.9rem;
+  font-weight: 900;
+  margin-bottom: 0.25rem;
+}
+
+.admin-panel-fotos-alert span {
+  display: block;
+  color: #555;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.admin-panel-fotos-toolbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.4rem;
+  flex-wrap: wrap;
+}
+
+.admin-panel-fotos-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.admin-panel-fotos-filters button {
+  border: 1.5px solid rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.75);
+  color: #555;
+  border-radius: 2rem;
+  padding: 0.7rem 1.1rem;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.admin-panel-fotos-filters button:hover,
+.admin-panel-fotos-filters button.active {
+  background: rgba(230, 0, 35, 0.08);
+  color: var(--r);
+  border-color: rgba(230, 0, 35, 0.2);
+}
+
+.admin-panel-fotos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+  gap: 1rem;
+}
+
+.admin-panel-foto-card {
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  border-radius: 1.5rem;
+  overflow: hidden;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.04);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.admin-panel-foto-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.06);
+}
+
+.admin-panel-foto-img,
+.admin-panel-foto-detail-img {
+  position: relative;
+  overflow: hidden;
+  background: var(--rosa);
+}
+
+.admin-panel-foto-img {
+  height: 230px;
+}
+
+.admin-panel-foto-detail-img {
+  height: 280px;
+  border-radius: 1.3rem;
+  margin-bottom: 1.2rem;
+}
+
+.admin-panel-foto-img img,
+.admin-panel-foto-detail-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  filter: saturate(1.04);
+}
+
+.admin-panel-foto-destacada {
+  position: absolute;
+  left: 1rem;
+  top: 1rem;
+  background: var(--r);
+  color: white;
+  border-radius: 2rem;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.66rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
+}
+
+.admin-panel-foto-status {
+  position: absolute;
+  right: 1rem;
+  top: 1rem;
+  border-radius: 2rem;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.66rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
+}
+
+.admin-panel-foto-status.pendiente {
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--r);
+}
+
+.admin-panel-foto-status.aprobada {
+  background: rgba(255, 255, 255, 0.92);
+  color: #108a45;
+}
+
+.admin-panel-foto-status.rechazada {
+  background: rgba(255, 255, 255, 0.92);
+  color: #666;
+}
+
+.admin-panel-foto-body {
+  padding: 1.25rem;
+}
+
+.admin-panel-foto-body > div:first-child span {
+  display: inline-flex;
+  background: rgba(230, 0, 35, 0.08);
+  color: var(--r);
+  border-radius: 2rem;
+  padding: 0.28rem 0.65rem;
+  font-size: 0.65rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin-bottom: 0.55rem;
+}
+
+.admin-panel-foto-body h3 {
+  font-size: 1.05rem;
+  font-weight: 900;
+  margin: 0;
+  color: var(--negro);
+}
+
+.admin-panel-foto-body p {
+  color: #666;
+  font-size: 0.84rem;
+  margin: 0.2rem 0 1rem;
+}
+
+.admin-panel-foto-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.admin-panel-foto-actions button {
+  border: none;
+  border-radius: 2rem;
+  padding: 0.65rem 1rem;
+  font-size: 0.78rem;
+  font-weight: 800;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s ease;
+  background: rgba(0, 0, 0, 0.045);
+  color: #333;
+}
+
+.admin-panel-foto-actions button.primary {
+  background: var(--r);
+  color: white;
+}
+
+.admin-panel-foto-actions button.secondary {
+  background: rgba(0, 0, 0, 0.06);
+  color: #555;
+}
+
+.admin-panel-foto-actions button:hover {
+  transform: translateY(-1px);
+}
+
+@media (max-width: 900px) {
+  .admin-panel-fotos-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-panel-fotos-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-panel-foto-detail-img {
+    height: 220px;
+  }
+}
