@@ -23,11 +23,11 @@ export default function MainNav({ variant = "clientas" }: MainNavProps) {
       ) : (
         <div className="flex items-center gap-3">
           <Link
-            href="/app/clienta"
-            className="bg-white text-[#111111] px-6 py-3 rounded-full text-sm font-bold border border-black/15 hover:border-[#E60023] hover:text-[#E60023] transition"
-          >
-            Mi cuenta
-          </Link>
+  href="/login"
+  className="bg-white text-[#111111] px-6 py-3 rounded-full text-sm font-bold border border-black/15 hover:border-[#E60023] hover:text-[#E60023] transition"
+>
+  Mi cuenta
+</Link>
 
           <Link
             href="/app/clienta"
