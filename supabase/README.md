@@ -23,10 +23,43 @@ supabase/seed.sql
 Cuando se cree el proyecto real en Supabase, ejecutar los archivos en este orden:
 
 ```txt
+# Supabase setup para belu ✦
+
+## Objetivo
+
+Esta carpeta contiene la estructura base de Supabase para belu.
+
+Por ahora estos archivos no están conectados al proyecto Next.js. Están versionados para dejar preparada la arquitectura de base de datos, permisos, storage, triggers, funciones RPC y datos iniciales antes de la integración real.
+
+---
+
+## Archivos actuales
+
+```txt
+supabase/schema.sql
+supabase/rls-policies.sql
+supabase/seed.sql
+supabase/storage-policies.sql
+supabase/triggers.sql
+supabase/functions.sql
+```
+
+---
+
+## Orden correcto de ejecución
+
+Cuando se cree el proyecto real en Supabase, ejecutar los archivos en este orden:
+
+```txt
 1. schema.sql
 2. rls-policies.sql
 3. seed.sql
+4. storage-policies.sql
+5. triggers.sql
+6. functions.sql
 ```
+
+No cambiar este orden. Algunos archivos dependen de tablas, enums, funciones auxiliares o buckets creados previamente.
 
 ---
 
@@ -123,7 +156,85 @@ Este archivo debe ejecutarse después de `schema.sql`, porque inserta datos en t
 
 ---
 
-## Estado actual
+## 4. storage-policies.sql
+
+Crea buckets y políticas base para Supabase Storage.
+
+Buckets sugeridos:
+
+```txt
+beluer-profile-photos
+beluer-portfolio
+service-images
+review-images
+client-uploads
+```
+
+Uso principal:
+
+- Fotos de perfil de Beluers.
+- Fotos de portafolio.
+- Imágenes de servicios.
+- Imágenes asociadas a reviews.
+- Archivos o imágenes subidas por clientas.
+
+Este archivo debe ejecutarse después de `rls-policies.sql`, porque usa funciones auxiliares como:
+
+```txt
+is_admin()
+current_beluer_profile_id()
+current_client_profile_id()
+```
+
+---
+
+## 5. triggers.sql
+
+Crea lógica automática de negocio a nivel base de datos.
+
+Incluye:
+
+- Validar que el precio de una Beluer no esté por debajo del precio mínimo de belu.
+- Sincronizar estado de pago con reserva.
+- Crear ingresos de Beluer después de pago aprobado.
+- Actualizar total de reservas de Beluer.
+- Recalcular rating promedio.
+- Mantener una sola foto de portada por Beluer.
+- Forzar fotos nuevas a revisión.
+- Registrar eventos de automatización.
+- Validar que solo se pueda reseñar una reserva completada.
+
+Este archivo debe ejecutarse después de `schema.sql`, `rls-policies.sql`, `seed.sql` y `storage-policies.sql`.
+
+---
+
+## 6. functions.sql
+
+Crea funciones RPC seguras para operaciones sensibles.
+
+Incluye funciones para:
+
+- Crear reserva de clienta.
+- Aceptar reserva como Beluer.
+- Asignar Beluer desde Admin.
+- Cambiar estado de reserva.
+- Cancelar reserva.
+- Reprogramar reserva.
+- Aprobar, rechazar o pausar Beluer.
+- Cambiar nivel de Beluer.
+- Aprobar o rechazar fotos.
+- Marcar foto destacada.
+- Registrar pago manual.
+- Reembolsar pago.
+- Consultar resumen de dashboard Admin.
+- Consultar resumen de dashboard Beluer.
+- Consultar resumen de dashboard Clienta.
+
+El frontend debería usar estas funciones para operaciones sensibles en lugar de actualizar directamente tablas críticas.
+
+---
+
+## Estado actual del frontend
 
 Actualmente los paneles funcionan con datos simulados en archivos locales:
 
@@ -189,6 +300,9 @@ Ejecutar en el SQL Editor de Supabase:
 1. schema.sql
 2. rls-policies.sql
 3. seed.sql
+4. storage-policies.sql
+5. triggers.sql
+6. functions.sql
 ```
 
 ### Fase 3: Crear primer usuario Admin
@@ -272,7 +386,11 @@ adminPanelData.ts → consultas reales para Admin
 
 No ejecutar `rls-policies.sql` antes de `schema.sql`.
 
-No ejecutar `seed.sql` antes de tener las tablas creadas.
+No ejecutar `storage-policies.sql` antes de `rls-policies.sql`.
+
+No ejecutar `triggers.sql` antes de tener tablas, funciones auxiliares y seed base.
+
+No ejecutar `functions.sql` antes de `triggers.sql`.
 
 No compartir la `service role key`.
 
@@ -297,32 +415,24 @@ No permitir que una Beluer vea pagos completos de clientas. Su vista financiera 
 ## Próximos archivos recomendados
 
 ```txt
-supabase/storage-policies.sql
-supabase/functions.sql
-supabase/triggers.sql
+supabase/views.sql
+supabase/audit.sql
 ```
 
 Posibles responsabilidades:
 
-`storage-policies.sql`
+`views.sql`
 
-- Buckets.
-- Políticas de subida de fotos.
-- Restricciones para portafolio de Beluers.
+- Vistas para dashboards.
+- Vistas para catálogo público.
+- Vistas para ingresos de Beluer.
+- Vistas para Admin.
 
-`functions.sql`
+`audit.sql`
 
-- Funciones RPC seguras para reservar.
-- Funciones RPC para aceptar reservas.
-- Funciones RPC para calcular comisiones.
-
-`triggers.sql`
-
-- Validar precio mínimo.
-- Crear earnings después de pago.
-- Actualizar rating promedio.
-- Actualizar total de reservas.
-- Registrar automatizaciones.
+- Historial de cambios sensibles.
+- Auditoría de reservas, pagos, Beluers y reembolsos.
+- Registro de acciones Admin.
 
 ---
 
