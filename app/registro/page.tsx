@@ -1,4 +1,5 @@
 import Link from "next/link";
+import RegisterForm from "@/components/auth/RegisterForm";
 
 export default function RegistroPage() {
   return (
@@ -20,55 +21,7 @@ export default function RegistroPage() {
           Regístrate para acceder a tu experiencia belu.
         </p>
 
-        <form className="grid gap-4">
-          <label className="grid gap-2 text-[#1A1A1A] font-bold text-sm">
-            Nombre completo
-            <input
-              type="text"
-              placeholder="Tu nombre"
-              className="h-12 rounded-[14px] border border-[#E8E0E3] px-4 text-[15px] outline-none"
-            />
-          </label>
-
-          <label className="grid gap-2 text-[#1A1A1A] font-bold text-sm">
-            Correo electrónico
-            <input
-              type="email"
-              placeholder="tu@email.com"
-              className="h-12 rounded-[14px] border border-[#E8E0E3] px-4 text-[15px] outline-none"
-            />
-          </label>
-
-          <label className="grid gap-2 text-[#1A1A1A] font-bold text-sm">
-            Tipo de cuenta
-            <select
-              defaultValue=""
-              className="h-12 rounded-[14px] border border-[#E8E0E3] px-4 text-[15px] outline-none bg-white"
-            >
-              <option value="" disabled>
-                Selecciona una opción
-              </option>
-              <option value="cliente">Clienta</option>
-              <option value="beluer">Beluer</option>
-            </select>
-          </label>
-
-          <label className="grid gap-2 text-[#1A1A1A] font-bold text-sm">
-            Contraseña
-            <input
-              type="password"
-              placeholder="••••••••"
-              className="h-12 rounded-[14px] border border-[#E8E0E3] px-4 text-[15px] outline-none"
-            />
-          </label>
-
-          <button
-            type="button"
-            className="h-[50px] rounded-full bg-[#E60023] text-white font-extrabold text-[15px] mt-2"
-          >
-            Crear cuenta
-          </button>
-        </form>
+        <RegisterForm />
 
         <p className="text-center text-[#555] text-sm mt-6 mb-3">
           ¿Ya tienes cuenta?{" "}

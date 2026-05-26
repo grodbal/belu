@@ -1,4 +1,5 @@
 import Link from "next/link";
+import LoginForm from "@/components/auth/LoginForm";
 
 export default function LoginPage() {
   return (
@@ -20,32 +21,7 @@ export default function LoginPage() {
           Accede a tu panel como clienta, Beluer o administradora.
         </p>
 
-        <form className="grid gap-4">
-          <label className="grid gap-2 text-[#1A1A1A] font-bold text-sm">
-            Correo electrónico
-            <input
-              type="email"
-              placeholder="tu@email.com"
-              className="h-12 rounded-[14px] border border-[#E8E0E3] px-4 text-[15px] outline-none"
-            />
-          </label>
-
-          <label className="grid gap-2 text-[#1A1A1A] font-bold text-sm">
-            Contraseña
-            <input
-              type="password"
-              placeholder="••••••••"
-              className="h-12 rounded-[14px] border border-[#E8E0E3] px-4 text-[15px] outline-none"
-            />
-          </label>
-
-          <button
-            type="button"
-            className="h-[50px] rounded-full bg-[#E60023] text-white font-extrabold text-[15px] mt-2"
-          >
-            Ingresar
-          </button>
-        </form>
+        <LoginForm />
 
         <p className="text-center text-[#555] text-sm mt-6 mb-3">
           ¿Aún no tienes cuenta?{" "}
