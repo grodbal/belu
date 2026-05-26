@@ -851,3 +851,254 @@
     grid-template-columns: 1fr;
   }
 }
+/* ================================
+   ADMIN PANEL - SERVICIOS
+================================ */
+
+.admin-panel-servicios-summary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.2rem;
+  margin-bottom: 1.4rem;
+}
+
+.admin-panel-servicios-summary div {
+  background: rgba(255, 255, 255, 0.76);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  border-radius: 1.4rem;
+  padding: 1.3rem;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.035);
+}
+
+.admin-panel-servicios-summary span {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.35rem;
+}
+
+.admin-panel-servicios-summary strong {
+  color: var(--r);
+  font-size: 1.35rem;
+  font-weight: 900;
+}
+
+.admin-panel-servicios-alert {
+  background: linear-gradient(
+    135deg,
+    rgba(230, 0, 35, 0.07) 0%,
+    rgba(255, 214, 226, 0.55) 100%
+  );
+  border-left: 3px solid var(--r);
+  border-radius: 1rem;
+  padding: 1rem 1.1rem;
+  margin-bottom: 1.4rem;
+}
+
+.admin-panel-servicios-alert strong {
+  display: block;
+  color: var(--r);
+  font-size: 0.9rem;
+  font-weight: 900;
+  margin-bottom: 0.25rem;
+}
+
+.admin-panel-servicios-alert span {
+  display: block;
+  color: #555;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.admin-panel-servicios-toolbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.4rem;
+  flex-wrap: wrap;
+}
+
+.admin-panel-servicios-filters,
+.admin-panel-servicios-toolbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.admin-panel-servicios-filters button {
+  border: 1.5px solid rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.75);
+  color: #555;
+  border-radius: 2rem;
+  padding: 0.7rem 1.1rem;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.admin-panel-servicios-filters button:hover,
+.admin-panel-servicios-filters button.active {
+  background: rgba(230, 0, 35, 0.08);
+  color: var(--r);
+  border-color: rgba(230, 0, 35, 0.2);
+}
+
+.admin-panel-servicios-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 1rem;
+}
+
+.admin-panel-servicio-card {
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  border-radius: 1.5rem;
+  padding: 1.3rem;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.04);
+}
+
+.admin-panel-servicio-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.admin-panel-servicio-head span {
+  display: inline-flex;
+  background: rgba(230, 0, 35, 0.08);
+  color: var(--r);
+  border-radius: 2rem;
+  padding: 0.28rem 0.65rem;
+  font-size: 0.65rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin-bottom: 0.55rem;
+}
+
+.admin-panel-servicio-head input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 1.05rem;
+  font-weight: 900;
+  outline: none;
+  color: var(--negro);
+}
+
+.admin-panel-switch {
+  position: relative;
+  width: 46px;
+  height: 26px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.admin-panel-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.admin-panel-switch span {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.12);
+  border-radius: 999px;
+  transition: all 0.2s ease;
+}
+
+.admin-panel-switch span::before {
+  content: "";
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  left: 3px;
+  top: 3px;
+  background: #fff;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+}
+
+.admin-panel-switch input:checked + span {
+  background: var(--r);
+}
+
+.admin-panel-switch input:checked + span::before {
+  transform: translateX(20px);
+}
+
+.admin-panel-servicio-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.85rem;
+  margin-bottom: 0.95rem;
+}
+
+.admin-panel-servicio-form-grid label,
+.admin-panel-servicio-description {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 900;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.admin-panel-servicio-form-grid input,
+.admin-panel-servicio-form-grid select,
+.admin-panel-servicio-description textarea {
+  width: 100%;
+  margin-top: 0.35rem;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 1rem;
+  padding: 0.75rem 0.85rem;
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 700;
+  outline: none;
+  background: white;
+  color: var(--negro);
+}
+
+.admin-panel-servicio-description textarea {
+  min-height: 92px;
+  resize: vertical;
+  text-transform: none;
+  font-weight: 500;
+  line-height: 1.45;
+}
+
+.admin-panel-servicio-form-grid input:focus,
+.admin-panel-servicio-form-grid select:focus,
+.admin-panel-servicio-description textarea:focus {
+  border-color: var(--r);
+  box-shadow: 0 0 0 3px rgba(230, 0, 35, 0.06);
+}
+
+@media (max-width: 900px) {
+  .admin-panel-servicios-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-panel-servicios-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-panel-servicio-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-panel-servicios-toolbar-actions,
+  .admin-panel-servicios-toolbar-actions button {
+    width: 100%;
+  }
+}

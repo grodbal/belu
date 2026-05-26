@@ -29,6 +29,17 @@ type AdminBeluer = {
   foto: string;
   notaRevision: string;
 };
+type AdminServicioCategoria = "lashes" | "nails" | "brows" | "addon";
+
+type AdminServicio = {
+  id: string;
+  nombre: string;
+  categoria: AdminServicioCategoria;
+  descripcion: string;
+  precioMinimo: number;
+  duracionMinutos: number;
+  activo: boolean;
+};
 
 const icons = {
   dashboard: (
@@ -175,6 +186,80 @@ const beluersIniciales: AdminBeluer[] = [
       "Perfil pausado temporalmente por baja disponibilidad reportada.",
   },
 ];
+const serviciosIniciales: AdminServicio[] = [
+  {
+    id: "SRV-001",
+    nombre: "Clásicas",
+    categoria: "lashes",
+    descripcion: "Extensiones una a una para un acabado natural.",
+    precioMinimo: 100,
+    duracionMinutos: 90,
+    activo: true,
+  },
+  {
+    id: "SRV-002",
+    nombre: "Efecto Rímel",
+    categoria: "lashes",
+    descripcion: "Mayor densidad y oscuridad para una mirada intensa.",
+    precioMinimo: 110,
+    duracionMinutos: 105,
+    activo: true,
+  },
+  {
+    id: "SRV-003",
+    nombre: "Volumen 3D",
+    categoria: "lashes",
+    descripcion: "Tres extensiones por pestaña para volumen visible.",
+    precioMinimo: 140,
+    duracionMinutos: 120,
+    activo: true,
+  },
+  {
+    id: "SRV-004",
+    nombre: "Lifting de pestañas",
+    categoria: "lashes",
+    descripcion: "Curva y realce de pestañas naturales sin extensiones.",
+    precioMinimo: 100,
+    duracionMinutos: 60,
+    activo: true,
+  },
+  {
+    id: "SRV-005",
+    nombre: "Planchado de cejas",
+    categoria: "brows",
+    descripcion: "Diseño y fijación de cejas para acabado natural.",
+    precioMinimo: 70,
+    duracionMinutos: 45,
+    activo: true,
+  },
+  {
+    id: "SRV-006",
+    nombre: "Esmaltado Gel",
+    categoria: "nails",
+    descripcion: "Esmalte semipermanente con brillo de gel.",
+    precioMinimo: 70,
+    duracionMinutos: 60,
+    activo: true,
+  },
+  {
+    id: "SRV-007",
+    nombre: "Rubber",
+    categoria: "nails",
+    descripcion: "Base flexible y resistente para uñas naturales.",
+    precioMinimo: 85,
+    duracionMinutos: 75,
+    activo: true,
+  },
+  {
+    id: "SRV-008",
+    nombre: "Retiro de gel",
+    categoria: "addon",
+    descripcion: "Retiro seguro de gel antes de un nuevo servicio.",
+    precioMinimo: 25,
+    duracionMinutos: 25,
+    activo: true,
+  },
+];
 
 const adminAlerts = [
   {
@@ -203,6 +288,8 @@ export default function AdminPanelOriginalPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [beluers, setBeluers] = useState<AdminBeluer[]>(beluersIniciales);
 const [beluerDetalle, setBeluerDetalle] = useState<AdminBeluer | null>(null);
+const [servicios, setServicios] =
+  useState<AdminServicio[]>(serviciosIniciales);
 
   const goToSection = (section: AdminSection) => {
     setActiveSection(section);
@@ -227,6 +314,57 @@ const handleCambiarNivelBeluer = (id: string, nuevoNivel: AdminBeluerNivel) => {
       beluer.id === id ? { ...beluer, nivel: nuevoNivel } : beluer
     )
   );
+};
+const handleToggleServicioAdmin = (id: string) => {
+  setServicios((current) =>
+    current.map((servicio) =>
+      servicio.id === id
+        ? { ...servicio, activo: !servicio.activo }
+        : servicio
+    )
+  );
+};
+
+const handleActualizarServicioAdmin = <K extends keyof AdminServicio>(
+  id: string,
+  campo: K,
+  valor: AdminServicio[K]
+) => {
+  setServicios((current) =>
+    current.map((servicio) =>
+      servicio.id === id ? { ...servicio, [campo]: valor } : servicio
+    )
+  );
+};
+
+const handleAgregarServicioAdmin = () => {
+  const nuevoServicio: AdminServicio = {
+    id: `SRV-${Date.now()}`,
+    nombre: "Nuevo servicio",
+    categoria: "lashes",
+    descripcion: "Descripción pendiente.",
+    precioMinimo: 100,
+    duracionMinutos: 60,
+    activo: false,
+  };
+
+  setServicios((current) => [nuevoServicio, ...current]);
+};
+
+const handleGuardarServiciosAdmin = () => {
+  const serviciosInvalidos = servicios.filter(
+    (servicio) =>
+      !servicio.nombre.trim() ||
+      servicio.precioMinimo <= 0 ||
+      servicio.duracionMinutos <= 0
+  );
+
+  if (serviciosInvalidos.length > 0) {
+    alert("Revisa que todos los servicios tengan nombre, precio mínimo y duración válida.");
+    return;
+  }
+
+  alert("Catálogo de servicios actualizado correctamente.");
 };
 
   return (
@@ -363,8 +501,19 @@ const handleCambiarNivelBeluer = (id: string, nuevoNivel: AdminBeluerNivel) => {
     onCambiarNivel={handleCambiarNivelBeluer}
   />
 )}
+{activeSection === "servicios" && (
+  <AdminServiciosSection
+    servicios={servicios}
+    onToggleServicio={handleToggleServicioAdmin}
+    onActualizarServicio={handleActualizarServicioAdmin}
+    onAgregarServicio={handleAgregarServicioAdmin}
+    onGuardar={handleGuardarServiciosAdmin}
+  />
+)}
 
-{activeSection !== "dashboard" && activeSection !== "beluers" && (
+{activeSection !== "dashboard" &&
+  activeSection !== "beluers" &&
+  activeSection !== "servicios" && (
   <section className="admin-panel-section active">
               <div className="admin-panel-top-bar">
                 <div className="admin-panel-greeting">
@@ -698,6 +847,223 @@ function getBeluerEstadoLabel(estado: AdminBeluerEstado) {
   };
 
   return labels[estado];
+}
+
+function AdminServiciosSection({
+  servicios,
+  onToggleServicio,
+  onActualizarServicio,
+  onAgregarServicio,
+  onGuardar,
+}: {
+  servicios: AdminServicio[];
+  onToggleServicio: (id: string) => void;
+  onActualizarServicio: <K extends keyof AdminServicio>(
+    id: string,
+    campo: K,
+    valor: AdminServicio[K]
+  ) => void;
+  onAgregarServicio: () => void;
+  onGuardar: () => void;
+}) {
+  const [filtro, setFiltro] = useState<"todos" | AdminServicioCategoria>(
+    "todos"
+  );
+
+  const serviciosFiltrados = servicios.filter((servicio) => {
+    if (filtro === "todos") return true;
+    return servicio.categoria === filtro;
+  });
+
+  const activos = servicios.filter((servicio) => servicio.activo);
+  const addons = servicios.filter((servicio) => servicio.categoria === "addon");
+
+  return (
+    <section className="admin-panel-section active">
+      <div className="admin-panel-top-bar">
+        <div className="admin-panel-greeting">
+          <h1>Servicios</h1>
+          <p>
+            Gestiona el catálogo maestro, precios mínimos y disponibilidad de
+            servicios en belu.
+          </p>
+        </div>
+
+        <AdminPill />
+      </div>
+
+      <div className="admin-panel-servicios-summary">
+        <div>
+          <span>Total</span>
+          <strong>{servicios.length}</strong>
+        </div>
+
+        <div>
+          <span>Activos</span>
+          <strong>{activos.length}</strong>
+        </div>
+
+        <div>
+          <span>Add-ons</span>
+          <strong>{addons.length}</strong>
+        </div>
+
+        <div>
+          <span>Precio mínimo promedio</span>
+          <strong>
+            S/{" "}
+            {Math.round(
+              servicios.reduce((acc, item) => acc + item.precioMinimo, 0) /
+                servicios.length
+            )}
+          </strong>
+        </div>
+      </div>
+
+      <div className="admin-panel-servicios-alert">
+        <strong>Regla estratégica</strong>
+        <span>
+          El admin define el precio mínimo para proteger el posicionamiento
+          premium. Cada Beluer podrá definir su precio final desde su panel, pero
+          no por debajo de este mínimo.
+        </span>
+      </div>
+
+      <div className="admin-panel-servicios-toolbar">
+        <div className="admin-panel-servicios-filters">
+          {(["todos", "lashes", "nails", "brows", "addon"] as const).map(
+            (item) => (
+              <button
+                key={item}
+                type="button"
+                className={filtro === item ? "active" : ""}
+                onClick={() => setFiltro(item)}
+              >
+                {item === "todos" ? "Todos" : item}
+              </button>
+            )
+          )}
+        </div>
+
+        <div className="admin-panel-servicios-toolbar-actions">
+          <button
+            type="button"
+            className="admin-panel-btn-secondary"
+            onClick={onAgregarServicio}
+          >
+            Nuevo servicio
+          </button>
+
+          <button
+            type="button"
+            className="admin-panel-btn-primary"
+            onClick={onGuardar}
+          >
+            Guardar catálogo
+          </button>
+        </div>
+      </div>
+
+      <div className="admin-panel-servicios-grid">
+        {serviciosFiltrados.map((servicio) => (
+          <article className="admin-panel-servicio-card" key={servicio.id}>
+            <div className="admin-panel-servicio-head">
+              <div>
+                <span>{servicio.categoria}</span>
+                <input
+                  type="text"
+                  value={servicio.nombre}
+                  onChange={(event) =>
+                    onActualizarServicio(
+                      servicio.id,
+                      "nombre",
+                      event.target.value
+                    )
+                  }
+                />
+              </div>
+
+              <label className="admin-panel-switch">
+                <input
+                  type="checkbox"
+                  checked={servicio.activo}
+                  onChange={() => onToggleServicio(servicio.id)}
+                />
+                <span />
+              </label>
+            </div>
+
+            <div className="admin-panel-servicio-form-grid">
+              <label>
+                Categoría
+                <select
+                  value={servicio.categoria}
+                  onChange={(event) =>
+                    onActualizarServicio(
+                      servicio.id,
+                      "categoria",
+                      event.target.value as AdminServicioCategoria
+                    )
+                  }
+                >
+                  <option value="lashes">lashes</option>
+                  <option value="nails">nails</option>
+                  <option value="brows">brows</option>
+                  <option value="addon">addon</option>
+                </select>
+              </label>
+
+              <label>
+                Precio mínimo
+                <input
+                  type="number"
+                  min={1}
+                  value={servicio.precioMinimo}
+                  onChange={(event) =>
+                    onActualizarServicio(
+                      servicio.id,
+                      "precioMinimo",
+                      Number(event.target.value)
+                    )
+                  }
+                />
+              </label>
+
+              <label>
+                Duración minutos
+                <input
+                  type="number"
+                  min={1}
+                  value={servicio.duracionMinutos}
+                  onChange={(event) =>
+                    onActualizarServicio(
+                      servicio.id,
+                      "duracionMinutos",
+                      Number(event.target.value)
+                    )
+                  }
+                />
+              </label>
+            </div>
+
+            <label className="admin-panel-servicio-description">
+              Descripción
+              <textarea
+                value={servicio.descripcion}
+                onChange={(event) =>
+                  onActualizarServicio(
+                    servicio.id,
+                    "descripcion",
+                    event.target.value
+                  )
+                }
+              />
+            </label>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
 }
 
 function AdminPill() {
