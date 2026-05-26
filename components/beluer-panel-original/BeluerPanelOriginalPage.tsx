@@ -9,6 +9,21 @@ type BeluerSection =
   | "portafolio"
   | "ingresos"
   | "perfil";
+  type ReservaEstado = "pendiente" | "aceptada" | "rechazada";
+
+type ReservaBeluer = {
+  id: string;
+  clienta: string;
+  servicio: string;
+  distrito: string;
+  direccion: string;
+  fecha: string;
+  hora: string;
+  total: number;
+  estado: ReservaEstado;
+  instrucciones: string;
+  metodoPago: string;
+};
 
 const icons = {
   dashboard: (
@@ -66,26 +81,58 @@ const navItems: {
   { id: "perfil", label: "Mi Perfil", icon: icons.perfil },
 ];
 
-const reservasPendientes = [
+const reservasIniciales: ReservaBeluer[] = [
   {
     id: "BLU-RSV-001",
     clienta: "María Claudia R.",
     servicio: "Efecto Rímel + Depilación con hilo",
     distrito: "Miraflores",
+    direccion: "Av. Comandante Espinar 456, Miraflores",
     fecha: "2026-05-18",
     hora: "15:30",
     total: 165,
-    estado: "Pendiente de aceptar",
+    estado: "pendiente",
+    instrucciones: "Prefiere un acabado natural pero con más presencia.",
+    metodoPago: "Yape",
   },
   {
     id: "BLU-RSV-002",
     clienta: "Valeria M.",
     servicio: "Lifting de pestañas",
     distrito: "San Isidro",
+    direccion: "Calle Los Libertadores 220, San Isidro",
     fecha: "2026-05-19",
     hora: "11:00",
     total: 120,
-    estado: "Pendiente de aceptar",
+    estado: "pendiente",
+    instrucciones: "Tiene pestañas sensibles. Llevar materiales suaves.",
+    metodoPago: "Tarjeta",
+  },
+  {
+    id: "BLU-RSV-003",
+    clienta: "Lucía P.",
+    servicio: "Volumen 3D",
+    distrito: "Surco",
+    direccion: "Av. Primavera 1250, Surco",
+    fecha: "2026-05-20",
+    hora: "17:00",
+    total: 160,
+    estado: "aceptada",
+    instrucciones: "Quiere efecto más marcado en la esquina externa.",
+    metodoPago: "Plin",
+  },
+  {
+    id: "BLU-RSV-004",
+    clienta: "Camila S.",
+    servicio: "Planchado de cejas",
+    distrito: "Barranco",
+    direccion: "Jr. Unión 340, Barranco",
+    fecha: "2026-05-21",
+    hora: "10:00",
+    total: 90,
+    estado: "aceptada",
+    instrucciones: "Prefiere cejas naturales, no muy marcadas.",
+    metodoPago: "Yape",
   },
 ];
 
@@ -93,11 +140,42 @@ export default function BeluerPanelOriginalPage() {
   const [activeSection, setActiveSection] =
     useState<BeluerSection>("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [reservas, setReservas] = useState<ReservaBeluer[]>(reservasIniciales);
+const [reservaDetalle, setReservaDetalle] = useState<ReservaBeluer | null>(
+  null
+);
 
   const goToSection = (section: BeluerSection) => {
     setActiveSection(section);
     setSidebarOpen(false);
   };
+  const reservasPendientes = reservas.filter(
+  (reserva) => reserva.estado === "pendiente"
+);
+
+const reservasAceptadas = reservas.filter(
+  (reserva) => reserva.estado === "aceptada"
+);
+
+const handleAceptarReserva = (id: string) => {
+  setReservas((current) =>
+    current.map((reserva) =>
+      reserva.id === id ? { ...reserva, estado: "aceptada" } : reserva
+    )
+  );
+
+  setReservaDetalle(null);
+};
+
+const handleRechazarReserva = (id: string) => {
+  setReservas((current) =>
+    current.map((reserva) =>
+      reserva.id === id ? { ...reserva, estado: "rechazada" } : reserva
+    )
+  );
+
+  setReservaDetalle(null);
+};
 
   return (
     <div className="beluer-panel-shell">
@@ -168,10 +246,10 @@ export default function BeluerPanelOriginalPage() {
               </div>
 
               <div className="beluer-panel-kpi-grid">
-                <KpiCard label="Reservas pendientes" value="2" />
-                <KpiCard label="Ingresos del mes" value="S/ 1,280" />
-                <KpiCard label="Servicios realizados" value="12" />
-                <KpiCard label="Rating promedio" value="5.0" />
+                <KpiCard label="Reservas pendientes" value={String(reservasPendientes.length)} />
+<KpiCard label="Reservas aceptadas" value={String(reservasAceptadas.length)} />
+<KpiCard label="Ingresos del mes" value="S/ 1,280" />
+<KpiCard label="Rating promedio" value="5.0" />
               </div>
 
               <div className="beluer-panel-dashboard-grid">
@@ -190,7 +268,7 @@ export default function BeluerPanelOriginalPage() {
                         key={reserva.id}
                       >
                         <div>
-                          <span>{reserva.estado}</span>
+                          <span>{getReservaEstadoLabel(reserva.estado)}</span>
                           <h3>{reserva.servicio}</h3>
                           <p>
                             {reserva.clienta} · {reserva.distrito}
@@ -202,7 +280,16 @@ export default function BeluerPanelOriginalPage() {
 
                         <div className="beluer-panel-reserva-actions">
                           <strong>S/ {reserva.total}</strong>
-                          <button type="button">Aceptar</button>
+                          <button type="button" onClick={() => handleAceptarReserva(reserva.id)}>
+  Aceptar
+</button>
+<button
+  type="button"
+  className="secondary"
+  onClick={() => setReservaDetalle(reserva)}
+>
+  Ver detalle
+</button>
                         </div>
                       </article>
                     ))}
@@ -223,8 +310,17 @@ export default function BeluerPanelOriginalPage() {
             </section>
           )}
 
-          {activeSection !== "dashboard" && (
-            <section className="beluer-panel-section active">
+          {activeSection === "reservas" && (
+  <ReservasSection
+    reservas={reservas}
+    onAceptar={handleAceptarReserva}
+    onRechazar={handleRechazarReserva}
+    onVerDetalle={setReservaDetalle}
+  />
+)}
+
+{activeSection !== "dashboard" && activeSection !== "reservas" && (
+  <section className="beluer-panel-section active">
               <div className="beluer-panel-top-bar">
                 <div className="beluer-panel-greeting">
                   <h1>{getSectionTitle(activeSection)}</h1>
@@ -254,8 +350,243 @@ export default function BeluerPanelOriginalPage() {
           aria-label="Cerrar menú"
         />
       )}
+      {reservaDetalle && (
+  <div className="beluer-panel-modal-overlay">
+    <div className="beluer-panel-modal">
+      <button
+        className="beluer-panel-modal-close"
+        type="button"
+        onClick={() => setReservaDetalle(null)}
+        aria-label="Cerrar detalle"
+      >
+        ×
+      </button>
+
+      <div className="beluer-panel-modal-badge">
+        {getReservaEstadoLabel(reservaDetalle.estado)}
+      </div>
+
+      <h2>{reservaDetalle.servicio}</h2>
+      <p className="beluer-panel-modal-subtitle">
+        Solicitud de {reservaDetalle.clienta}
+      </p>
+
+      <div className="beluer-panel-modal-info-grid">
+        <div>
+          <span>Fecha</span>
+          <strong>{reservaDetalle.fecha}</strong>
+        </div>
+
+        <div>
+          <span>Hora</span>
+          <strong>{reservaDetalle.hora}</strong>
+        </div>
+
+        <div>
+          <span>Distrito</span>
+          <strong>{reservaDetalle.distrito}</strong>
+        </div>
+
+        <div>
+          <span>Total</span>
+          <strong>S/ {reservaDetalle.total}</strong>
+        </div>
+
+        <div className="full">
+          <span>Dirección</span>
+          <strong>{reservaDetalle.direccion}</strong>
+        </div>
+
+        <div className="full">
+          <span>Instrucciones</span>
+          <strong>{reservaDetalle.instrucciones}</strong>
+        </div>
+
+        <div>
+          <span>Método de pago</span>
+          <strong>{reservaDetalle.metodoPago}</strong>
+        </div>
+      </div>
+
+      {reservaDetalle.estado === "pendiente" && (
+        <div className="beluer-panel-modal-actions">
+          <button
+            type="button"
+            className="beluer-panel-btn-secondary"
+            onClick={() => handleRechazarReserva(reservaDetalle.id)}
+          >
+            Rechazar
+          </button>
+
+          <button
+            type="button"
+            className="beluer-panel-btn-primary"
+            onClick={() => handleAceptarReserva(reservaDetalle.id)}
+          >
+            Aceptar reserva
+          </button>
+        </div>
+      )}
+    </div>
+  </div>
+)}
     </div>
   );
+}
+function ReservasSection({
+  reservas,
+  onAceptar,
+  onRechazar,
+  onVerDetalle,
+}: {
+  reservas: ReservaBeluer[];
+  onAceptar: (id: string) => void;
+  onRechazar: (id: string) => void;
+  onVerDetalle: (reserva: ReservaBeluer) => void;
+}) {
+  const pendientes = reservas.filter((reserva) => reserva.estado === "pendiente");
+  const aceptadas = reservas.filter((reserva) => reserva.estado === "aceptada");
+  const rechazadas = reservas.filter((reserva) => reserva.estado === "rechazada");
+
+  return (
+    <section className="beluer-panel-section active">
+      <div className="beluer-panel-top-bar">
+        <div className="beluer-panel-greeting">
+          <h1>Reservas</h1>
+          <p>Gestiona tus solicitudes, citas aceptadas y reservas rechazadas.</p>
+        </div>
+
+        <BeluerPill />
+      </div>
+
+      <div className="beluer-panel-reservas-summary">
+        <div>
+          <span>Pendientes</span>
+          <strong>{pendientes.length}</strong>
+        </div>
+
+        <div>
+          <span>Aceptadas</span>
+          <strong>{aceptadas.length}</strong>
+        </div>
+
+        <div>
+          <span>Rechazadas</span>
+          <strong>{rechazadas.length}</strong>
+        </div>
+      </div>
+
+      <div className="beluer-panel-reservas-section-block">
+        <h2>Solicitudes pendientes</h2>
+
+        {pendientes.length > 0 ? (
+          <div className="beluer-panel-reservas-board">
+            {pendientes.map((reserva) => (
+              <ReservaBeluerCard
+                key={reserva.id}
+                reserva={reserva}
+                onAceptar={onAceptar}
+                onRechazar={onRechazar}
+                onVerDetalle={onVerDetalle}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="beluer-panel-empty-state">
+            No tienes solicitudes pendientes por ahora.
+          </div>
+        )}
+      </div>
+
+      <div className="beluer-panel-reservas-section-block">
+        <h2>Reservas aceptadas</h2>
+
+        {aceptadas.length > 0 ? (
+          <div className="beluer-panel-reservas-board">
+            {aceptadas.map((reserva) => (
+              <ReservaBeluerCard
+                key={reserva.id}
+                reserva={reserva}
+                onAceptar={onAceptar}
+                onRechazar={onRechazar}
+                onVerDetalle={onVerDetalle}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="beluer-panel-empty-state">
+            Aún no tienes reservas aceptadas.
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function ReservaBeluerCard({
+  reserva,
+  onAceptar,
+  onRechazar,
+  onVerDetalle,
+}: {
+  reserva: ReservaBeluer;
+  onAceptar: (id: string) => void;
+  onRechazar: (id: string) => void;
+  onVerDetalle: (reserva: ReservaBeluer) => void;
+}) {
+  return (
+    <article className={`beluer-panel-reserva-full-card ${reserva.estado}`}>
+      <div className="beluer-panel-reserva-full-top">
+        <span>{getReservaEstadoLabel(reserva.estado)}</span>
+        <strong>S/ {reserva.total}</strong>
+      </div>
+
+      <h3>{reserva.servicio}</h3>
+      <p>{reserva.clienta}</p>
+
+      <div className="beluer-panel-reserva-full-meta">
+        <span>📍 {reserva.distrito}</span>
+        <span>📅 {reserva.fecha}</span>
+        <span>🕒 {reserva.hora}</span>
+      </div>
+
+      <div className="beluer-panel-reserva-full-actions">
+        <button type="button" onClick={() => onVerDetalle(reserva)}>
+          Ver detalle
+        </button>
+
+        {reserva.estado === "pendiente" && (
+          <>
+            <button
+              type="button"
+              className="secondary"
+              onClick={() => onRechazar(reserva.id)}
+            >
+              Rechazar
+            </button>
+
+            <button
+              type="button"
+              className="primary"
+              onClick={() => onAceptar(reserva.id)}
+            >
+              Aceptar
+            </button>
+          </>
+        )}
+      </div>
+    </article>
+  );
+}
+
+function getReservaEstadoLabel(estado: ReservaEstado) {
+  const labels: Record<ReservaEstado, string> = {
+    pendiente: "Pendiente de aceptar",
+    aceptada: "Aceptada",
+    rechazada: "Rechazada",
+  };
+
+  return labels[estado];
 }
 
 function BeluerPill() {
