@@ -33,6 +33,14 @@ type ServicioBeluer = {
   duracion: string;
   activo: boolean;
 };
+type FotoPortafolio = {
+  id: string;
+  titulo: string;
+  categoria: "lashes" | "nails" | "brows";
+  imagen: string;
+  estado: "aprobada" | "pendiente";
+  portada: boolean;
+};
 
 const icons = {
   dashboard: (
@@ -227,6 +235,44 @@ const serviciosIniciales: ServicioBeluer[] = [
     activo: false,
   },
 ];
+const fotosPortafolioIniciales: FotoPortafolio[] = [
+  {
+    id: "foto-001",
+    titulo: "Volumen natural",
+    categoria: "lashes",
+    imagen:
+      "https://images.unsplash.com/photo-1583001931096-959e9a1a6223?w=800&q=80",
+    estado: "aprobada",
+    portada: true,
+  },
+  {
+    id: "foto-002",
+    titulo: "Efecto rímel",
+    categoria: "lashes",
+    imagen:
+      "https://images.unsplash.com/photo-1516975080664-ed2fc6a32937?w=800&q=80",
+    estado: "aprobada",
+    portada: false,
+  },
+  {
+    id: "foto-003",
+    titulo: "Lifting natural",
+    categoria: "lashes",
+    imagen:
+      "https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=800&q=80",
+    estado: "pendiente",
+    portada: false,
+  },
+  {
+    id: "foto-004",
+    titulo: "Brows clean",
+    categoria: "brows",
+    imagen:
+      "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=800&q=80",
+    estado: "aprobada",
+    portada: false,
+  },
+];
 
 export default function BeluerPanelOriginalPage() {
   const [activeSection, setActiveSection] =
@@ -238,6 +284,9 @@ const [reservaDetalle, setReservaDetalle] = useState<ReservaBeluer | null>(
 );
 const [servicios, setServicios] =
   useState<ServicioBeluer[]>(serviciosIniciales);
+  const [fotosPortafolio, setFotosPortafolio] = useState<FotoPortafolio[]>(
+  fotosPortafolioIniciales
+);
 
   const goToSection = (section: BeluerSection) => {
     setActiveSection(section);
@@ -301,6 +350,33 @@ const handleGuardarServicios = () => {
   }
 
   alert("Tus servicios y precios fueron actualizados correctamente.");
+};
+const handleAgregarFoto = () => {
+  const nuevaFoto: FotoPortafolio = {
+    id: `foto-${Date.now()}`,
+    titulo: "Nueva foto pendiente",
+    categoria: "lashes",
+    imagen:
+      "https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?w=800&q=80",
+    estado: "pendiente",
+    portada: false,
+  };
+
+  setFotosPortafolio((current) => [nuevaFoto, ...current]);
+  alert("Foto agregada como simulación. Más adelante se subirá con Supabase Storage.");
+};
+
+const handleEliminarFoto = (id: string) => {
+  setFotosPortafolio((current) => current.filter((foto) => foto.id !== id));
+};
+
+const handleMarcarPortada = (id: string) => {
+  setFotosPortafolio((current) =>
+    current.map((foto) => ({
+      ...foto,
+      portada: foto.id === id,
+    }))
+  );
 };
 
   return (
@@ -453,9 +529,19 @@ const handleGuardarServicios = () => {
   />
 )}
 
+{activeSection === "portafolio" && (
+  <PortafolioSection
+    fotos={fotosPortafolio}
+    onAgregarFoto={handleAgregarFoto}
+    onEliminarFoto={handleEliminarFoto}
+    onMarcarPortada={handleMarcarPortada}
+  />
+)}
+
 {activeSection !== "dashboard" &&
   activeSection !== "reservas" &&
-  activeSection !== "servicios" && (
+  activeSection !== "servicios" &&
+  activeSection !== "portafolio" && (
   <section className="beluer-panel-section active">
               <div className="beluer-panel-top-bar">
                 <div className="beluer-panel-greeting">
@@ -889,6 +975,155 @@ function ServicioCategoriaBlock({
         ))}
       </div>
     </div>
+  );
+}
+function PortafolioSection({
+  fotos,
+  onAgregarFoto,
+  onEliminarFoto,
+  onMarcarPortada,
+}: {
+  fotos: FotoPortafolio[];
+  onAgregarFoto: () => void;
+  onEliminarFoto: (id: string) => void;
+  onMarcarPortada: (id: string) => void;
+}) {
+  const [filtro, setFiltro] = useState<"todas" | "lashes" | "nails" | "brows">(
+    "todas"
+  );
+
+  const fotosFiltradas = fotos.filter((foto) => {
+    if (filtro === "todas") return true;
+    return foto.categoria === filtro;
+  });
+
+  const aprobadas = fotos.filter((foto) => foto.estado === "aprobada").length;
+  const pendientes = fotos.filter((foto) => foto.estado === "pendiente").length;
+
+  return (
+    <section className="beluer-panel-section active">
+      <div className="beluer-panel-top-bar">
+        <div className="beluer-panel-greeting">
+          <h1>Portafolio</h1>
+          <p>
+            Gestiona tus fotos de trabajos realizados. Las nuevas fotos quedarán
+            pendientes de aprobación por belu.
+          </p>
+        </div>
+
+        <BeluerPill />
+      </div>
+
+      <div className="beluer-panel-portafolio-summary">
+        <div>
+          <span>Total de fotos</span>
+          <strong>{fotos.length}</strong>
+        </div>
+
+        <div>
+          <span>Aprobadas</span>
+          <strong>{aprobadas}</strong>
+        </div>
+
+        <div>
+          <span>Pendientes</span>
+          <strong>{pendientes}</strong>
+        </div>
+      </div>
+
+      <div className="beluer-panel-portafolio-actions">
+        <div className="beluer-panel-portafolio-filtros">
+          <button
+            type="button"
+            className={filtro === "todas" ? "active" : ""}
+            onClick={() => setFiltro("todas")}
+          >
+            Todas
+          </button>
+
+          <button
+            type="button"
+            className={filtro === "lashes" ? "active" : ""}
+            onClick={() => setFiltro("lashes")}
+          >
+            Lashes
+          </button>
+
+          <button
+            type="button"
+            className={filtro === "nails" ? "active" : ""}
+            onClick={() => setFiltro("nails")}
+          >
+            Nails
+          </button>
+
+          <button
+            type="button"
+            className={filtro === "brows" ? "active" : ""}
+            onClick={() => setFiltro("brows")}
+          >
+            Brows
+          </button>
+        </div>
+
+        <button
+          type="button"
+          className="beluer-panel-btn-primary"
+          onClick={onAgregarFoto}
+        >
+          Subir foto simulada
+        </button>
+      </div>
+
+      {fotosFiltradas.length > 0 ? (
+        <div className="beluer-panel-portafolio-grid">
+          {fotosFiltradas.map((foto) => (
+            <article className="beluer-panel-foto-card" key={foto.id}>
+              <div className="beluer-panel-foto-img">
+                <img src={foto.imagen} alt={foto.titulo} />
+
+                {foto.portada && (
+                  <span className="beluer-panel-foto-portada">Portada</span>
+                )}
+
+                <span className={`beluer-panel-foto-estado ${foto.estado}`}>
+                  {foto.estado === "aprobada" ? "Aprobada" : "Pendiente"}
+                </span>
+              </div>
+
+              <div className="beluer-panel-foto-body">
+                <div>
+                  <span>{foto.categoria}</span>
+                  <h3>{foto.titulo}</h3>
+                </div>
+
+                <div className="beluer-panel-foto-actions">
+                  <button
+                    type="button"
+                    onClick={() => onMarcarPortada(foto.id)}
+                    disabled={foto.portada}
+                  >
+                    {foto.portada ? "Ya es portada" : "Marcar portada"}
+                  </button>
+
+                  <button
+                    type="button"
+                    className="danger"
+                    onClick={() => onEliminarFoto(foto.id)}
+                  >
+                    Eliminar
+                  </button>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      ) : (
+        <div className="beluer-panel-empty-state">
+          No hay fotos para este filtro.
+        </div>
+      )}
+    </section>
   );
 }
 
