@@ -24,6 +24,15 @@ type ReservaBeluer = {
   instrucciones: string;
   metodoPago: string;
 };
+type ServicioBeluer = {
+  id: string;
+  nombre: string;
+  categoria: "lashes" | "nails" | "brows";
+  precio: number;
+  precioMinimo: number;
+  duracion: string;
+  activo: boolean;
+};
 
 const icons = {
   dashboard: (
@@ -135,6 +144,89 @@ const reservasIniciales: ReservaBeluer[] = [
     metodoPago: "Yape",
   },
 ];
+const serviciosIniciales: ServicioBeluer[] = [
+  {
+    id: "srv-001",
+    nombre: "Clásicas",
+    categoria: "lashes",
+    precio: 110,
+    precioMinimo: 100,
+    duracion: "1h 30min",
+    activo: true,
+  },
+  {
+    id: "srv-002",
+    nombre: "Efecto Rímel",
+    categoria: "lashes",
+    precio: 120,
+    precioMinimo: 110,
+    duracion: "1h 45min",
+    activo: true,
+  },
+  {
+    id: "srv-003",
+    nombre: "Volumen 3D",
+    categoria: "lashes",
+    precio: 150,
+    precioMinimo: 140,
+    duracion: "2h",
+    activo: true,
+  },
+  {
+    id: "srv-004",
+    nombre: "Volumen 4D",
+    categoria: "lashes",
+    precio: 170,
+    precioMinimo: 160,
+    duracion: "2h 15min",
+    activo: false,
+  },
+  {
+    id: "srv-005",
+    nombre: "Mega Volumen 5D",
+    categoria: "lashes",
+    precio: 210,
+    precioMinimo: 190,
+    duracion: "2h 30min",
+    activo: false,
+  },
+  {
+    id: "srv-006",
+    nombre: "Lifting de pestañas",
+    categoria: "lashes",
+    precio: 110,
+    precioMinimo: 100,
+    duracion: "1h",
+    activo: true,
+  },
+  {
+    id: "srv-007",
+    nombre: "Planchado de cejas",
+    categoria: "brows",
+    precio: 80,
+    precioMinimo: 70,
+    duracion: "45min",
+    activo: true,
+  },
+  {
+    id: "srv-008",
+    nombre: "Esmaltado Gel",
+    categoria: "nails",
+    precio: 75,
+    precioMinimo: 70,
+    duracion: "1h",
+    activo: false,
+  },
+  {
+    id: "srv-009",
+    nombre: "Rubber",
+    categoria: "nails",
+    precio: 90,
+    precioMinimo: 85,
+    duracion: "1h 15min",
+    activo: false,
+  },
+];
 
 export default function BeluerPanelOriginalPage() {
   const [activeSection, setActiveSection] =
@@ -144,6 +236,8 @@ export default function BeluerPanelOriginalPage() {
 const [reservaDetalle, setReservaDetalle] = useState<ReservaBeluer | null>(
   null
 );
+const [servicios, setServicios] =
+  useState<ServicioBeluer[]>(serviciosIniciales);
 
   const goToSection = (section: BeluerSection) => {
     setActiveSection(section);
@@ -175,6 +269,38 @@ const handleRechazarReserva = (id: string) => {
   );
 
   setReservaDetalle(null);
+};
+const handleToggleServicio = (id: string) => {
+  setServicios((current) =>
+    current.map((servicio) =>
+      servicio.id === id
+        ? { ...servicio, activo: !servicio.activo }
+        : servicio
+    )
+  );
+};
+
+const handleCambiarPrecioServicio = (id: string, precio: number) => {
+  setServicios((current) =>
+    current.map((servicio) =>
+      servicio.id === id ? { ...servicio, precio } : servicio
+    )
+  );
+};
+
+const handleGuardarServicios = () => {
+  const serviciosConPrecioBajo = servicios.filter(
+    (servicio) => servicio.activo && servicio.precio < servicio.precioMinimo
+  );
+
+  if (serviciosConPrecioBajo.length > 0) {
+    alert(
+      "Hay servicios activos con precio menor al mínimo permitido por belu."
+    );
+    return;
+  }
+
+  alert("Tus servicios y precios fueron actualizados correctamente.");
 };
 
   return (
@@ -318,8 +444,18 @@ const handleRechazarReserva = (id: string) => {
     onVerDetalle={setReservaDetalle}
   />
 )}
+{activeSection === "servicios" && (
+  <ServiciosSection
+    servicios={servicios}
+    onToggleServicio={handleToggleServicio}
+    onCambiarPrecio={handleCambiarPrecioServicio}
+    onGuardar={handleGuardarServicios}
+  />
+)}
 
-{activeSection !== "dashboard" && activeSection !== "reservas" && (
+{activeSection !== "dashboard" &&
+  activeSection !== "reservas" &&
+  activeSection !== "servicios" && (
   <section className="beluer-panel-section active">
               <div className="beluer-panel-top-bar">
                 <div className="beluer-panel-greeting">
@@ -587,6 +723,173 @@ function getReservaEstadoLabel(estado: ReservaEstado) {
   };
 
   return labels[estado];
+}
+function ServiciosSection({
+  servicios,
+  onToggleServicio,
+  onCambiarPrecio,
+  onGuardar,
+}: {
+  servicios: ServicioBeluer[];
+  onToggleServicio: (id: string) => void;
+  onCambiarPrecio: (id: string, precio: number) => void;
+  onGuardar: () => void;
+}) {
+  const activos = servicios.filter((servicio) => servicio.activo);
+  const lashes = servicios.filter((servicio) => servicio.categoria === "lashes");
+  const nails = servicios.filter((servicio) => servicio.categoria === "nails");
+  const brows = servicios.filter((servicio) => servicio.categoria === "brows");
+
+  return (
+    <section className="beluer-panel-section active">
+      <div className="beluer-panel-top-bar">
+        <div className="beluer-panel-greeting">
+          <h1>Mis servicios</h1>
+          <p>
+            Activa los servicios que realizas y define tus precios respetando el
+            mínimo de belu.
+          </p>
+        </div>
+
+        <BeluerPill />
+      </div>
+
+      <div className="beluer-panel-servicios-summary">
+        <div>
+          <span>Servicios activos</span>
+          <strong>{activos.length}</strong>
+        </div>
+
+        <div>
+          <span>Lashes</span>
+          <strong>{lashes.filter((servicio) => servicio.activo).length}</strong>
+        </div>
+
+        <div>
+          <span>Nails</span>
+          <strong>{nails.filter((servicio) => servicio.activo).length}</strong>
+        </div>
+
+        <div>
+          <span>Brows</span>
+          <strong>{brows.filter((servicio) => servicio.activo).length}</strong>
+        </div>
+      </div>
+
+      <div className="beluer-panel-servicios-alert">
+        <strong>Autonomía con estándar belu ✦</strong>
+        <span>
+          Puedes definir tus precios, pero cada servicio debe respetar el precio
+          mínimo para proteger el posicionamiento premium de la plataforma.
+        </span>
+      </div>
+
+      <ServicioCategoriaBlock
+        titulo="Lashes"
+        servicios={lashes}
+        onToggleServicio={onToggleServicio}
+        onCambiarPrecio={onCambiarPrecio}
+      />
+
+      <ServicioCategoriaBlock
+        titulo="Brows"
+        servicios={brows}
+        onToggleServicio={onToggleServicio}
+        onCambiarPrecio={onCambiarPrecio}
+      />
+
+      <ServicioCategoriaBlock
+        titulo="Nails"
+        servicios={nails}
+        onToggleServicio={onToggleServicio}
+        onCambiarPrecio={onCambiarPrecio}
+      />
+
+      <div className="beluer-panel-servicios-footer">
+        <button
+          className="beluer-panel-btn-primary"
+          type="button"
+          onClick={onGuardar}
+        >
+          Guardar cambios
+        </button>
+      </div>
+    </section>
+  );
+}
+
+function ServicioCategoriaBlock({
+  titulo,
+  servicios,
+  onToggleServicio,
+  onCambiarPrecio,
+}: {
+  titulo: string;
+  servicios: ServicioBeluer[];
+  onToggleServicio: (id: string) => void;
+  onCambiarPrecio: (id: string, precio: number) => void;
+}) {
+  if (servicios.length === 0) return null;
+
+  return (
+    <div className="beluer-panel-servicios-block">
+      <h2>{titulo}</h2>
+
+      <div className="beluer-panel-servicios-grid">
+        {servicios.map((servicio) => (
+          <article
+            className={`beluer-panel-servicio-card ${
+              servicio.activo ? "activo" : "inactivo"
+            }`}
+            key={servicio.id}
+          >
+            <div className="beluer-panel-servicio-card-top">
+              <div>
+                <span>{servicio.categoria}</span>
+                <h3>{servicio.nombre}</h3>
+              </div>
+
+              <label className="beluer-panel-switch">
+                <input
+                  type="checkbox"
+                  checked={servicio.activo}
+                  onChange={() => onToggleServicio(servicio.id)}
+                />
+                <span />
+              </label>
+            </div>
+
+            <div className="beluer-panel-servicio-meta">
+              <span>Duración: {servicio.duracion}</span>
+              <span>Mínimo belu: S/ {servicio.precioMinimo}</span>
+            </div>
+
+            <div className="beluer-panel-servicio-price">
+              <label>Tu precio</label>
+
+              <div>
+                <span>S/</span>
+                <input
+                  type="number"
+                  min={servicio.precioMinimo}
+                  value={servicio.precio}
+                  onChange={(event) =>
+                    onCambiarPrecio(servicio.id, Number(event.target.value))
+                  }
+                />
+              </div>
+
+              {servicio.precio < servicio.precioMinimo && (
+                <small>
+                  El precio no puede ser menor a S/ {servicio.precioMinimo}.
+                </small>
+              )}
+            </div>
+          </article>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 function BeluerPill() {
