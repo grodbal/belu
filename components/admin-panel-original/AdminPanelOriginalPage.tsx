@@ -40,6 +40,29 @@ type AdminServicio = {
   duracionMinutos: number;
   activo: boolean;
 };
+type AdminReservaEstado =
+  | "pendiente_asignacion"
+  | "asignada"
+  | "confirmada"
+  | "completada"
+  | "cancelada";
+
+type AdminReserva = {
+  id: string;
+  clienta: string;
+  beluer: string | null;
+  servicio: string;
+  addons: string[];
+  distrito: string;
+  direccion: string;
+  fecha: string;
+  hora: string;
+  total: number;
+  metodoPago: "Yape" | "Plin" | "Tarjeta";
+  estado: AdminReservaEstado;
+  modoAsignacion: "gestionado" | "libre";
+  instrucciones: string;
+};
 
 const icons = {
   dashboard: (
@@ -260,6 +283,88 @@ const serviciosIniciales: AdminServicio[] = [
     activo: true,
   },
 ];
+const reservasIniciales: AdminReserva[] = [
+  {
+    id: "RSV-001",
+    clienta: "María Claudia R.",
+    beluer: null,
+    servicio: "Efecto Rímel",
+    addons: ["Depilación con hilo"],
+    distrito: "Miraflores",
+    direccion: "Av. Comandante Espinar 456, Miraflores",
+    fecha: "2026-05-18",
+    hora: "15:30",
+    total: 165,
+    metodoPago: "Yape",
+    estado: "pendiente_asignacion",
+    modoAsignacion: "gestionado",
+    instrucciones: "Prefiere un acabado natural pero con presencia.",
+  },
+  {
+    id: "RSV-002",
+    clienta: "Valeria M.",
+    beluer: "Andrea Robles",
+    servicio: "Lifting de pestañas",
+    addons: [],
+    distrito: "San Isidro",
+    direccion: "Calle Los Libertadores 220, San Isidro",
+    fecha: "2026-05-19",
+    hora: "11:00",
+    total: 120,
+    metodoPago: "Tarjeta",
+    estado: "asignada",
+    modoAsignacion: "libre",
+    instrucciones: "Tiene pestañas sensibles. Llevar materiales suaves.",
+  },
+  {
+    id: "RSV-003",
+    clienta: "Lucía P.",
+    beluer: "Camila V.",
+    servicio: "Rubber",
+    addons: ["Retiro de gel"],
+    distrito: "Surco",
+    direccion: "Av. Primavera 1250, Surco",
+    fecha: "2026-05-20",
+    hora: "17:00",
+    total: 125,
+    metodoPago: "Plin",
+    estado: "confirmada",
+    modoAsignacion: "libre",
+    instrucciones: "Prefiere uñas cortas y color nude.",
+  },
+  {
+    id: "RSV-004",
+    clienta: "Camila S.",
+    beluer: "Sofía T.",
+    servicio: "Volumen 3D",
+    addons: [],
+    distrito: "Barranco",
+    direccion: "Jr. Unión 340, Barranco",
+    fecha: "2026-05-12",
+    hora: "10:00",
+    total: 160,
+    metodoPago: "Yape",
+    estado: "completada",
+    modoAsignacion: "gestionado",
+    instrucciones: "Quiere efecto más marcado en esquina externa.",
+  },
+  {
+    id: "RSV-005",
+    clienta: "Renata G.",
+    beluer: null,
+    servicio: "Esmaltado Gel",
+    addons: [],
+    distrito: "La Molina",
+    direccion: "Av. La Fontana 890, La Molina",
+    fecha: "2026-05-10",
+    hora: "16:00",
+    total: 85,
+    metodoPago: "Tarjeta",
+    estado: "cancelada",
+    modoAsignacion: "gestionado",
+    instrucciones: "Cancelada por solicitud de la clienta.",
+  },
+];
 
 const adminAlerts = [
   {
@@ -290,6 +395,8 @@ export default function AdminPanelOriginalPage() {
 const [beluerDetalle, setBeluerDetalle] = useState<AdminBeluer | null>(null);
 const [servicios, setServicios] =
   useState<AdminServicio[]>(serviciosIniciales);
+  const [reservas, setReservas] = useState<AdminReserva[]>(reservasIniciales);
+const [reservaDetalle, setReservaDetalle] = useState<AdminReserva | null>(null);
 
   const goToSection = (section: AdminSection) => {
     setActiveSection(section);
@@ -365,6 +472,34 @@ const handleGuardarServiciosAdmin = () => {
   }
 
   alert("Catálogo de servicios actualizado correctamente.");
+};
+const handleCambiarEstadoReserva = (
+  id: string,
+  nuevoEstado: AdminReservaEstado
+) => {
+  setReservas((current) =>
+    current.map((reserva) =>
+      reserva.id === id ? { ...reserva, estado: nuevoEstado } : reserva
+    )
+  );
+
+  setReservaDetalle(null);
+};
+
+const handleAsignarBeluerReserva = (id: string, beluer: string) => {
+  setReservas((current) =>
+    current.map((reserva) =>
+      reserva.id === id
+        ? {
+            ...reserva,
+            beluer,
+            estado: "asignada",
+          }
+        : reserva
+    )
+  );
+
+  setReservaDetalle(null);
 };
 
   return (
@@ -510,10 +645,19 @@ const handleGuardarServiciosAdmin = () => {
     onGuardar={handleGuardarServiciosAdmin}
   />
 )}
+{activeSection === "reservas" && (
+  <AdminReservasSection
+    reservas={reservas}
+    beluers={beluers}
+    onVerDetalle={setReservaDetalle}
+    onCambiarEstado={handleCambiarEstadoReserva}
+  />
+)}
 
 {activeSection !== "dashboard" &&
   activeSection !== "beluers" &&
-  activeSection !== "servicios" && (
+  activeSection !== "servicios" &&
+  activeSection !== "reservas" && (
   <section className="admin-panel-section active">
               <div className="admin-panel-top-bar">
                 <div className="admin-panel-greeting">
@@ -647,6 +791,151 @@ const handleGuardarServiciosAdmin = () => {
             Pausar
           </button>
         )}
+        {reservaDetalle && (
+  <div className="admin-panel-modal-overlay">
+    <div className="admin-panel-modal">
+      <button
+        className="admin-panel-modal-close"
+        type="button"
+        onClick={() => setReservaDetalle(null)}
+        aria-label="Cerrar detalle"
+      >
+        ×
+      </button>
+
+      <div className="admin-panel-modal-badge-row">
+        <span className={`admin-panel-reserva-status ${reservaDetalle.estado}`}>
+          {getReservaEstadoLabel(reservaDetalle.estado)}
+        </span>
+
+        <span className="admin-panel-reserva-mode">
+          {reservaDetalle.modoAsignacion}
+        </span>
+      </div>
+
+      <h2>{reservaDetalle.servicio}</h2>
+      <p className="admin-panel-modal-subtitle">
+        Reserva de {reservaDetalle.clienta}
+      </p>
+
+      <div className="admin-panel-modal-info-grid">
+        <div>
+          <span>Beluer</span>
+          <strong>{reservaDetalle.beluer || "Sin asignar"}</strong>
+        </div>
+
+        <div>
+          <span>Total</span>
+          <strong>S/ {reservaDetalle.total}</strong>
+        </div>
+
+        <div>
+          <span>Fecha</span>
+          <strong>{reservaDetalle.fecha}</strong>
+        </div>
+
+        <div>
+          <span>Hora</span>
+          <strong>{reservaDetalle.hora}</strong>
+        </div>
+
+        <div>
+          <span>Distrito</span>
+          <strong>{reservaDetalle.distrito}</strong>
+        </div>
+
+        <div>
+          <span>Método de pago</span>
+          <strong>{reservaDetalle.metodoPago}</strong>
+        </div>
+
+        <div className="full">
+          <span>Dirección</span>
+          <strong>{reservaDetalle.direccion}</strong>
+        </div>
+
+        <div className="full">
+          <span>Add-ons</span>
+          <strong>
+            {reservaDetalle.addons.length > 0
+              ? reservaDetalle.addons.join(", ")
+              : "Sin adicionales"}
+          </strong>
+        </div>
+
+        <div className="full">
+          <span>Instrucciones</span>
+          <strong>{reservaDetalle.instrucciones}</strong>
+        </div>
+      </div>
+
+      {reservaDetalle.estado === "pendiente_asignacion" && (
+        <div className="admin-panel-modal-assign">
+          <label>Asignar Beluer</label>
+
+          <select
+            defaultValue=""
+            onChange={(event) => {
+              if (event.target.value) {
+                handleAsignarBeluerReserva(reservaDetalle.id, event.target.value);
+              }
+            }}
+          >
+            <option value="">Seleccionar Beluer</option>
+            {beluers
+              .filter((beluer) => beluer.estado === "aprobada")
+              .map((beluer) => (
+                <option key={beluer.id} value={beluer.nombre}>
+                  {beluer.nombre}
+                </option>
+              ))}
+          </select>
+        </div>
+      )}
+
+      <div className="admin-panel-modal-actions">
+        {reservaDetalle.estado !== "confirmada" &&
+          reservaDetalle.estado !== "cancelada" &&
+          reservaDetalle.estado !== "completada" && (
+            <button
+              type="button"
+              className="admin-panel-btn-primary"
+              onClick={() =>
+                handleCambiarEstadoReserva(reservaDetalle.id, "confirmada")
+              }
+            >
+              Confirmar
+            </button>
+          )}
+
+        {reservaDetalle.estado !== "completada" &&
+          reservaDetalle.estado !== "cancelada" && (
+            <button
+              type="button"
+              className="admin-panel-btn-secondary"
+              onClick={() =>
+                handleCambiarEstadoReserva(reservaDetalle.id, "completada")
+              }
+            >
+              Marcar completada
+            </button>
+          )}
+
+        {reservaDetalle.estado !== "cancelada" && (
+          <button
+            type="button"
+            className="admin-panel-btn-secondary"
+            onClick={() =>
+              handleCambiarEstadoReserva(reservaDetalle.id, "cancelada")
+            }
+          >
+            Cancelar
+          </button>
+        )}
+      </div>
+    </div>
+  </div>
+)}
       </div>
     </div>
   </div>
@@ -1064,6 +1353,199 @@ function AdminServiciosSection({
       </div>
     </section>
   );
+}
+
+function AdminReservasSection({
+  reservas,
+  beluers,
+  onVerDetalle,
+  onCambiarEstado,
+}: {
+  reservas: AdminReserva[];
+  beluers: AdminBeluer[];
+  onVerDetalle: (reserva: AdminReserva) => void;
+  onCambiarEstado: (id: string, estado: AdminReservaEstado) => void;
+}) {
+  const [filtro, setFiltro] = useState<"todas" | AdminReservaEstado>("todas");
+
+  const reservasFiltradas = reservas.filter((reserva) => {
+    if (filtro === "todas") return true;
+    return reserva.estado === filtro;
+  });
+
+  const pendientes = reservas.filter(
+    (reserva) => reserva.estado === "pendiente_asignacion"
+  );
+
+  const asignadas = reservas.filter((reserva) => reserva.estado === "asignada");
+  const confirmadas = reservas.filter(
+    (reserva) => reserva.estado === "confirmada"
+  );
+  const completadas = reservas.filter(
+    (reserva) => reserva.estado === "completada"
+  );
+
+  const totalIngresos = reservas
+    .filter((reserva) => reserva.estado !== "cancelada")
+    .reduce((acc, reserva) => acc + reserva.total, 0);
+
+  return (
+    <section className="admin-panel-section active">
+      <div className="admin-panel-top-bar">
+        <div className="admin-panel-greeting">
+          <h1>Reservas</h1>
+          <p>
+            Supervisa reservas, asignaciones, pagos y estado operativo del
+            servicio.
+          </p>
+        </div>
+
+        <AdminPill />
+      </div>
+
+      <div className="admin-panel-reservas-summary">
+        <div>
+          <span>Total reservas</span>
+          <strong>{reservas.length}</strong>
+        </div>
+
+        <div>
+          <span>Pendientes</span>
+          <strong>{pendientes.length}</strong>
+        </div>
+
+        <div>
+          <span>Asignadas</span>
+          <strong>{asignadas.length + confirmadas.length}</strong>
+        </div>
+
+        <div>
+          <span>Completadas</span>
+          <strong>{completadas.length}</strong>
+        </div>
+
+        <div>
+          <span>Total activo</span>
+          <strong>S/ {totalIngresos}</strong>
+        </div>
+      </div>
+
+      <div className="admin-panel-reservas-toolbar">
+        <div className="admin-panel-reservas-filters">
+          {(
+            [
+              "todas",
+              "pendiente_asignacion",
+              "asignada",
+              "confirmada",
+              "completada",
+              "cancelada",
+            ] as const
+          ).map((item) => (
+            <button
+              key={item}
+              type="button"
+              className={filtro === item ? "active" : ""}
+              onClick={() => setFiltro(item)}
+            >
+              {item === "todas" ? "Todas" : getReservaEstadoLabel(item)}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {pendientes.length > 0 && (
+        <div className="admin-panel-reservas-alert">
+          <strong>{pendientes.length} reserva(s) necesitan asignación</strong>
+          <span>
+            Estas reservas ya fueron pagadas y deben asignarse a una Beluer
+            disponible para activar el flujo de confirmación.
+          </span>
+        </div>
+      )}
+
+      <div className="admin-panel-reservas-list">
+        {reservasFiltradas.map((reserva) => (
+          <article className="admin-panel-reserva-card" key={reserva.id}>
+            <div className="admin-panel-reserva-main">
+              <div>
+                <span className={`admin-panel-reserva-status ${reserva.estado}`}>
+                  {getReservaEstadoLabel(reserva.estado)}
+                </span>
+
+                <h3>{reserva.servicio}</h3>
+
+                <p>
+                  {reserva.clienta} · {reserva.distrito}
+                </p>
+              </div>
+
+              <strong>S/ {reserva.total}</strong>
+            </div>
+
+            <div className="admin-panel-reserva-meta">
+              <span>📅 {reserva.fecha}</span>
+              <span>🕒 {reserva.hora}</span>
+              <span>💳 {reserva.metodoPago}</span>
+              <span>
+                👩‍🎨 {reserva.beluer ? reserva.beluer : "Sin Beluer"}
+              </span>
+              <span>⚙️ {reserva.modoAsignacion}</span>
+            </div>
+
+            <div className="admin-panel-reserva-actions">
+              <button type="button" onClick={() => onVerDetalle(reserva)}>
+                Ver detalle
+              </button>
+
+              {reserva.estado === "asignada" && (
+                <button
+                  type="button"
+                  className="primary"
+                  onClick={() => onCambiarEstado(reserva.id, "confirmada")}
+                >
+                  Confirmar
+                </button>
+              )}
+
+              {reserva.estado === "confirmada" && (
+                <button
+                  type="button"
+                  className="primary"
+                  onClick={() => onCambiarEstado(reserva.id, "completada")}
+                >
+                  Completar
+                </button>
+              )}
+
+              {reserva.estado !== "cancelada" &&
+                reserva.estado !== "completada" && (
+                  <button
+                    type="button"
+                    className="secondary"
+                    onClick={() => onCambiarEstado(reserva.id, "cancelada")}
+                  >
+                    Cancelar
+                  </button>
+                )}
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function getReservaEstadoLabel(estado: AdminReservaEstado) {
+  const labels: Record<AdminReservaEstado, string> = {
+    pendiente_asignacion: "Pendiente de asignación",
+    asignada: "Asignada",
+    confirmada: "Confirmada",
+    completada: "Completada",
+    cancelada: "Cancelada",
+  };
+
+  return labels[estado];
 }
 
 function AdminPill() {
