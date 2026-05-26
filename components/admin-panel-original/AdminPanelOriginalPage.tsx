@@ -99,6 +99,24 @@ type AdminPago = {
   netoBeluer: number;
   operacion: string;
 };
+type AdminMetricaServicio = {
+  nombre: string;
+  categoria: "lashes" | "nails" | "brows";
+  reservas: number;
+  ingresos: number;
+};
+
+type AdminMetricaDistrito = {
+  distrito: string;
+  reservas: number;
+  ingresos: number;
+};
+
+type AdminMetricaSemana = {
+  semana: string;
+  reservas: number;
+  ingresos: number;
+};
 
 const icons = {
   dashboard: (
@@ -555,6 +573,89 @@ const pagosIniciales: AdminPago[] = [
     operacion: "CQ-FAILED-028",
   },
 ];
+const serviciosTopIniciales: AdminMetricaServicio[] = [
+  {
+    nombre: "Efecto Rímel",
+    categoria: "lashes",
+    reservas: 18,
+    ingresos: 2160,
+  },
+  {
+    nombre: "Rubber",
+    categoria: "nails",
+    reservas: 14,
+    ingresos: 1260,
+  },
+  {
+    nombre: "Lifting de pestañas",
+    categoria: "lashes",
+    reservas: 12,
+    ingresos: 1320,
+  },
+  {
+    nombre: "Volumen 3D",
+    categoria: "lashes",
+    reservas: 10,
+    ingresos: 1600,
+  },
+  {
+    nombre: "Esmaltado Gel",
+    categoria: "nails",
+    reservas: 9,
+    ingresos: 675,
+  },
+];
+
+const distritosTopIniciales: AdminMetricaDistrito[] = [
+  {
+    distrito: "Miraflores",
+    reservas: 22,
+    ingresos: 2860,
+  },
+  {
+    distrito: "San Isidro",
+    reservas: 18,
+    ingresos: 2340,
+  },
+  {
+    distrito: "Surco",
+    reservas: 15,
+    ingresos: 1950,
+  },
+  {
+    distrito: "La Molina",
+    reservas: 9,
+    ingresos: 1080,
+  },
+  {
+    distrito: "Barranco",
+    reservas: 7,
+    ingresos: 820,
+  },
+];
+
+const semanasIniciales: AdminMetricaSemana[] = [
+  {
+    semana: "Semana 1",
+    reservas: 12,
+    ingresos: 1460,
+  },
+  {
+    semana: "Semana 2",
+    reservas: 18,
+    ingresos: 2240,
+  },
+  {
+    semana: "Semana 3",
+    reservas: 21,
+    ingresos: 2680,
+  },
+  {
+    semana: "Semana 4",
+    reservas: 26,
+    ingresos: 3180,
+  },
+];
 
 const adminAlerts = [
   {
@@ -892,13 +993,24 @@ const handleCambiarEstadoPago = (id: string, nuevoEstado: AdminPagoEstado) => {
     onCambiarEstado={handleCambiarEstadoPago}
   />
 )}
+{activeSection === "metricas" && (
+  <AdminMetricasSection
+    beluers={beluers}
+    reservas={reservas}
+    pagos={pagos}
+    serviciosTop={serviciosTopIniciales}
+    distritosTop={distritosTopIniciales}
+    semanas={semanasIniciales}
+  />
+)}
 
 {activeSection !== "dashboard" &&
   activeSection !== "beluers" &&
   activeSection !== "servicios" &&
   activeSection !== "reservas" &&
   activeSection !== "fotos" &&
-  activeSection !== "pagos" && (
+  activeSection !== "pagos" &&
+  activeSection !== "metricas" && (
   <section className="admin-panel-section active">
               <div className="admin-panel-top-bar">
                 <div className="admin-panel-greeting">
@@ -2352,6 +2464,229 @@ function getPagoEstadoLabel(estado: AdminPagoEstado) {
   };
 
   return labels[estado];
+}
+
+function AdminMetricasSection({
+  beluers,
+  reservas,
+  pagos,
+  serviciosTop,
+  distritosTop,
+  semanas,
+}: {
+  beluers: AdminBeluer[];
+  reservas: AdminReserva[];
+  pagos: AdminPago[];
+  serviciosTop: AdminMetricaServicio[];
+  distritosTop: AdminMetricaDistrito[];
+  semanas: AdminMetricaSemana[];
+}) {
+  const reservasActivas = reservas.filter(
+    (reserva) => reserva.estado !== "cancelada"
+  );
+
+  const reservasCompletadas = reservas.filter(
+    (reserva) => reserva.estado === "completada"
+  );
+
+  const pagosExitosos = pagos.filter((pago) => pago.estado === "pagado");
+
+  const ingresosTotales = pagosExitosos.reduce(
+    (acc, pago) => acc + pago.monto,
+    0
+  );
+
+  const comisionBelu = pagosExitosos.reduce(
+    (acc, pago) => acc + pago.comisionBelu,
+    0
+  );
+
+  const beluersActivas = beluers.filter(
+    (beluer) => beluer.estado === "aprobada"
+  );
+
+  const tasaFinalizacion =
+    reservasActivas.length > 0
+      ? Math.round((reservasCompletadas.length / reservasActivas.length) * 100)
+      : 0;
+
+  const ticketPromedio =
+    pagosExitosos.length > 0
+      ? Math.round(ingresosTotales / pagosExitosos.length)
+      : 0;
+
+  const maxSemanaIngresos = Math.max(
+    ...semanas.map((semana) => semana.ingresos)
+  );
+
+  return (
+    <section className="admin-panel-section active">
+      <div className="admin-panel-top-bar">
+        <div className="admin-panel-greeting">
+          <h1>Métricas</h1>
+          <p>
+            Vista ejecutiva del rendimiento de belu: demanda, ingresos,
+            operación y calidad.
+          </p>
+        </div>
+
+        <AdminPill />
+      </div>
+
+      <div className="admin-panel-metricas-hero">
+        <div>
+          <span>Comisión estimada belu</span>
+          <strong>S/ {comisionBelu}</strong>
+          <p>
+            Ingreso estimado de la plataforma sobre pagos completados. Más
+            adelante se calculará según plan de cada Beluer.
+          </p>
+        </div>
+
+        <div className="admin-panel-metricas-hero-grid">
+          <div>
+            <span>Ingresos procesados</span>
+            <strong>S/ {ingresosTotales}</strong>
+          </div>
+
+          <div>
+            <span>Ticket promedio</span>
+            <strong>S/ {ticketPromedio}</strong>
+          </div>
+        </div>
+      </div>
+
+      <div className="admin-panel-metricas-summary">
+        <div>
+          <span>Reservas activas</span>
+          <strong>{reservasActivas.length}</strong>
+        </div>
+
+        <div>
+          <span>Reservas completadas</span>
+          <strong>{reservasCompletadas.length}</strong>
+        </div>
+
+        <div>
+          <span>Tasa finalización</span>
+          <strong>{tasaFinalizacion}%</strong>
+        </div>
+
+        <div>
+          <span>Beluers activas</span>
+          <strong>{beluersActivas.length}</strong>
+        </div>
+
+        <div>
+          <span>Recompra estimada</span>
+          <strong>21 días</strong>
+        </div>
+      </div>
+
+      <div className="admin-panel-metricas-grid">
+        <div className="admin-panel-metricas-card large">
+          <div className="admin-panel-metricas-card-header">
+            <div>
+              <h2>Evolución semanal</h2>
+              <p>Reservas e ingresos simulados por semana.</p>
+            </div>
+          </div>
+
+          <div className="admin-panel-bar-chart">
+            {semanas.map((semana) => (
+              <div className="admin-panel-bar-item" key={semana.semana}>
+                <div className="admin-panel-bar-track">
+                  <span
+                    style={{
+                      height: `${Math.max(
+                        16,
+                        (semana.ingresos / maxSemanaIngresos) * 100
+                      )}%`,
+                    }}
+                  />
+                </div>
+
+                <strong>{semana.semana}</strong>
+                <small>S/ {semana.ingresos}</small>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="admin-panel-metricas-card">
+          <h2>Servicios más vendidos</h2>
+          <p>Ranking por reservas generadas.</p>
+
+          <div className="admin-panel-ranking-list">
+            {serviciosTop.map((servicio, index) => (
+              <div className="admin-panel-ranking-row" key={servicio.nombre}>
+                <span>{index + 1}</span>
+
+                <div>
+                  <strong>{servicio.nombre}</strong>
+                  <small>
+                    {servicio.categoria} · {servicio.reservas} reservas
+                  </small>
+                </div>
+
+                <em>S/ {servicio.ingresos}</em>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="admin-panel-metricas-card">
+          <h2>Distritos con mayor demanda</h2>
+          <p>Ranking por reservas e ingresos.</p>
+
+          <div className="admin-panel-ranking-list">
+            {distritosTop.map((distrito, index) => (
+              <div className="admin-panel-ranking-row" key={distrito.distrito}>
+                <span>{index + 1}</span>
+
+                <div>
+                  <strong>{distrito.distrito}</strong>
+                  <small>{distrito.reservas} reservas</small>
+                </div>
+
+                <em>S/ {distrito.ingresos}</em>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="admin-panel-metricas-card">
+          <h2>Alertas estratégicas</h2>
+          <p>Lectura rápida del sistema.</p>
+
+          <div className="admin-panel-metricas-alert-list">
+            <div>
+              <strong>Asignación gestionada</strong>
+              <span>
+                Revisa reservas sin Beluer asignada para evitar fricción
+                operativa.
+              </span>
+            </div>
+
+            <div>
+              <strong>Portafolio pendiente</strong>
+              <span>
+                Las fotos pendientes afectan la velocidad de publicación de
+                nuevas Beluers.
+              </span>
+            </div>
+
+            <div>
+              <strong>Retoque día 21</strong>
+              <span>
+                La recompra debe medirse desde reservas completadas y reseñas.
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
 }
 
 function AdminPill() {
