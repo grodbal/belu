@@ -41,6 +41,16 @@ type FotoPortafolio = {
   estado: "aprobada" | "pendiente";
   portada: boolean;
 };
+type IngresoBeluer = {
+  id: string;
+  fecha: string;
+  clienta: string;
+  servicio: string;
+  totalServicio: number;
+  comisionBelu: number;
+  netoBeluer: number;
+  estadoPago: "pendiente" | "pagado" | "retenido";
+};
 
 const icons = {
   dashboard: (
@@ -273,6 +283,48 @@ const fotosPortafolioIniciales: FotoPortafolio[] = [
     portada: false,
   },
 ];
+const ingresosIniciales: IngresoBeluer[] = [
+  {
+    id: "ING-001",
+    fecha: "2026-05-18",
+    clienta: "María Claudia R.",
+    servicio: "Efecto Rímel + Depilación con hilo",
+    totalServicio: 165,
+    comisionBelu: 25,
+    netoBeluer: 140,
+    estadoPago: "pendiente",
+  },
+  {
+    id: "ING-002",
+    fecha: "2026-05-17",
+    clienta: "Lucía P.",
+    servicio: "Volumen 3D",
+    totalServicio: 160,
+    comisionBelu: 24,
+    netoBeluer: 136,
+    estadoPago: "pagado",
+  },
+  {
+    id: "ING-003",
+    fecha: "2026-05-14",
+    clienta: "Valeria M.",
+    servicio: "Lifting de pestañas",
+    totalServicio: 120,
+    comisionBelu: 18,
+    netoBeluer: 102,
+    estadoPago: "pagado",
+  },
+  {
+    id: "ING-004",
+    fecha: "2026-05-10",
+    clienta: "Camila S.",
+    servicio: "Planchado de cejas",
+    totalServicio: 90,
+    comisionBelu: 14,
+    netoBeluer: 76,
+    estadoPago: "retenido",
+  },
+];
 
 export default function BeluerPanelOriginalPage() {
   const [activeSection, setActiveSection] =
@@ -287,6 +339,7 @@ const [servicios, setServicios] =
   const [fotosPortafolio, setFotosPortafolio] = useState<FotoPortafolio[]>(
   fotosPortafolioIniciales
 );
+const [ingresos] = useState<IngresoBeluer[]>(ingresosIniciales);
 
   const goToSection = (section: BeluerSection) => {
     setActiveSection(section);
@@ -537,11 +590,13 @@ const handleMarcarPortada = (id: string) => {
     onMarcarPortada={handleMarcarPortada}
   />
 )}
+{activeSection === "ingresos" && <IngresosSection ingresos={ingresos} />}
 
 {activeSection !== "dashboard" &&
   activeSection !== "reservas" &&
   activeSection !== "servicios" &&
-  activeSection !== "portafolio" && (
+  activeSection !== "portafolio" &&
+  activeSection !== "ingresos" && (
   <section className="beluer-panel-section active">
               <div className="beluer-panel-top-bar">
                 <div className="beluer-panel-greeting">
@@ -1125,6 +1180,152 @@ function PortafolioSection({
       )}
     </section>
   );
+}
+function IngresosSection({ ingresos }: { ingresos: IngresoBeluer[] }) {
+  const totalBruto = ingresos.reduce(
+    (acc, ingreso) => acc + ingreso.totalServicio,
+    0
+  );
+
+  const totalComision = ingresos.reduce(
+    (acc, ingreso) => acc + ingreso.comisionBelu,
+    0
+  );
+
+  const totalNeto = ingresos.reduce(
+    (acc, ingreso) => acc + ingreso.netoBeluer,
+    0
+  );
+
+  const pagosPendientes = ingresos
+    .filter((ingreso) => ingreso.estadoPago === "pendiente")
+    .reduce((acc, ingreso) => acc + ingreso.netoBeluer, 0);
+
+  const serviciosCompletados = ingresos.length;
+
+  return (
+    <section className="beluer-panel-section active">
+      <div className="beluer-panel-top-bar">
+        <div className="beluer-panel-greeting">
+          <h1>Ingresos</h1>
+          <p>
+            Revisa cuánto generaste, cuánto corresponde a comisión y cuánto
+            tienes pendiente por cobrar.
+          </p>
+        </div>
+
+        <BeluerPill />
+      </div>
+
+      <div className="beluer-panel-ingresos-hero">
+        <div>
+          <span>Neto estimado del mes</span>
+          <strong>S/ {totalNeto}</strong>
+          <p>
+            Este monto considera servicios completados menos la comisión de belu.
+          </p>
+        </div>
+
+        <div className="beluer-panel-ingresos-progress">
+          <span style={{ width: "72%" }} />
+        </div>
+
+        <small>72% de tu meta mensual de S/ 1,200</small>
+      </div>
+
+      <div className="beluer-panel-ingresos-summary">
+        <div>
+          <span>Bruto generado</span>
+          <strong>S/ {totalBruto}</strong>
+        </div>
+
+        <div>
+          <span>Comisión belu</span>
+          <strong>S/ {totalComision}</strong>
+        </div>
+
+        <div>
+          <span>Neto Beluer</span>
+          <strong>S/ {totalNeto}</strong>
+        </div>
+
+        <div>
+          <span>Pendiente de pago</span>
+          <strong>S/ {pagosPendientes}</strong>
+        </div>
+
+        <div>
+          <span>Servicios completados</span>
+          <strong>{serviciosCompletados}</strong>
+        </div>
+      </div>
+
+      <div className="beluer-panel-ingresos-card">
+        <div className="beluer-panel-ingresos-card-header">
+          <div>
+            <h2>Historial de ingresos</h2>
+            <p>Detalle de cada servicio realizado a través de belu.</p>
+          </div>
+
+          <button
+            type="button"
+            className="beluer-panel-btn-secondary"
+            onClick={() =>
+              alert(
+                "Más adelante aquí se descargará un reporte real en PDF o Excel."
+              )
+            }
+          >
+            Descargar reporte
+          </button>
+        </div>
+
+        <div className="beluer-panel-ingresos-list">
+          {ingresos.map((ingreso) => (
+            <article className="beluer-panel-ingreso-row" key={ingreso.id}>
+              <div className="beluer-panel-ingreso-main">
+                <span className={`estado ${ingreso.estadoPago}`}>
+                  {getIngresoEstadoLabel(ingreso.estadoPago)}
+                </span>
+
+                <h3>{ingreso.servicio}</h3>
+                <p>
+                  {ingreso.clienta} · {ingreso.fecha}
+                </p>
+              </div>
+
+              <div className="beluer-panel-ingreso-numeros">
+                <div>
+                  <span>Bruto</span>
+                  <strong>S/ {ingreso.totalServicio}</strong>
+                </div>
+
+                <div>
+                  <span>Comisión</span>
+                  <strong>- S/ {ingreso.comisionBelu}</strong>
+                </div>
+
+                <div>
+                  <span>Neto</span>
+                  <strong className="neto">S/ {ingreso.netoBeluer}</strong>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function getIngresoEstadoLabel(estado: IngresoBeluer["estadoPago"]) {
+  const labels: Record<IngresoBeluer["estadoPago"], string> = {
+    pendiente: "Pendiente",
+    pagado: "Pagado",
+    retenido: "Retenido",
+  };
+
+  return labels[estado];
 }
 
 function BeluerPill() {
