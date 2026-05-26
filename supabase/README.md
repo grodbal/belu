@@ -4,32 +4,7 @@
 
 Esta carpeta contiene la estructura base de Supabase para belu.
 
-Por ahora estos archivos no están conectados al proyecto Next.js. Están versionados para dejar preparada la arquitectura de base de datos, permisos y datos iniciales antes de la integración real.
-
----
-
-## Archivos actuales
-
-```txt
-supabase/schema.sql
-supabase/rls-policies.sql
-supabase/seed.sql
-```
-
----
-
-## Orden correcto de ejecución
-
-Cuando se cree el proyecto real en Supabase, ejecutar los archivos en este orden:
-
-```txt
-# Supabase setup para belu ✦
-
-## Objetivo
-
-Esta carpeta contiene la estructura base de Supabase para belu.
-
-Por ahora estos archivos no están conectados al proyecto Next.js. Están versionados para dejar preparada la arquitectura de base de datos, permisos, storage, triggers, funciones RPC y datos iniciales antes de la integración real.
+Por ahora estos archivos no están conectados al proyecto Next.js. Están versionados para dejar preparada la arquitectura de base de datos, permisos, storage, triggers, funciones RPC, vistas de lectura y datos iniciales antes de la integración real.
 
 ---
 
@@ -42,6 +17,7 @@ supabase/seed.sql
 supabase/storage-policies.sql
 supabase/triggers.sql
 supabase/functions.sql
+supabase/views.sql
 ```
 
 ---
@@ -57,9 +33,10 @@ Cuando se cree el proyecto real en Supabase, ejecutar los archivos en este orden
 4. storage-policies.sql
 5. triggers.sql
 6. functions.sql
+7. views.sql
 ```
 
-No cambiar este orden. Algunos archivos dependen de tablas, enums, funciones auxiliares o buckets creados previamente.
+No cambiar este orden. Algunos archivos dependen de tablas, enums, funciones auxiliares, buckets, triggers o funciones RPC creadas previamente.
 
 ---
 
@@ -234,6 +211,54 @@ El frontend debería usar estas funciones para operaciones sensibles en lugar de
 
 ---
 
+## 7. views.sql
+
+Crea vistas de lectura para simplificar consultas del frontend.
+
+Incluye vistas para:
+
+- Catálogo público de Beluers.
+- Servicios públicos por Beluer.
+- Portafolio público aprobado.
+- Catálogo activo de servicios.
+- Catálogo activo de add-ons.
+- Reservas para Admin.
+- Reservas para Clienta.
+- Reservas para Beluer.
+- Ingresos de Beluer.
+- Pagos para Admin.
+- Moderación de Beluers.
+- Moderación de fotos.
+- Métricas por servicio.
+- Métricas por distrito.
+- Métricas por día.
+- Eventos de automatización.
+
+Vistas principales:
+
+```txt
+v_public_beluer_catalog
+v_public_beluer_services
+v_public_beluer_portfolio
+v_active_services_catalog
+v_active_addons_catalog
+v_admin_bookings_overview
+v_client_bookings_overview
+v_beluer_bookings_overview
+v_beluer_earnings_overview
+v_admin_payments_overview
+v_admin_beluer_moderation
+v_admin_photo_moderation
+v_admin_metrics_by_service
+v_admin_metrics_by_district
+v_admin_metrics_by_day
+v_admin_automation_events
+```
+
+Este archivo debe ejecutarse al final porque depende de todas las tablas principales ya creadas.
+
+---
+
 ## Estado actual del frontend
 
 Actualmente los paneles funcionan con datos simulados en archivos locales:
@@ -303,6 +328,7 @@ Ejecutar en el SQL Editor de Supabase:
 4. storage-policies.sql
 5. triggers.sql
 6. functions.sql
+7. views.sql
 ```
 
 ### Fase 3: Crear primer usuario Admin
@@ -392,6 +418,8 @@ No ejecutar `triggers.sql` antes de tener tablas, funciones auxiliares y seed ba
 
 No ejecutar `functions.sql` antes de `triggers.sql`.
 
+No ejecutar `views.sql` antes de `functions.sql`.
+
 No compartir la `service role key`.
 
 No conectar pagos reales hasta validar bien reservas, usuarios y permisos.
@@ -415,23 +443,19 @@ No permitir que una Beluer vea pagos completos de clientas. Su vista financiera 
 ## Próximos archivos recomendados
 
 ```txt
-supabase/views.sql
 supabase/audit.sql
 ```
 
 Posibles responsabilidades:
 
-`views.sql`
-
-- Vistas para dashboards.
-- Vistas para catálogo público.
-- Vistas para ingresos de Beluer.
-- Vistas para Admin.
-
 `audit.sql`
 
 - Historial de cambios sensibles.
-- Auditoría de reservas, pagos, Beluers y reembolsos.
+- Auditoría de reservas.
+- Auditoría de pagos.
+- Auditoría de reembolsos.
+- Auditoría de cambios de estado de Beluers.
+- Auditoría de cambios de nivel.
 - Registro de acciones Admin.
 
 ---
