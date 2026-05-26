@@ -1,67 +1,22 @@
 "use client";
 
 import { useState } from "react";
-
-type BeluerSection =
-  | "dashboard"
-  | "reservas"
-  | "servicios"
-  | "portafolio"
-  | "ingresos"
-  | "perfil";
-  type ReservaEstado = "pendiente" | "aceptada" | "rechazada";
-
-type ReservaBeluer = {
-  id: string;
-  clienta: string;
-  servicio: string;
-  distrito: string;
-  direccion: string;
-  fecha: string;
-  hora: string;
-  total: number;
-  estado: ReservaEstado;
-  instrucciones: string;
-  metodoPago: string;
-};
-type ServicioBeluer = {
-  id: string;
-  nombre: string;
-  categoria: "lashes" | "nails" | "brows";
-  precio: number;
-  precioMinimo: number;
-  duracion: string;
-  activo: boolean;
-};
-type FotoPortafolio = {
-  id: string;
-  titulo: string;
-  categoria: "lashes" | "nails" | "brows";
-  imagen: string;
-  estado: "aprobada" | "pendiente";
-  portada: boolean;
-};
-type IngresoBeluer = {
-  id: string;
-  fecha: string;
-  clienta: string;
-  servicio: string;
-  totalServicio: number;
-  comisionBelu: number;
-  netoBeluer: number;
-  estadoPago: "pendiente" | "pagado" | "retenido";
-};
-type PerfilBeluer = {
-  nombrePublico: string;
-  bio: string;
-  instagram: string;
-  whatsapp: string;
-  experiencia: number;
-  nivel: "Beluer Nueva" | "Beluer Verificada" | "Beluer Top ✦";
-  estado: "Activo" | "En revisión" | "Pausado";
-  distritos: string[];
-  disponibilidadGeneral: boolean;
-};
+import {
+  fotosPortafolioIniciales,
+  ingresosIniciales,
+  perfilInicial,
+  reservasIniciales,
+  serviciosIniciales,
+} from "./beluerPanelData";
+import type {
+  BeluerSection,
+  FotoPortafolio,
+  IngresoBeluer,
+  PerfilBeluer,
+  ReservaBeluer,
+  ReservaEstado,
+  ServicioBeluer,
+} from "./beluerPanelTypes";
 
 const icons = {
   dashboard: (
@@ -119,234 +74,7 @@ const navItems: {
   { id: "perfil", label: "Mi Perfil", icon: icons.perfil },
 ];
 
-const reservasIniciales: ReservaBeluer[] = [
-  {
-    id: "BLU-RSV-001",
-    clienta: "María Claudia R.",
-    servicio: "Efecto Rímel + Depilación con hilo",
-    distrito: "Miraflores",
-    direccion: "Av. Comandante Espinar 456, Miraflores",
-    fecha: "2026-05-18",
-    hora: "15:30",
-    total: 165,
-    estado: "pendiente",
-    instrucciones: "Prefiere un acabado natural pero con más presencia.",
-    metodoPago: "Yape",
-  },
-  {
-    id: "BLU-RSV-002",
-    clienta: "Valeria M.",
-    servicio: "Lifting de pestañas",
-    distrito: "San Isidro",
-    direccion: "Calle Los Libertadores 220, San Isidro",
-    fecha: "2026-05-19",
-    hora: "11:00",
-    total: 120,
-    estado: "pendiente",
-    instrucciones: "Tiene pestañas sensibles. Llevar materiales suaves.",
-    metodoPago: "Tarjeta",
-  },
-  {
-    id: "BLU-RSV-003",
-    clienta: "Lucía P.",
-    servicio: "Volumen 3D",
-    distrito: "Surco",
-    direccion: "Av. Primavera 1250, Surco",
-    fecha: "2026-05-20",
-    hora: "17:00",
-    total: 160,
-    estado: "aceptada",
-    instrucciones: "Quiere efecto más marcado en la esquina externa.",
-    metodoPago: "Plin",
-  },
-  {
-    id: "BLU-RSV-004",
-    clienta: "Camila S.",
-    servicio: "Planchado de cejas",
-    distrito: "Barranco",
-    direccion: "Jr. Unión 340, Barranco",
-    fecha: "2026-05-21",
-    hora: "10:00",
-    total: 90,
-    estado: "aceptada",
-    instrucciones: "Prefiere cejas naturales, no muy marcadas.",
-    metodoPago: "Yape",
-  },
-];
-const serviciosIniciales: ServicioBeluer[] = [
-  {
-    id: "srv-001",
-    nombre: "Clásicas",
-    categoria: "lashes",
-    precio: 110,
-    precioMinimo: 100,
-    duracion: "1h 30min",
-    activo: true,
-  },
-  {
-    id: "srv-002",
-    nombre: "Efecto Rímel",
-    categoria: "lashes",
-    precio: 120,
-    precioMinimo: 110,
-    duracion: "1h 45min",
-    activo: true,
-  },
-  {
-    id: "srv-003",
-    nombre: "Volumen 3D",
-    categoria: "lashes",
-    precio: 150,
-    precioMinimo: 140,
-    duracion: "2h",
-    activo: true,
-  },
-  {
-    id: "srv-004",
-    nombre: "Volumen 4D",
-    categoria: "lashes",
-    precio: 170,
-    precioMinimo: 160,
-    duracion: "2h 15min",
-    activo: false,
-  },
-  {
-    id: "srv-005",
-    nombre: "Mega Volumen 5D",
-    categoria: "lashes",
-    precio: 210,
-    precioMinimo: 190,
-    duracion: "2h 30min",
-    activo: false,
-  },
-  {
-    id: "srv-006",
-    nombre: "Lifting de pestañas",
-    categoria: "lashes",
-    precio: 110,
-    precioMinimo: 100,
-    duracion: "1h",
-    activo: true,
-  },
-  {
-    id: "srv-007",
-    nombre: "Planchado de cejas",
-    categoria: "brows",
-    precio: 80,
-    precioMinimo: 70,
-    duracion: "45min",
-    activo: true,
-  },
-  {
-    id: "srv-008",
-    nombre: "Esmaltado Gel",
-    categoria: "nails",
-    precio: 75,
-    precioMinimo: 70,
-    duracion: "1h",
-    activo: false,
-  },
-  {
-    id: "srv-009",
-    nombre: "Rubber",
-    categoria: "nails",
-    precio: 90,
-    precioMinimo: 85,
-    duracion: "1h 15min",
-    activo: false,
-  },
-];
-const fotosPortafolioIniciales: FotoPortafolio[] = [
-  {
-    id: "foto-001",
-    titulo: "Volumen natural",
-    categoria: "lashes",
-    imagen:
-      "https://images.unsplash.com/photo-1583001931096-959e9a1a6223?w=800&q=80",
-    estado: "aprobada",
-    portada: true,
-  },
-  {
-    id: "foto-002",
-    titulo: "Efecto rímel",
-    categoria: "lashes",
-    imagen:
-      "https://images.unsplash.com/photo-1516975080664-ed2fc6a32937?w=800&q=80",
-    estado: "aprobada",
-    portada: false,
-  },
-  {
-    id: "foto-003",
-    titulo: "Lifting natural",
-    categoria: "lashes",
-    imagen:
-      "https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=800&q=80",
-    estado: "pendiente",
-    portada: false,
-  },
-  {
-    id: "foto-004",
-    titulo: "Brows clean",
-    categoria: "brows",
-    imagen:
-      "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=800&q=80",
-    estado: "aprobada",
-    portada: false,
-  },
-];
-const ingresosIniciales: IngresoBeluer[] = [
-  {
-    id: "ING-001",
-    fecha: "2026-05-18",
-    clienta: "María Claudia R.",
-    servicio: "Efecto Rímel + Depilación con hilo",
-    totalServicio: 165,
-    comisionBelu: 25,
-    netoBeluer: 140,
-    estadoPago: "pendiente",
-  },
-  {
-    id: "ING-002",
-    fecha: "2026-05-17",
-    clienta: "Lucía P.",
-    servicio: "Volumen 3D",
-    totalServicio: 160,
-    comisionBelu: 24,
-    netoBeluer: 136,
-    estadoPago: "pagado",
-  },
-  {
-    id: "ING-003",
-    fecha: "2026-05-14",
-    clienta: "Valeria M.",
-    servicio: "Lifting de pestañas",
-    totalServicio: 120,
-    comisionBelu: 18,
-    netoBeluer: 102,
-    estadoPago: "pagado",
-  },
-  {
-    id: "ING-004",
-    fecha: "2026-05-10",
-    clienta: "Camila S.",
-    servicio: "Planchado de cejas",
-    totalServicio: 90,
-    comisionBelu: 14,
-    netoBeluer: 76,
-    estadoPago: "retenido",
-  },
-];
-const perfilInicial: PerfilBeluer = {
-  nombrePublico: "Andrea Robles",
-  bio: "Especialista en extensiones de pestañas, lifting y diseño de cejas. Trabajo con acabados naturales, limpios y de larga duración.",
-  instagram: "@andrea.lashes",
-  whatsapp: "+51 987 654 321",
-  experiencia: 4,
-  nivel: "Beluer Top ✦",
-  estado: "Activo",
-  distritos: ["Miraflores", "San Isidro", "Surco"],
-  disponibilidadGeneral: true,
-};
+
 
 export default function BeluerPanelOriginalPage() {
   const [activeSection, setActiveSection] =
@@ -1617,7 +1345,7 @@ function PerfilBeluerSection({
 }
 
 function BeluerPill() {
-  return (
+  return (  
     <div className="beluer-panel-user-pill">
       <div className="beluer-panel-avatar">AR</div>
       <span>Andrea Robles</span>
