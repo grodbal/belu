@@ -51,6 +51,17 @@ type IngresoBeluer = {
   netoBeluer: number;
   estadoPago: "pendiente" | "pagado" | "retenido";
 };
+type PerfilBeluer = {
+  nombrePublico: string;
+  bio: string;
+  instagram: string;
+  whatsapp: string;
+  experiencia: number;
+  nivel: "Beluer Nueva" | "Beluer Verificada" | "Beluer Top ✦";
+  estado: "Activo" | "En revisión" | "Pausado";
+  distritos: string[];
+  disponibilidadGeneral: boolean;
+};
 
 const icons = {
   dashboard: (
@@ -325,6 +336,17 @@ const ingresosIniciales: IngresoBeluer[] = [
     estadoPago: "retenido",
   },
 ];
+const perfilInicial: PerfilBeluer = {
+  nombrePublico: "Andrea Robles",
+  bio: "Especialista en extensiones de pestañas, lifting y diseño de cejas. Trabajo con acabados naturales, limpios y de larga duración.",
+  instagram: "@andrea.lashes",
+  whatsapp: "+51 987 654 321",
+  experiencia: 4,
+  nivel: "Beluer Top ✦",
+  estado: "Activo",
+  distritos: ["Miraflores", "San Isidro", "Surco"],
+  disponibilidadGeneral: true,
+};
 
 export default function BeluerPanelOriginalPage() {
   const [activeSection, setActiveSection] =
@@ -340,6 +362,8 @@ const [servicios, setServicios] =
   fotosPortafolioIniciales
 );
 const [ingresos] = useState<IngresoBeluer[]>(ingresosIniciales);
+const [perfilBeluer, setPerfilBeluer] =
+  useState<PerfilBeluer>(perfilInicial);
 
   const goToSection = (section: BeluerSection) => {
     setActiveSection(section);
@@ -430,6 +454,42 @@ const handleMarcarPortada = (id: string) => {
       portada: foto.id === id,
     }))
   );
+};
+const handleActualizarCampoPerfil = <K extends keyof PerfilBeluer>(
+  campo: K,
+  valor: PerfilBeluer[K]
+) => {
+  setPerfilBeluer((current) => ({
+    ...current,
+    [campo]: valor,
+  }));
+};
+
+const handleToggleDistrito = (distrito: string) => {
+  setPerfilBeluer((current) => {
+    const existe = current.distritos.includes(distrito);
+
+    return {
+      ...current,
+      distritos: existe
+        ? current.distritos.filter((item) => item !== distrito)
+        : [...current.distritos, distrito],
+    };
+  });
+};
+
+const handleGuardarPerfilBeluer = () => {
+  if (!perfilBeluer.nombrePublico.trim()) {
+    alert("El nombre público no puede estar vacío.");
+    return;
+  }
+
+  if (perfilBeluer.distritos.length === 0) {
+    alert("Selecciona al menos un distrito de atención.");
+    return;
+  }
+
+  alert("Tu perfil de Beluer fue actualizado correctamente.");
 };
 
   return (
@@ -591,12 +651,21 @@ const handleMarcarPortada = (id: string) => {
   />
 )}
 {activeSection === "ingresos" && <IngresosSection ingresos={ingresos} />}
+{activeSection === "perfil" && (
+  <PerfilBeluerSection
+    perfil={perfilBeluer}
+    onActualizarCampo={handleActualizarCampoPerfil}
+    onToggleDistrito={handleToggleDistrito}
+    onGuardar={handleGuardarPerfilBeluer}
+  />
+)}
 
 {activeSection !== "dashboard" &&
   activeSection !== "reservas" &&
   activeSection !== "servicios" &&
   activeSection !== "portafolio" &&
-  activeSection !== "ingresos" && (
+  activeSection !== "ingresos" &&
+  activeSection !== "perfil" && (
   <section className="beluer-panel-section active">
               <div className="beluer-panel-top-bar">
                 <div className="beluer-panel-greeting">
@@ -1326,6 +1395,225 @@ function getIngresoEstadoLabel(estado: IngresoBeluer["estadoPago"]) {
   };
 
   return labels[estado];
+}
+
+function PerfilBeluerSection({
+  perfil,
+  onActualizarCampo,
+  onToggleDistrito,
+  onGuardar,
+}: {
+  perfil: PerfilBeluer;
+  onActualizarCampo: <K extends keyof PerfilBeluer>(
+    campo: K,
+    valor: PerfilBeluer[K]
+  ) => void;
+  onToggleDistrito: (distrito: string) => void;
+  onGuardar: () => void;
+}) {
+  const distritosDisponibles = [
+    "Miraflores",
+    "San Isidro",
+    "Surco",
+    "La Molina",
+    "Barranco",
+  ];
+
+  return (
+    <section className="beluer-panel-section active">
+      <div className="beluer-panel-top-bar">
+        <div className="beluer-panel-greeting">
+          <h1>Mi perfil</h1>
+          <p>
+            Actualiza tu información pública, zonas de atención y disponibilidad.
+          </p>
+        </div>
+
+        <BeluerPill />
+      </div>
+
+      <div className="beluer-panel-perfil-layout">
+        <aside className="beluer-panel-perfil-card">
+          <img
+            src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&q=80"
+            alt={perfil.nombrePublico}
+          />
+
+          <h2>{perfil.nombrePublico}</h2>
+          <p>{perfil.nivel}</p>
+
+          <div className={`beluer-panel-perfil-status ${perfil.estado.toLowerCase().replace(" ", "-")}`}>
+            {perfil.estado}
+          </div>
+
+          <div className="beluer-panel-perfil-stats">
+            <div>
+              <strong>{perfil.experiencia}</strong>
+              <span>Años</span>
+            </div>
+
+            <div>
+              <strong>{perfil.distritos.length}</strong>
+              <span>Zonas</span>
+            </div>
+
+            <div>
+              <strong>5.0</strong>
+              <span>Rating</span>
+            </div>
+          </div>
+
+          <div className="beluer-panel-perfil-note">
+            <strong>Perfil público</strong>
+            <span>
+              Esta información será visible para clientas cuando elijan una
+              Beluer en modo libre.
+            </span>
+          </div>
+        </aside>
+
+        <div className="beluer-panel-perfil-form-card">
+          <h3>Información principal</h3>
+
+          <div className="beluer-panel-form-grid">
+            <div className="beluer-panel-form-group">
+              <label>Nombre público</label>
+              <input
+                type="text"
+                value={perfil.nombrePublico}
+                onChange={(event) =>
+                  onActualizarCampo("nombrePublico", event.target.value)
+                }
+              />
+            </div>
+
+            <div className="beluer-panel-form-group">
+              <label>Instagram</label>
+              <input
+                type="text"
+                value={perfil.instagram}
+                onChange={(event) =>
+                  onActualizarCampo("instagram", event.target.value)
+                }
+              />
+            </div>
+
+            <div className="beluer-panel-form-group">
+              <label>WhatsApp</label>
+              <input
+                type="tel"
+                value={perfil.whatsapp}
+                onChange={(event) =>
+                  onActualizarCampo("whatsapp", event.target.value)
+                }
+              />
+            </div>
+
+            <div className="beluer-panel-form-group">
+              <label>Años de experiencia</label>
+              <input
+                type="number"
+                min={0}
+                value={perfil.experiencia}
+                onChange={(event) =>
+                  onActualizarCampo("experiencia", Number(event.target.value))
+                }
+              />
+            </div>
+          </div>
+
+          <div className="beluer-panel-form-group">
+            <label>Bio pública</label>
+            <textarea
+              value={perfil.bio}
+              onChange={(event) =>
+                onActualizarCampo("bio", event.target.value)
+              }
+            />
+          </div>
+
+          <div className="beluer-panel-form-grid">
+            <div className="beluer-panel-form-group">
+              <label>Nivel Beluer</label>
+              <select
+                value={perfil.nivel}
+                onChange={(event) =>
+                  onActualizarCampo(
+                    "nivel",
+                    event.target.value as PerfilBeluer["nivel"]
+                  )
+                }
+              >
+                <option value="Beluer Nueva">Beluer Nueva</option>
+                <option value="Beluer Verificada">Beluer Verificada</option>
+                <option value="Beluer Top ✦">Beluer Top ✦</option>
+              </select>
+            </div>
+
+            <div className="beluer-panel-form-group">
+              <label>Estado del perfil</label>
+              <select
+                value={perfil.estado}
+                onChange={(event) =>
+                  onActualizarCampo(
+                    "estado",
+                    event.target.value as PerfilBeluer["estado"]
+                  )
+                }
+              >
+                <option value="Activo">Activo</option>
+                <option value="En revisión">En revisión</option>
+                <option value="Pausado">Pausado</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="beluer-panel-distritos-box">
+            <label>Distritos de atención</label>
+
+            <div className="beluer-panel-distritos-grid">
+              {distritosDisponibles.map((distrito) => (
+                <button
+                  key={distrito}
+                  type="button"
+                  className={
+                    perfil.distritos.includes(distrito) ? "active" : ""
+                  }
+                  onClick={() => onToggleDistrito(distrito)}
+                >
+                  {distrito}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <label className="beluer-panel-disponibilidad-toggle">
+            <input
+              type="checkbox"
+              checked={perfil.disponibilidadGeneral}
+              onChange={(event) =>
+                onActualizarCampo(
+                  "disponibilidadGeneral",
+                  event.target.checked
+                )
+              }
+            />
+            <span>
+              Estoy disponible para recibir nuevas solicitudes de belu.
+            </span>
+          </label>
+
+          <button
+            className="beluer-panel-btn-primary beluer-panel-full-btn"
+            type="button"
+            onClick={onGuardar}
+          >
+            Guardar cambios
+          </button>
+        </div>
+      </div>
+    </section>
+  );
 }
 
 function BeluerPill() {
