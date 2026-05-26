@@ -78,6 +78,27 @@ type AdminFoto = {
   fechaSubida: string;
   notaRevision: string;
 };
+type AdminPagoEstado = "pagado" | "pendiente" | "fallido" | "reembolsado";
+
+type AdminPagoMetodo = "Yape" | "Plin" | "Tarjeta";
+
+type AdminPagoProveedor = "Culqi" | "Niubiz" | "Manual";
+
+type AdminPago = {
+  id: string;
+  reservaId: string;
+  clienta: string;
+  beluer: string;
+  servicio: string;
+  fecha: string;
+  metodo: AdminPagoMetodo;
+  proveedor: AdminPagoProveedor;
+  estado: AdminPagoEstado;
+  monto: number;
+  comisionBelu: number;
+  netoBeluer: number;
+  operacion: string;
+};
 
 const icons = {
   dashboard: (
@@ -442,6 +463,98 @@ const fotosIniciales: AdminFoto[] = [
     notaRevision: "Buen acabado, imagen usable para catálogo.",
   },
 ];
+const pagosIniciales: AdminPago[] = [
+  {
+    id: "PAY-001",
+    reservaId: "RSV-001",
+    clienta: "María Claudia R.",
+    beluer: "Sin asignar",
+    servicio: "Efecto Rímel + Depilación con hilo",
+    fecha: "2026-05-18",
+    metodo: "Yape",
+    proveedor: "Manual",
+    estado: "pagado",
+    monto: 165,
+    comisionBelu: 25,
+    netoBeluer: 140,
+    operacion: "YP-884219",
+  },
+  {
+    id: "PAY-002",
+    reservaId: "RSV-002",
+    clienta: "Valeria M.",
+    beluer: "Andrea Robles",
+    servicio: "Lifting de pestañas",
+    fecha: "2026-05-19",
+    metodo: "Tarjeta",
+    proveedor: "Culqi",
+    estado: "pagado",
+    monto: 120,
+    comisionBelu: 18,
+    netoBeluer: 102,
+    operacion: "CQ-193820",
+  },
+  {
+    id: "PAY-003",
+    reservaId: "RSV-003",
+    clienta: "Lucía P.",
+    beluer: "Camila V.",
+    servicio: "Rubber + Retiro de gel",
+    fecha: "2026-05-20",
+    metodo: "Plin",
+    proveedor: "Manual",
+    estado: "pendiente",
+    monto: 125,
+    comisionBelu: 19,
+    netoBeluer: 106,
+    operacion: "PL-552901",
+  },
+  {
+    id: "PAY-004",
+    reservaId: "RSV-004",
+    clienta: "Camila S.",
+    beluer: "Sofía T.",
+    servicio: "Volumen 3D",
+    fecha: "2026-05-12",
+    metodo: "Yape",
+    proveedor: "Manual",
+    estado: "pagado",
+    monto: 160,
+    comisionBelu: 24,
+    netoBeluer: 136,
+    operacion: "YP-441820",
+  },
+  {
+    id: "PAY-005",
+    reservaId: "RSV-005",
+    clienta: "Renata G.",
+    beluer: "Sin asignar",
+    servicio: "Esmaltado Gel",
+    fecha: "2026-05-10",
+    metodo: "Tarjeta",
+    proveedor: "Niubiz",
+    estado: "reembolsado",
+    monto: 85,
+    comisionBelu: 0,
+    netoBeluer: 0,
+    operacion: "NB-991270",
+  },
+  {
+    id: "PAY-006",
+    reservaId: "RSV-006",
+    clienta: "Daniela F.",
+    beluer: "Lucía P.",
+    servicio: "Acrílicas",
+    fecha: "2026-05-09",
+    metodo: "Tarjeta",
+    proveedor: "Culqi",
+    estado: "fallido",
+    monto: 135,
+    comisionBelu: 0,
+    netoBeluer: 0,
+    operacion: "CQ-FAILED-028",
+  },
+];
 
 const adminAlerts = [
   {
@@ -476,6 +589,8 @@ const [servicios, setServicios] =
 const [reservaDetalle, setReservaDetalle] = useState<AdminReserva | null>(null);
 const [fotos, setFotos] = useState<AdminFoto[]>(fotosIniciales);
 const [fotoDetalle, setFotoDetalle] = useState<AdminFoto | null>(null);
+const [pagos, setPagos] = useState<AdminPago[]>(pagosIniciales);
+const [pagoDetalle, setPagoDetalle] = useState<AdminPago | null>(null);
 
   const goToSection = (section: AdminSection) => {
     setActiveSection(section);
@@ -599,6 +714,15 @@ const handleMarcarFotoDestacada = (id: string) => {
   );
 
   setFotoDetalle(null);
+};
+const handleCambiarEstadoPago = (id: string, nuevoEstado: AdminPagoEstado) => {
+  setPagos((current) =>
+    current.map((pago) =>
+      pago.id === id ? { ...pago, estado: nuevoEstado } : pago
+    )
+  );
+
+  setPagoDetalle(null);
 };
 
   return (
@@ -761,11 +885,20 @@ const handleMarcarFotoDestacada = (id: string) => {
   />
 )}
 
+{activeSection === "pagos" && (
+  <AdminPagosSection
+    pagos={pagos}
+    onVerDetalle={setPagoDetalle}
+    onCambiarEstado={handleCambiarEstadoPago}
+  />
+)}
+
 {activeSection !== "dashboard" &&
   activeSection !== "beluers" &&
   activeSection !== "servicios" &&
   activeSection !== "reservas" &&
-  activeSection !== "fotos" && (
+  activeSection !== "fotos" &&
+  activeSection !== "pagos" && (
   <section className="admin-panel-section active">
               <div className="admin-panel-top-bar">
                 <div className="admin-panel-greeting">
@@ -1116,6 +1249,116 @@ const handleMarcarFotoDestacada = (id: string) => {
             Marcar destacada
           </button>
         )}
+        {pagoDetalle && (
+  <div className="admin-panel-modal-overlay">
+    <div className="admin-panel-modal">
+      <button
+        className="admin-panel-modal-close"
+        type="button"
+        onClick={() => setPagoDetalle(null)}
+        aria-label="Cerrar detalle"
+      >
+        ×
+      </button>
+
+      <div className="admin-panel-modal-badge-row">
+        <span className={`admin-panel-pago-status ${pagoDetalle.estado}`}>
+          {getPagoEstadoLabel(pagoDetalle.estado)}
+        </span>
+
+        <span className="admin-panel-pago-provider">
+          {pagoDetalle.proveedor}
+        </span>
+      </div>
+
+      <h2>{pagoDetalle.id}</h2>
+      <p className="admin-panel-modal-subtitle">
+        Pago asociado a la reserva {pagoDetalle.reservaId}
+      </p>
+
+      <div className="admin-panel-modal-info-grid">
+        <div>
+          <span>Clienta</span>
+          <strong>{pagoDetalle.clienta}</strong>
+        </div>
+
+        <div>
+          <span>Beluer</span>
+          <strong>{pagoDetalle.beluer}</strong>
+        </div>
+
+        <div className="full">
+          <span>Servicio</span>
+          <strong>{pagoDetalle.servicio}</strong>
+        </div>
+
+        <div>
+          <span>Método</span>
+          <strong>{pagoDetalle.metodo}</strong>
+        </div>
+
+        <div>
+          <span>Operación</span>
+          <strong>{pagoDetalle.operacion}</strong>
+        </div>
+
+        <div>
+          <span>Monto pagado</span>
+          <strong>S/ {pagoDetalle.monto}</strong>
+        </div>
+
+        <div>
+          <span>Comisión belu</span>
+          <strong>S/ {pagoDetalle.comisionBelu}</strong>
+        </div>
+
+        <div>
+          <span>Neto Beluer</span>
+          <strong>S/ {pagoDetalle.netoBeluer}</strong>
+        </div>
+
+        <div>
+          <span>Fecha</span>
+          <strong>{pagoDetalle.fecha}</strong>
+        </div>
+      </div>
+
+      <div className="admin-panel-modal-actions">
+        {pagoDetalle.estado !== "pagado" && (
+          <button
+            type="button"
+            className="admin-panel-btn-primary"
+            onClick={() => handleCambiarEstadoPago(pagoDetalle.id, "pagado")}
+          >
+            Marcar pagado
+          </button>
+        )}
+
+        {pagoDetalle.estado !== "pendiente" && (
+          <button
+            type="button"
+            className="admin-panel-btn-secondary"
+            onClick={() => handleCambiarEstadoPago(pagoDetalle.id, "pendiente")}
+          >
+            Marcar pendiente
+          </button>
+        )}
+
+        {pagoDetalle.estado !== "reembolsado" && (
+          <button
+            type="button"
+            className="admin-panel-btn-secondary"
+            onClick={() =>
+              handleCambiarEstadoPago(pagoDetalle.id, "reembolsado")
+            }
+          >
+            Reembolsar
+          </button>
+        )}
+      </div>
+    </div>
+  </div>
+)}
       </div>
     </div>
   </div>
@@ -1914,6 +2157,198 @@ function getFotoEstadoLabel(estado: AdminFotoEstado) {
     pendiente: "Pendiente",
     aprobada: "Aprobada",
     rechazada: "Rechazada",
+  };
+
+  return labels[estado];
+}
+
+function AdminPagosSection({
+  pagos,
+  onVerDetalle,
+  onCambiarEstado,
+}: {
+  pagos: AdminPago[];
+  onVerDetalle: (pago: AdminPago) => void;
+  onCambiarEstado: (id: string, estado: AdminPagoEstado) => void;
+}) {
+  const [filtroEstado, setFiltroEstado] = useState<"todos" | AdminPagoEstado>(
+    "todos"
+  );
+
+  const [filtroMetodo, setFiltroMetodo] = useState<"todos" | AdminPagoMetodo>(
+    "todos"
+  );
+
+  const pagosFiltrados = pagos.filter((pago) => {
+    const matchEstado =
+      filtroEstado === "todos" || pago.estado === filtroEstado;
+    const matchMetodo = filtroMetodo === "todos" || pago.metodo === filtroMetodo;
+
+    return matchEstado && matchMetodo;
+  });
+
+  const pagosExitosos = pagos.filter((pago) => pago.estado === "pagado");
+  const pagosPendientes = pagos.filter((pago) => pago.estado === "pendiente");
+  const pagosFallidos = pagos.filter((pago) => pago.estado === "fallido");
+
+  const montoTotal = pagosExitosos.reduce((acc, pago) => acc + pago.monto, 0);
+
+  const comisionTotal = pagosExitosos.reduce(
+    (acc, pago) => acc + pago.comisionBelu,
+    0
+  );
+
+  const netoBeluers = pagosExitosos.reduce(
+    (acc, pago) => acc + pago.netoBeluer,
+    0
+  );
+
+  return (
+    <section className="admin-panel-section active">
+      <div className="admin-panel-top-bar">
+        <div className="admin-panel-greeting">
+          <h1>Pagos</h1>
+          <p>
+            Supervisa transacciones, comisiones, netos de Beluers y estados de
+            pago.
+          </p>
+        </div>
+
+        <AdminPill />
+      </div>
+
+      <div className="admin-panel-pagos-summary">
+        <div>
+          <span>Monto cobrado</span>
+          <strong>S/ {montoTotal}</strong>
+        </div>
+
+        <div>
+          <span>Comisión belu</span>
+          <strong>S/ {comisionTotal}</strong>
+        </div>
+
+        <div>
+          <span>Neto Beluers</span>
+          <strong>S/ {netoBeluers}</strong>
+        </div>
+
+        <div>
+          <span>Pendientes</span>
+          <strong>{pagosPendientes.length}</strong>
+        </div>
+
+        <div>
+          <span>Fallidos</span>
+          <strong>{pagosFallidos.length}</strong>
+        </div>
+      </div>
+
+      <div className="admin-panel-pagos-toolbar">
+        <div className="admin-panel-pagos-filters">
+          {(["todos", "pagado", "pendiente", "fallido", "reembolsado"] as const).map(
+            (item) => (
+              <button
+                key={item}
+                type="button"
+                className={filtroEstado === item ? "active" : ""}
+                onClick={() => setFiltroEstado(item)}
+              >
+                {item === "todos" ? "Todos" : getPagoEstadoLabel(item)}
+              </button>
+            )
+          )}
+        </div>
+
+        <div className="admin-panel-pagos-filters">
+          {(["todos", "Yape", "Plin", "Tarjeta"] as const).map((item) => (
+            <button
+              key={item}
+              type="button"
+              className={filtroMetodo === item ? "active" : ""}
+              onClick={() => setFiltroMetodo(item)}
+            >
+              {item === "todos" ? "Métodos" : item}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="admin-panel-pagos-list">
+        {pagosFiltrados.map((pago) => (
+          <article className="admin-panel-pago-card" key={pago.id}>
+            <div className="admin-panel-pago-main">
+              <div>
+                <span className={`admin-panel-pago-status ${pago.estado}`}>
+                  {getPagoEstadoLabel(pago.estado)}
+                </span>
+
+                <h3>{pago.servicio}</h3>
+
+                <p>
+                  {pago.clienta} · {pago.beluer}
+                </p>
+              </div>
+
+              <strong>S/ {pago.monto}</strong>
+            </div>
+
+            <div className="admin-panel-pago-meta">
+              <span>📅 {pago.fecha}</span>
+              <span>💳 {pago.metodo}</span>
+              <span>🔐 {pago.proveedor}</span>
+              <span>📌 {pago.reservaId}</span>
+              <span>✦ Comisión S/ {pago.comisionBelu}</span>
+            </div>
+
+            <div className="admin-panel-pago-actions">
+              <button type="button" onClick={() => onVerDetalle(pago)}>
+                Ver detalle
+              </button>
+
+              {pago.estado === "pendiente" && (
+                <button
+                  type="button"
+                  className="primary"
+                  onClick={() => onCambiarEstado(pago.id, "pagado")}
+                >
+                  Marcar pagado
+                </button>
+              )}
+
+              {pago.estado === "fallido" && (
+                <button
+                  type="button"
+                  className="secondary"
+                  onClick={() => onCambiarEstado(pago.id, "pendiente")}
+                >
+                  Reintentar
+                </button>
+              )}
+
+              {pago.estado === "pagado" && (
+                <button
+                  type="button"
+                  className="secondary"
+                  onClick={() => onCambiarEstado(pago.id, "reembolsado")}
+                >
+                  Reembolsar
+                </button>
+              )}
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function getPagoEstadoLabel(estado: AdminPagoEstado) {
+  const labels: Record<AdminPagoEstado, string> = {
+    pagado: "Pagado",
+    pendiente: "Pendiente",
+    fallido: "Fallido",
+    reembolsado: "Reembolsado",
   };
 
   return labels[estado];

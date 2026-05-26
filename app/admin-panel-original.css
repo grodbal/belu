@@ -1651,3 +1651,220 @@
     height: 220px;
   }
 }
+/* ================================
+   ADMIN PANEL - PAGOS
+================================ */
+
+.admin-panel-pagos-summary {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1.2rem;
+  margin-bottom: 1.4rem;
+}
+
+.admin-panel-pagos-summary div {
+  background: rgba(255, 255, 255, 0.76);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  border-radius: 1.4rem;
+  padding: 1.3rem;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.035);
+}
+
+.admin-panel-pagos-summary span {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.35rem;
+}
+
+.admin-panel-pagos-summary strong {
+  color: var(--r);
+  font-size: 1.25rem;
+  font-weight: 900;
+}
+
+.admin-panel-pagos-toolbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.4rem;
+  flex-wrap: wrap;
+}
+
+.admin-panel-pagos-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.admin-panel-pagos-filters button {
+  border: 1.5px solid rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.75);
+  color: #555;
+  border-radius: 2rem;
+  padding: 0.7rem 1.1rem;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.admin-panel-pagos-filters button:hover,
+.admin-panel-pagos-filters button.active {
+  background: rgba(230, 0, 35, 0.08);
+  color: var(--r);
+  border-color: rgba(230, 0, 35, 0.2);
+}
+
+.admin-panel-pagos-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.admin-panel-pago-card {
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  border-radius: 1.5rem;
+  padding: 1.3rem;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.04);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.admin-panel-pago-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.06);
+}
+
+.admin-panel-pago-main {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.admin-panel-pago-main h3 {
+  font-size: 1.05rem;
+  font-weight: 900;
+  margin: 0.4rem 0 0.15rem;
+}
+
+.admin-panel-pago-main p {
+  font-size: 0.85rem;
+  color: #666;
+  margin: 0;
+}
+
+.admin-panel-pago-main strong {
+  color: var(--r);
+  font-size: 1.25rem;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.admin-panel-pago-status {
+  display: inline-flex;
+  border-radius: 2rem;
+  padding: 0.3rem 0.7rem;
+  font-size: 0.66rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.admin-panel-pago-status.pagado {
+  background: rgba(16, 138, 69, 0.08);
+  color: #108a45;
+}
+
+.admin-panel-pago-status.pendiente {
+  background: rgba(230, 0, 35, 0.08);
+  color: var(--r);
+}
+
+.admin-panel-pago-status.fallido,
+.admin-panel-pago-status.reembolsado {
+  background: rgba(0, 0, 0, 0.08);
+  color: #555;
+}
+
+.admin-panel-pago-provider {
+  display: inline-flex;
+  background: rgba(230, 0, 35, 0.08);
+  color: var(--r);
+  border-radius: 2rem;
+  padding: 0.3rem 0.7rem;
+  font-size: 0.66rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.admin-panel-pago-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.admin-panel-pago-meta span {
+  background: rgba(0, 0, 0, 0.035);
+  border-radius: 2rem;
+  padding: 0.38rem 0.65rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #444;
+}
+
+.admin-panel-pago-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.admin-panel-pago-actions button {
+  border: none;
+  border-radius: 2rem;
+  padding: 0.65rem 1rem;
+  font-size: 0.78rem;
+  font-weight: 800;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s ease;
+  background: rgba(0, 0, 0, 0.045);
+  color: #333;
+}
+
+.admin-panel-pago-actions button.primary {
+  background: var(--r);
+  color: white;
+}
+
+.admin-panel-pago-actions button.secondary {
+  background: rgba(0, 0, 0, 0.06);
+  color: #555;
+}
+
+.admin-panel-pago-actions button:hover {
+  transform: translateY(-1px);
+}
+
+@media (max-width: 1100px) {
+  .admin-panel-pagos-summary {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .admin-panel-pagos-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-panel-pago-main {
+    flex-direction: column;
+  }
+}
