@@ -3,6 +3,12 @@ import { NextResponse, type NextRequest } from "next/server";
 
 const protectedRoutes = ["/app/cliente", "/app/beluer", "/app/admin"];
 
+const routeRoleMap: Record<string, string> = {
+  "/app/cliente": "cliente",
+  "/app/beluer": "beluer",
+  "/app/admin": "admin",
+};
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -27,7 +33,7 @@ export async function proxy(request: NextRequest) {
           return request.cookies.getAll();
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => {
+          cookiesToSet.forEach(({ name, value }) => {
             request.cookies.set(name, value);
           });
 
@@ -53,6 +59,29 @@ export async function proxy(request: NextRequest) {
     loginUrl.searchParams.set("redirectTo", pathname);
 
     return NextResponse.redirect(loginUrl);
+  }
+
+  const userRole = user.user_metadata?.role;
+
+  const requiredRole = Object.entries(routeRoleMap).find(([route]) =>
+    pathname.startsWith(route)
+  )?.[1];
+
+  if (requiredRole && userRole !== requiredRole) {
+    const fallbackUrl = request.nextUrl.clone();
+
+    if (userRole === "admin") {
+      fallbackUrl.pathname = "/app/admin";
+      return NextResponse.redirect(fallbackUrl);
+    }
+
+    if (userRole === "beluer") {
+      fallbackUrl.pathname = "/app/beluer";
+      return NextResponse.redirect(fallbackUrl);
+    }
+
+    fallbackUrl.pathname = "/app/cliente";
+    return NextResponse.redirect(fallbackUrl);
   }
 
   return response;
