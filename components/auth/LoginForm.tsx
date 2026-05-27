@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 export default function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -30,6 +31,13 @@ export default function LoginForm() {
 
     if (error) {
       setMessage(error.message);
+      return;
+    }
+
+    const redirectTo = searchParams.get("redirectTo");
+
+    if (redirectTo?.startsWith("/app/")) {
+      router.push(redirectTo);
       return;
     }
 

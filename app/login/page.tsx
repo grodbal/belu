@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import LoginForm from "@/components/auth/LoginForm";
 
 export default function LoginPage() {
@@ -21,7 +22,15 @@ export default function LoginPage() {
           Accede a tu panel como clienta, Beluer o administradora.
         </p>
 
-        <LoginForm />
+        <Suspense
+  fallback={
+    <div className="rounded-[14px] bg-[#FFD6E2] px-4 py-3 text-sm font-bold text-[#E60023]">
+      Cargando formulario...
+    </div>
+  }
+>
+  <LoginForm />
+</Suspense>
 
         <p className="text-center text-[#555] text-sm mt-6 mb-3">
           ¿Aún no tienes cuenta?{" "}
