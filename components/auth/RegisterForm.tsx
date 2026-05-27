@@ -3,12 +3,9 @@
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
-type AccountType = "cliente" | "beluer";
-
 export default function RegisterForm() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
-  const [accountType, setAccountType] = useState<AccountType | "">("");
   const [password, setPassword] = useState("");
 
   const [isLoading, setIsLoading] = useState(false);
@@ -18,13 +15,7 @@ export default function RegisterForm() {
     event.preventDefault();
 
     setIsLoading(true);
-    setMessage("Procesando registro...");
-
-    if (!accountType) {
-      setIsLoading(false);
-      setMessage("Selecciona un tipo de cuenta.");
-      return;
-    }
+    setMessage("");
 
     const supabase = createClient();
 
@@ -34,7 +25,7 @@ export default function RegisterForm() {
       options: {
         data: {
           full_name: fullName,
-          role: accountType,
+          role: "cliente",
         },
       },
     });
@@ -42,7 +33,6 @@ export default function RegisterForm() {
     setIsLoading(false);
 
     if (error) {
-      console.error(error);
       setMessage(error.message);
       return;
     }
@@ -53,13 +43,11 @@ export default function RegisterForm() {
 
     setFullName("");
     setEmail("");
-    setAccountType("");
     setPassword("");
   }
 
   return (
     <form className="grid gap-4" onSubmit={handleRegister}>
-      
       <label className="grid gap-2 text-[#1A1A1A] font-bold text-sm">
         Nombre completo
         <input
@@ -82,24 +70,6 @@ export default function RegisterForm() {
           onChange={(event) => setEmail(event.target.value)}
           required
         />
-      </label>
-
-      <label className="grid gap-2 text-[#1A1A1A] font-bold text-sm">
-        Tipo de cuenta
-        <select
-          className="h-12 rounded-[14px] border border-[#E8E0E3] px-4 text-[15px] outline-none bg-white"
-          value={accountType}
-          onChange={(event) =>
-            setAccountType(event.target.value as AccountType)
-          }
-          required
-        >
-          <option value="" disabled>
-            Selecciona una opción
-          </option>
-          <option value="cliente">Clienta</option>
-          <option value="beluer">Beluer</option>
-        </select>
       </label>
 
       <label className="grid gap-2 text-[#1A1A1A] font-bold text-sm">

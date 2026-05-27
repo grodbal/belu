@@ -61,7 +61,7 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  const userRole = user.user_metadata?.role;
+  const userRole = user.app_metadata?.role ?? "cliente";
 
   const requiredRole = Object.entries(routeRoleMap).find(([route]) =>
     pathname.startsWith(route)
