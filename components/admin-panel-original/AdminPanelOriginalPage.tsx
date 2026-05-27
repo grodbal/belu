@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import {
   adminAlerts,
   beluersIniciales,
@@ -98,7 +98,13 @@ const navItems: {
   { id: "metricas", label: "Métricas", icon: icons.metricas },
 ];
 
-export default function AdminPanelOriginalPage() {
+type AdminPanelOriginalPageProps = {
+  beluersManagementSlot?: ReactNode;
+};
+
+export default function AdminPanelOriginalPage({
+  beluersManagementSlot,
+}: AdminPanelOriginalPageProps) {
   const [activeSection, setActiveSection] =
     useState<AdminSection>("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -372,14 +378,15 @@ const handleCambiarEstadoPago = (id: string, nuevoEstado: AdminPagoEstado) => {
             </section>
           )}
 
-          {activeSection === "beluers" && (
-  <AdminBeluersSection
-    beluers={beluers}
-    onVerDetalle={setBeluerDetalle}
-    onCambiarEstado={handleCambiarEstadoBeluer}
-    onCambiarNivel={handleCambiarNivelBeluer}
-  />
-)}
+          {activeSection === "beluers" &&
+  (beluersManagementSlot ?? (
+    <AdminBeluersSection
+      beluers={beluers}
+      onVerDetalle={setBeluerDetalle}
+      onCambiarEstado={handleCambiarEstadoBeluer}
+      onCambiarNivel={handleCambiarNivelBeluer}
+    />
+  ))}
 {activeSection === "servicios" && (
   <AdminServiciosSection
     servicios={servicios}
