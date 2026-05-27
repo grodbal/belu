@@ -15,7 +15,7 @@ export default function CreateBeluerForm() {
   );
 
   return (
-    <section className="fixed left-6 bottom-6 z-50 w-[360px] rounded-[28px] border border-[#E60023]/10 bg-white p-6 shadow-[0_24px_80px_rgba(0,0,0,0.16)]">
+    <section className="fixed left-6 bottom-6 z-50 max-h-[86vh] w-[380px] overflow-y-auto rounded-[28px] border border-[#E60023]/10 bg-white p-6 shadow-[0_24px_80px_rgba(0,0,0,0.16)]">
       <p className="mb-2 text-xs font-extrabold uppercase tracking-[0.12em] text-[#E60023]">
         Admin
       </p>
@@ -25,7 +25,7 @@ export default function CreateBeluerForm() {
       </h2>
 
       <p className="mb-5 text-sm leading-relaxed text-[#666]">
-        Crea una cuenta solo para especialistas aprobadas por belu.
+        Crea una cuenta y perfil operativo solo para especialistas aprobadas.
       </p>
 
       <form action={formAction} className="grid gap-3">
@@ -60,6 +60,56 @@ export default function CreateBeluerForm() {
             className="h-11 rounded-[14px] border border-[#E8E0E3] px-4 text-sm outline-none"
             required
             minLength={6}
+          />
+        </label>
+
+        <label className="grid gap-2 text-sm font-bold text-[#1A1A1A]">
+          Instagram
+          <input
+            name="instagram"
+            type="text"
+            placeholder="@usuario"
+            className="h-11 rounded-[14px] border border-[#E8E0E3] px-4 text-sm outline-none"
+          />
+        </label>
+
+        <label className="grid gap-2 text-sm font-bold text-[#1A1A1A]">
+          Teléfono
+          <input
+            name="phone"
+            type="text"
+            placeholder="999 999 999"
+            className="h-11 rounded-[14px] border border-[#E8E0E3] px-4 text-sm outline-none"
+          />
+        </label>
+
+        <label className="grid gap-2 text-sm font-bold text-[#1A1A1A]">
+          Distritos de atención
+          <input
+            name="districts"
+            type="text"
+            placeholder="Miraflores, San Isidro, Surco"
+            className="h-11 rounded-[14px] border border-[#E8E0E3] px-4 text-sm outline-none"
+          />
+        </label>
+
+        <label className="grid gap-2 text-sm font-bold text-[#1A1A1A]">
+          Años de experiencia
+          <input
+            name="experienceYears"
+            type="number"
+            min="0"
+            defaultValue="0"
+            className="h-11 rounded-[14px] border border-[#E8E0E3] px-4 text-sm outline-none"
+          />
+        </label>
+
+        <label className="grid gap-2 text-sm font-bold text-[#1A1A1A]">
+          Bio breve
+          <textarea
+            name="bio"
+            placeholder="Especialista en lashes y/o nails..."
+            className="min-h-20 rounded-[14px] border border-[#E8E0E3] px-4 py-3 text-sm outline-none"
           />
         </label>
 
