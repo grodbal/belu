@@ -47,6 +47,36 @@ function formatDate(value: string | null) {
   }).format(new Date(value));
 }
 
+function getBeluerLevelLabel(level: string | null) {
+  if (level === "premium") return "✦✦ Premium";
+  if (level === "top") return "✦✦✦ Top";
+  return "✦ Estándar";
+}
+
+function getBeluerCommission(level: string | null) {
+  if (level === "premium") {
+    return {
+      beluCommission: "10%",
+      beluerPayment: "90%",
+      requirement: "50+ servicios · rating ≥ 4.7",
+    };
+  }
+
+  if (level === "top") {
+    return {
+      beluCommission: "8%",
+      beluerPayment: "92%",
+      requirement: "100+ servicios · rating ≥ 4.8",
+    };
+  }
+
+  return {
+    beluCommission: "13%",
+    beluerPayment: "87%",
+    requirement: "< 50 servicios",
+  };
+}
+
 export default async function AdminBeluersRealList() {
   const supabase = createAdminClient();
 
@@ -181,13 +211,31 @@ export default async function AdminBeluersRealList() {
 
                     <td className="px-5 py-5">
   <div className="space-y-3">
-    <span className="rounded-full bg-[#FFD6E2] px-3 py-1 text-xs font-black text-[#E60023]">
-      {beluer.level === "premium"
-        ? "✦✦ Premium"
-        : beluer.level === "top"
-          ? "✦✦✦ Top"
-          : "✦ Estándar"}
-    </span>
+    <div className="space-y-2">
+      <span className="inline-flex rounded-full bg-[#FFD6E2] px-3 py-1 text-xs font-black text-[#E60023]">
+        {getBeluerLevelLabel(beluer.level)}
+      </span>
+
+      <div className="space-y-1 text-xs text-neutral-500">
+        <p>
+          Comisión belu:{" "}
+          <strong className="text-[#1A1A1A]">
+            {getBeluerCommission(beluer.level).beluCommission}
+          </strong>
+        </p>
+
+        <p>
+          Pago Beluer:{" "}
+          <strong className="text-[#1A1A1A]">
+            {getBeluerCommission(beluer.level).beluerPayment}
+          </strong>
+        </p>
+
+        <p className="max-w-[170px] leading-snug">
+          {getBeluerCommission(beluer.level).requirement}
+        </p>
+      </div>
+    </div>
 
     <UpdateBeluerLevelForm
       beluerProfileId={beluer.id}
