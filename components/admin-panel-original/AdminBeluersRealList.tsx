@@ -2,6 +2,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import UpdateBeluerStatusForm from "@/components/admin-panel-original/UpdateBeluerStatusForm";
 import UpdateBeluerLevelForm from "@/components/admin-panel-original/UpdateBeluerLevelForm";
 import UpdateBeluerAvailabilityForm from "@/components/admin-panel-original/UpdateBeluerAvailabilityForm";
+import EditBeluerProfileForm from "@/components/admin-panel-original/EditBeluerProfileForm";
 
 type Profile = {
   id: string;
@@ -25,6 +26,7 @@ type BeluerProfile = {
   total_bookings: number | null;
   is_available: boolean | null;
   created_at: string | null;
+  bio: string | null;
 };
 
 function formatDistricts(districts: BeluerProfile["districts"]) {
@@ -83,7 +85,7 @@ export default async function AdminBeluersRealList() {
   const { data: beluerProfiles, error: beluerError } = await supabase
     .from("beluer_profiles")
     .select(
-      "id, profile_id, public_name, instagram, phone, districts, experience_years, level, status, rating_average, total_bookings, is_available, created_at"
+      "id, profile_id, public_name, bio, instagram, phone, districts, experience_years, level, status, rating_average, total_bookings, is_available, created_at"
     )
     .order("created_at", { ascending: false });
 
@@ -315,6 +317,24 @@ export default async function AdminBeluersRealList() {
       <p className="mb-2 text-[11px] font-black uppercase tracking-[0.16em] text-neutral-400">
         Disponibilidad
       </p>
+
+      <div>
+  <p className="mb-2 text-[11px] font-black uppercase tracking-[0.16em] text-neutral-400">
+    Perfil
+  </p>
+
+  <EditBeluerProfileForm
+    profileId={beluer.profile_id}
+    beluerProfileId={beluer.id}
+    fullName={profile?.full_name || ""}
+    publicName={beluer.public_name || profile?.full_name || ""}
+    phone={beluer.phone || profile?.phone || ""}
+    instagram={beluer.instagram || ""}
+    districts={formatDistricts(beluer.districts)}
+    experienceYears={beluer.experience_years ?? 0}
+    bio={beluer.bio || ""}
+  />
+</div>
 
       <UpdateBeluerAvailabilityForm
         beluerProfileId={beluer.id}
