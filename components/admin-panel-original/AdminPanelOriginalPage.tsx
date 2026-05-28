@@ -108,11 +108,13 @@ const navItems: {
 type AdminPanelOriginalPageProps = {
   beluersListSlot?: ReactNode;
   registerBeluerSlot?: ReactNode;
+  servicesSlot?: ReactNode;
 };
 
 export default function AdminPanelOriginalPage({
   beluersListSlot,
   registerBeluerSlot,
+  servicesSlot,
 }: AdminPanelOriginalPageProps) {
   const [activeSection, setActiveSection] =
     useState<AdminSection>("dashboard");
@@ -400,15 +402,16 @@ const handleCambiarEstadoPago = (id: string, nuevoEstado: AdminPagoEstado) => {
   ))}
 
 {activeSection === "registrar-beluer" && registerBeluerSlot}
-{activeSection === "servicios" && (
-  <AdminServiciosSection
-    servicios={servicios}
-    onToggleServicio={handleToggleServicioAdmin}
-    onActualizarServicio={handleActualizarServicioAdmin}
-    onAgregarServicio={handleAgregarServicioAdmin}
-    onGuardar={handleGuardarServiciosAdmin}
-  />
-)}
+{activeSection === "servicios" &&
+  (servicesSlot ?? (
+    <AdminServiciosSection
+      servicios={servicios}
+      onToggleServicio={handleToggleServicioAdmin}
+      onActualizarServicio={handleActualizarServicioAdmin}
+      onAgregarServicio={handleAgregarServicioAdmin}
+      onGuardar={handleGuardarServiciosAdmin}
+    />
+  ))}
 {activeSection === "reservas" && (
   <AdminReservasSection
     reservas={reservas}

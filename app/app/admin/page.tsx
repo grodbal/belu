@@ -2,6 +2,7 @@ import LogoutButton from "@/components/auth/LogoutButton";
 import AdminPanelOriginalPage from "@/components/admin-panel-original/AdminPanelOriginalPage";
 import CreateBeluerForm from "@/components/admin-panel-original/CreateBeluerForm";
 import AdminBeluersRealList from "@/components/admin-panel-original/AdminBeluersRealList";
+import AdminServicesRealList from "@/components/admin-panel-original/AdminServicesRealList";
 
 export default function AdminPage() {
   return (
@@ -9,10 +10,32 @@ export default function AdminPage() {
       <AdminPanelOriginalPage
         beluersListSlot={<BeluersListSection />}
         registerBeluerSlot={<RegisterBeluerSection />}
+        servicesSlot={<ServicesSection />}
       />
+      
 
       <LogoutButton className="fixed right-6 bottom-6 z-50 rounded-full bg-[#e60023] px-5 py-3 text-sm font-bold text-white shadow-lg transition hover:bg-[#c4001d]" />
     </>
+  );
+}
+
+function ServicesSection() {
+  return (
+    <section className="admin-panel-section active">
+      <div className="admin-panel-top-bar">
+        <div className="admin-panel-greeting">
+          <h1>Servicios</h1>
+          <p>
+            Administra el catálogo oficial de servicios con precios fijos para
+            clientas.
+          </p>
+        </div>
+
+        <div className="admin-panel-pill">Catálogo real</div>
+      </div>
+
+      <AdminServicesRealList />
+    </section>
   );
 }
 
