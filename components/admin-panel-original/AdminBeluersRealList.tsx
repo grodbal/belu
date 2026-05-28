@@ -1,6 +1,7 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import UpdateBeluerStatusForm from "@/components/admin-panel-original/UpdateBeluerStatusForm";
 import UpdateBeluerLevelForm from "@/components/admin-panel-original/UpdateBeluerLevelForm";
+import UpdateBeluerAvailabilityForm from "@/components/admin-panel-original/UpdateBeluerAvailabilityForm";
 
 type Profile = {
   id: string;
@@ -209,16 +210,23 @@ export default async function AdminBeluersRealList() {
 </td>
 
                     <td className="px-5 py-5">
-                      <span
-                        className={`rounded-full px-3 py-1 text-xs font-black ${
-                          beluer.is_available
-                            ? "bg-green-50 text-green-700"
-                            : "bg-neutral-100 text-neutral-500"
-                        }`}
-                      >
-                        {beluer.is_available ? "Sí" : "No"}
-                      </span>
-                    </td>
+  <div className="space-y-3">
+    <span
+      className={`rounded-full px-3 py-1 text-xs font-black ${
+        beluer.is_available
+          ? "bg-green-50 text-green-700"
+          : "bg-neutral-100 text-neutral-500"
+      }`}
+    >
+      {beluer.is_available ? "Sí" : "No"}
+    </span>
+
+    <UpdateBeluerAvailabilityForm
+      beluerProfileId={beluer.id}
+      isAvailable={beluer.is_available}
+    />
+  </div>
+</td>
 
                     <td className="px-5 py-5 text-xs text-neutral-500">
                       <p>
