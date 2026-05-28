@@ -88,9 +88,16 @@ const navItems: {
   id: AdminSection;
   label: string;
   icon: React.ReactNode;
+  highlight?: boolean;
 }[] = [
   { id: "dashboard", label: "Inicio", icon: icons.dashboard },
   { id: "beluers", label: "Beluers", icon: icons.beluers },
+  {
+    id: "registrar-beluer",
+    label: "Registrar Beluer ✦",
+    icon: icons.beluers,
+    highlight: true,
+  },
   { id: "servicios", label: "Servicios", icon: icons.servicios },
   { id: "reservas", label: "Reservas", icon: icons.reservas },
   { id: "pagos", label: "Pagos", icon: icons.pagos },
@@ -99,11 +106,13 @@ const navItems: {
 ];
 
 type AdminPanelOriginalPageProps = {
-  beluersManagementSlot?: ReactNode;
+  beluersListSlot?: ReactNode;
+  registerBeluerSlot?: ReactNode;
 };
 
 export default function AdminPanelOriginalPage({
-  beluersManagementSlot,
+  beluersListSlot,
+  registerBeluerSlot,
 }: AdminPanelOriginalPageProps) {
   const [activeSection, setActiveSection] =
     useState<AdminSection>("dashboard");
@@ -289,10 +298,12 @@ const handleCambiarEstadoPago = (id: string, nuevoEstado: AdminPagoEstado) => {
             {navItems.map((item) => (
               <li key={item.id}>
                 <button
-                  type="button"
-                  className={activeSection === item.id ? "active" : ""}
-                  onClick={() => goToSection(item.id)}
-                >
+  type="button"
+  className={`${activeSection === item.id ? "active" : ""} ${
+    item.highlight ? "admin-panel-nav-highlight" : ""
+  }`}
+  onClick={() => goToSection(item.id)}
+>
                   <span className="admin-panel-nav-icon">{item.icon}</span>
                   {item.label}
                 </button>
@@ -379,7 +390,7 @@ const handleCambiarEstadoPago = (id: string, nuevoEstado: AdminPagoEstado) => {
           )}
 
           {activeSection === "beluers" &&
-  (beluersManagementSlot ?? (
+  (beluersListSlot ?? (
     <AdminBeluersSection
       beluers={beluers}
       onVerDetalle={setBeluerDetalle}
@@ -387,6 +398,8 @@ const handleCambiarEstadoPago = (id: string, nuevoEstado: AdminPagoEstado) => {
       onCambiarNivel={handleCambiarNivelBeluer}
     />
   ))}
+
+{activeSection === "registrar-beluer" && registerBeluerSlot}
 {activeSection === "servicios" && (
   <AdminServiciosSection
     servicios={servicios}
@@ -433,6 +446,7 @@ const handleCambiarEstadoPago = (id: string, nuevoEstado: AdminPagoEstado) => {
 
 {activeSection !== "dashboard" &&
   activeSection !== "beluers" &&
+  activeSection !== "registrar-beluer" &&
   activeSection !== "servicios" &&
   activeSection !== "reservas" &&
   activeSection !== "fotos" &&
@@ -2138,6 +2152,7 @@ function getSectionTitle(section: AdminSection) {
   const titles: Record<AdminSection, string> = {
     dashboard: "Inicio",
     beluers: "Beluers",
+    "registrar-beluer": "Registrar Beluer",
     servicios: "Servicios",
     reservas: "Reservas",
     pagos: "Pagos",

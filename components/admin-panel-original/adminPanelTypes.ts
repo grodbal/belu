@@ -1,6 +1,7 @@
 export type AdminSection =
   | "dashboard"
   | "beluers"
+  | "registrar-beluer"
   | "servicios"
   | "reservas"
   | "pagos"
