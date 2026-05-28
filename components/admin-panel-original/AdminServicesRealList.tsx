@@ -1,4 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin";
+import UpdateServiceStatusForm from "@/components/admin-panel-original/UpdateServiceStatusForm";
 
 type Service = {
   id: string;
@@ -183,21 +184,24 @@ export default async function AdminServicesRealList() {
                       </p>
                     </td>
 
-                    <td className="px-5 py-5 text-neutral-600">
-                      {service.duration_minutes} min
-                    </td>
-
                     <td className="px-5 py-5">
-                      <span
-                        className={`rounded-full px-3 py-1 text-xs font-black ${
-                          service.status === "active"
-                            ? "bg-green-50 text-green-700"
-                            : "bg-neutral-100 text-neutral-500"
-                        }`}
-                      >
-                        {service.status === "active" ? "Activo" : "Inactivo"}
-                      </span>
-                    </td>
+  <div className="space-y-3">
+    <span
+      className={`inline-flex rounded-full px-3 py-1 text-xs font-black ${
+        service.status === "active"
+          ? "bg-green-50 text-green-700"
+          : "bg-neutral-100 text-neutral-500"
+      }`}
+    >
+      {service.status === "active" ? "Activo" : "Inactivo"}
+    </span>
+
+    <UpdateServiceStatusForm
+      serviceId={service.id}
+      currentStatus={service.status}
+    />
+  </div>
+</td>
                   </tr>
                 );
               })}
