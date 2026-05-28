@@ -1,4 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin";
+import UpdateBeluerStatusForm from "@/components/admin-panel-original/UpdateBeluerStatusForm";
 
 type Profile = {
   id: string;
@@ -183,10 +184,17 @@ export default async function AdminBeluersRealList() {
                     </td>
 
                     <td className="px-5 py-5">
-                      <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-black text-neutral-700">
-                        {beluer.status || "Pendiente"}
-                      </span>
-                    </td>
+  <div className="space-y-3">
+    <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-black text-neutral-700">
+      {beluer.status || "pending"}
+    </span>
+
+    <UpdateBeluerStatusForm
+      beluerProfileId={beluer.id}
+      currentStatus={beluer.status}
+    />
+  </div>
+</td>
 
                     <td className="px-5 py-5">
                       <span
