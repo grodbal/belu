@@ -1,5 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import UpdateBeluerStatusForm from "@/components/admin-panel-original/UpdateBeluerStatusForm";
+import UpdateBeluerLevelForm from "@/components/admin-panel-original/UpdateBeluerLevelForm";
 
 type Profile = {
   id: string;
@@ -178,10 +179,21 @@ export default async function AdminBeluersRealList() {
                     </td>
 
                     <td className="px-5 py-5">
-                      <span className="rounded-full bg-[#FFD6E2] px-3 py-1 text-xs font-black text-[#E60023]">
-                        {beluer.level || "Nueva"}
-                      </span>
-                    </td>
+  <div className="space-y-3">
+    <span className="rounded-full bg-[#FFD6E2] px-3 py-1 text-xs font-black text-[#E60023]">
+      {beluer.level === "premium"
+        ? "✦✦ Premium"
+        : beluer.level === "top"
+          ? "✦✦✦ Top"
+          : "✦ Estándar"}
+    </span>
+
+    <UpdateBeluerLevelForm
+      beluerProfileId={beluer.id}
+      currentLevel={beluer.level || "standard"}
+    />
+  </div>
+</td>
 
                     <td className="px-5 py-5">
   <div className="space-y-3">
