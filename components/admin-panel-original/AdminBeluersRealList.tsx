@@ -164,12 +164,13 @@ export default async function AdminBeluersRealList() {
             <thead className="bg-[#F7F3F0] text-xs uppercase tracking-[0.16em] text-neutral-500">
               <tr>
                 <th className="px-5 py-4 font-black">Beluer</th>
-                <th className="px-5 py-4 font-black">Contacto</th>
-                <th className="px-5 py-4 font-black">Distritos</th>
-                <th className="px-5 py-4 font-black">Nivel</th>
-                <th className="px-5 py-4 font-black">Estado</th>
-                <th className="px-5 py-4 font-black">Disponible</th>
-                <th className="px-5 py-4 font-black">Actividad</th>
+<th className="px-5 py-4 font-black">Contacto</th>
+<th className="px-5 py-4 font-black">Distritos</th>
+<th className="px-5 py-4 font-black">Nivel</th>
+<th className="px-5 py-4 font-black">Estado</th>
+<th className="px-5 py-4 font-black">Disponible</th>
+<th className="px-5 py-4 font-black">Actividad</th>
+<th className="px-5 py-4 font-black">Gestión</th>
               </tr>
             </thead>
 
@@ -237,11 +238,7 @@ export default async function AdminBeluersRealList() {
       </div>
     </div>
 
-    <UpdateBeluerLevelForm
-      beluerProfileId={beluer.id}
-      currentLevel={beluer.level || "standard"}
-    />
-  </div>
+      </div>
 </td>
 
                     <td className="px-5 py-5">
@@ -250,11 +247,7 @@ export default async function AdminBeluersRealList() {
       {beluer.status || "pending"}
     </span>
 
-    <UpdateBeluerStatusForm
-      beluerProfileId={beluer.id}
-      currentStatus={beluer.status}
-    />
-  </div>
+      </div>
 </td>
 
                     <td className="px-5 py-5">
@@ -269,11 +262,7 @@ export default async function AdminBeluersRealList() {
       {beluer.is_available ? "Sí" : "No"}
     </span>
 
-    <UpdateBeluerAvailabilityForm
-      beluerProfileId={beluer.id}
-      isAvailable={beluer.is_available}
-    />
-  </div>
+      </div>
 </td>
 
                     <td className="px-5 py-5 text-xs text-neutral-500">
@@ -298,6 +287,42 @@ export default async function AdminBeluersRealList() {
                         </strong>
                       </p>
                     </td>
+                    <td className="px-5 py-5">
+  <div className="min-w-[260px] space-y-5">
+    <div>
+      <p className="mb-2 text-[11px] font-black uppercase tracking-[0.16em] text-neutral-400">
+        Nivel
+      </p>
+
+      <UpdateBeluerLevelForm
+        beluerProfileId={beluer.id}
+        currentLevel={beluer.level || "standard"}
+      />
+    </div>
+
+    <div>
+      <p className="mb-2 text-[11px] font-black uppercase tracking-[0.16em] text-neutral-400">
+        Estado
+      </p>
+
+      <UpdateBeluerStatusForm
+        beluerProfileId={beluer.id}
+        currentStatus={beluer.status}
+      />
+    </div>
+
+    <div>
+      <p className="mb-2 text-[11px] font-black uppercase tracking-[0.16em] text-neutral-400">
+        Disponibilidad
+      </p>
+
+      <UpdateBeluerAvailabilityForm
+        beluerProfileId={beluer.id}
+        isAvailable={beluer.is_available}
+      />
+    </div>
+  </div>
+</td>
                   </tr>
                 );
               })}
