@@ -20,6 +20,36 @@ import type {
   Service,
 } from "./clientePanelTypes";
 
+type ClientProfile = {
+  id: string;
+  full_name: string | null;
+  email: string | null;
+  phone: string | null;
+};
+
+type ClientBooking = {
+  id: string;
+  scheduled_date: string;
+  scheduled_time: string;
+  status: string;
+  payment_status: string;
+  public_price: number;
+  district: string;
+  address: string;
+  services: {
+    name: string;
+    category: string;
+  } | null;
+  beluer_profiles: {
+    public_name: string | null;
+  } | null;
+};
+
+type ClientePanelOriginalPageProps = {
+  clientProfile: ClientProfile | null;
+  nextBooking: ClientBooking | null;
+};
+
 const icons = {
   dashboard: (
     <svg viewBox="0 0 24 24">
@@ -81,7 +111,10 @@ const navItems: {
   { id: "perfil", label: "Mi Perfil", icon: icons.perfil },
 ];
 
-export default function ClientePanelOriginalPage() {
+export default function ClientePanelOriginalPage({
+  clientProfile,
+  nextBooking,
+}: ClientePanelOriginalPageProps) {
   const [activeSection, setActiveSection] = useState<PanelSection>("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -222,6 +255,10 @@ const handleCancelarReserva = () => {
   alert("Tu reserva ha sido cancelada.");
 };
 
+const clientName = clientProfile?.full_name || "Clienta";
+const clientFirstName = clientProfile?.full_name?.split(" ")[0] || "Clienta";
+const hasRealBooking = Boolean(nextBooking);
+
   return (
     <div className="cliente-panel-shell">
       <button
@@ -269,18 +306,21 @@ const handleCancelarReserva = () => {
 
         <main className="cliente-panel-main">
           {activeSection === "dashboard" && (
-  <DashboardSection
-    goToSection={goToSection}
-    reservaConfirmada={reservaConfirmada}
-    serviciosSeleccionados={serviciosSeleccionados}
-    addonsActivos={addonsActivos}
-    fecha={fecha}
-    hora={hora}
-    total={total}
-    modoAsignacion={modoAsignacion}
-    beluerSeleccionada={beluerSeleccionada}
-    onOpenGestion={setModalGestion}
-  />
+<DashboardSection
+  goToSection={goToSection}
+  reservaConfirmada={reservaConfirmada || hasRealBooking}
+  serviciosSeleccionados={serviciosSeleccionados}
+  addonsActivos={addonsActivos}
+  fecha={fecha}
+  hora={hora}
+  total={total}
+  modoAsignacion={modoAsignacion}
+  beluerSeleccionada={beluerSeleccionada}
+  onOpenGestion={setModalGestion}
+  clientFirstName={clientFirstName}
+  nextBooking={nextBooking}
+  clientName={clientName}
+/>
 )}
 
           {activeSection === "reserva" && (
@@ -290,7 +330,7 @@ const handleCancelarReserva = () => {
                   <h1>Agendar nueva cita</h1>
                 </div>
 
-                <UserPill />
+                <UserPill clientName={clientName} />
               </div>
 
               <div className="cliente-panel-card">
@@ -514,6 +554,7 @@ const handleCancelarReserva = () => {
     favoritas={beluersFavoritas}
     onToggleFavorita={toggleBeluerFavorita}
     goToReserva={() => goToSection("reserva")}
+    clientName={clientName}
   />
 )}
 
@@ -525,14 +566,17 @@ const handleCancelarReserva = () => {
     onToggleFavorita={toggleBeluerFavorita}
     goToReserva={() => goToSection("reserva")}
     goToEspecialistas={() => goToSection("beluers")}
+    clientName={clientName}
   />
 )}
 
 {activeSection === "historial" && (
-  <HistorialSection goToReserva={() => goToSection("reserva")} />
+  <HistorialSection goToReserva={() => goToSection("reserva")} clientName={clientName} />
 )}
-{activeSection === "pagos" && <PagosSection />}
-{activeSection === "perfil" && <PerfilSection />}
+{activeSection === "pagos" && <PagosSection clientName={clientName} />}
+{activeSection === "perfil" && (
+  <PerfilSection clientName={clientName} clientProfile={clientProfile} />
+)}
 
 {activeSection !== "dashboard" &&
   activeSection !== "reserva" &&
@@ -548,7 +592,7 @@ activeSection !== "perfil" && (
           <p>Esta sección se construirá en el siguiente bloque.</p>
         </div>
 
-        <UserPill />
+        <UserPill clientName={clientName} />
       </div>
 
       <div className="cliente-panel-card">
@@ -586,14 +630,13 @@ activeSection !== "perfil" && (
       <h2>💳 Completa tu pago</h2>
 
       <div className="cliente-panel-detalle-pago">
-        <div className="linea-pago">
-          <span>Servicios</span>
-          <strong>
-            {serviciosSeleccionados
-              .map((servicio) => servicio.nombre)
-              .join(" + ")}
-          </strong>
-        </div>
+        <div>
+  <span>Servicio</span>
+  <strong>
+    {nextBooking?.services?.name ||
+      serviciosSeleccionados.map((servicio) => servicio.nombre).join(" + ")}
+  </strong>
+</div>
 
         {addonsActivos.map((addon) => (
           <div className="linea-pago addon" key={addon.nombre}>
@@ -901,6 +944,9 @@ function DashboardSection({
   modoAsignacion,
   beluerSeleccionada,
   onOpenGestion,
+  clientFirstName,
+  nextBooking,
+  clientName,
 }: {
   goToSection: (section: PanelSection) => void;
   reservaConfirmada: boolean;
@@ -914,12 +960,15 @@ function DashboardSection({
   onOpenGestion: (
     modal: "reprogramar" | "cambiarBeluer" | "cancelar"
   ) => void;
+  clientFirstName: string;
+  nextBooking: ClientBooking | null;
+  clientName: string;
 }) {
   return (
     <section className="cliente-panel-section active">
       <div className="cliente-panel-top-bar">
         <div className="cliente-panel-greeting">
-          <h1>Bienvenida, María ✦</h1>
+          <h1>Bienvenida, {clientFirstName} ✦</h1>
           <p>
             {reservaConfirmada
               ? "Tienes una reserva activa"
@@ -927,7 +976,7 @@ function DashboardSection({
           </p>
         </div>
 
-        <UserPill />
+        <UserPill clientName={clientName} />
       </div>
 
       {!reservaConfirmada ? (
@@ -950,7 +999,11 @@ function DashboardSection({
         <div className="cliente-panel-reserva-activa-card">
           <div className="cliente-panel-ra-badge">Reserva activa</div>
 
-          <h2>Tu cita belu está confirmada ✦</h2>
+          <h2>
+  {nextBooking
+    ? "Tu próxima cita belu ✦"
+    : "Tu cita belu está confirmada ✦"}
+</h2>
           <p>
             Tu servicio ya está agendado. Te notificaremos por WhatsApp con los
             datos de tu Beluer.
@@ -958,27 +1011,30 @@ function DashboardSection({
 
           <div className="cliente-panel-ra-grid">
             <div>
-              <span>Servicios</span>
-              <strong>
-                {serviciosSeleccionados
-                  .map((servicio) => servicio.nombre)
-                  .join(" + ")}
-              </strong>
+              <span>Servicio</span>
+<strong>
+  {nextBooking?.services?.name ||
+    serviciosSeleccionados.map((servicio) => servicio.nombre).join(" + ")}
+</strong>
             </div>
 
             <div>
-              <span>Total pagado</span>
-              <strong>S/ {total}</strong>
+              <span>Total</span>
+<strong>S/ {nextBooking?.public_price ?? total}</strong>
             </div>
 
             <div>
               <span>Fecha</span>
-              <strong>{fecha}</strong>
+<strong>{nextBooking?.scheduled_date || fecha}</strong>
             </div>
 
             <div>
               <span>Hora</span>
-              <strong>{hora}</strong>
+<strong>
+  {nextBooking?.scheduled_time
+    ? nextBooking.scheduled_time.slice(0, 5)
+    : hora}
+</strong>
             </div>
 
             {addonsActivos.length > 0 && (
@@ -990,14 +1046,24 @@ function DashboardSection({
               </div>
             )}
 
-            <div className="full">
-              <span>Asignación</span>
-              <strong>
-                {modoAsignacion === "libre" && beluerSeleccionada
-                  ? beluerSeleccionada
-                  : "Gestionado por belu"}
-              </strong>
-            </div>
+<div className="full">
+  <span>Asignación</span>
+  <strong>
+    {nextBooking?.beluer_profiles?.public_name ||
+      (modoAsignacion === "libre" && beluerSeleccionada
+        ? beluerSeleccionada
+        : "Gestionado por belu")}
+  </strong>
+</div>
+
+{nextBooking ? (
+  <div className="full">
+    <span>Ubicación</span>
+    <strong>
+      {nextBooking.district} · {nextBooking.address}
+    </strong>
+  </div>
+) : null}
           </div>
 
           <div className="cliente-panel-ra-acciones">
@@ -1054,8 +1120,10 @@ function DashboardSection({
 }
 function HistorialSection({
   goToReserva,
+  clientName,
 }: {
   goToReserva: () => void;
+  clientName: string;
 }) {
   
   return (
@@ -1066,7 +1134,7 @@ function HistorialSection({
           <p>Revisa tus servicios anteriores y repite tus reservas favoritas.</p>
         </div>
 
-        <UserPill />
+        <UserPill clientName={clientName} />
       </div>
 
       <div className="cliente-panel-historial-grid">
@@ -1122,7 +1190,11 @@ function HistorialSection({
     </section>
   );
 }
-function PagosSection() {
+function PagosSection({
+  clientName,
+}: {
+  clientName: string;
+}) {
   
   const totalPagado = pagosData.reduce((acc, pago) => acc + pago.monto, 0);
 
@@ -1134,14 +1206,14 @@ function PagosSection() {
           <p>Consulta tus pagos, métodos usados y comprobantes.</p>
         </div>
 
-        <UserPill />
+        <UserPill clientName={clientName} />
       </div>
 
       <div className="cliente-panel-pagos-summary">
         <div>
-          <span>Total pagado</span>
+  <span>Total pagado</span>
           <strong>S/ {totalPagado}</strong>
-        </div>
+</div>
 
         <div>
           <span>Transacciones</span>
@@ -1207,22 +1279,31 @@ function PagosSection() {
     </section>
   );
 }
-function PerfilSection() {
-  const [nombre, setNombre] = useState("María Claudia Rodríguez");
-  const [email, setEmail] = useState("maria.cr@gmail.com");
-  const [whatsapp, setWhatsapp] = useState("+51 987 654 321");
+function PerfilSection({
+  clientName,
+  clientProfile,
+}: {
+  clientName: string;
+  clientProfile: ClientProfile | null;
+}) {
+  const [nombre, setNombre] = useState(clientName);
+  const [email, setEmail] = useState(clientProfile?.email || "");
+  const [whatsapp, setWhatsapp] = useState(clientProfile?.phone || "");
   const [distrito, setDistrito] = useState("Miraflores");
   const [direccion, setDireccion] = useState(
     "Av. Comandante Espinar 456, Miraflores"
   );
   const [preferencia, setPreferencia] = useState("Lashes naturales");
   const [notificaciones, setNotificaciones] = useState(true);
+  
 
   const handleGuardarPerfil = () => {
     alert(
       `Perfil actualizado correctamente.\n\nNombre: ${nombre}\nWhatsApp: ${whatsapp}\nDistrito: ${distrito}`
     );
   };
+
+  
 
   return (
     <section className="cliente-panel-section active">
@@ -1232,13 +1313,13 @@ function PerfilSection() {
           <p>Actualiza tus datos para que tu experiencia belu sea más precisa.</p>
         </div>
 
-        <UserPill />
+        <UserPill clientName={clientName} />
       </div>
 
       <div className="cliente-panel-perfil-layout">
         <aside className="cliente-panel-perfil-card">
-          <div className="cliente-panel-perfil-avatar">MC</div>
-          <h2>María Claudia</h2>
+          <div className="cliente-panel-perfil-avatar">{getInitials(nombre) || "C"}</div>
+          <h2>{nombre.split(" ")[0] || "Clienta"}</h2>
           <p>Clienta belu ✦</p>
 
           <div className="cliente-panel-perfil-stats">
@@ -1361,26 +1442,38 @@ function PerfilSection() {
   );
 }
 
-function UserPill() {
+function getInitials(name: string) {
+  return name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("");
+}
+
+function UserPill({ clientName = "Clienta belu" }: { clientName?: string }) {
   return (
     <div className="cliente-panel-user-pill">
-      <div className="cliente-panel-avatar">MC</div>
-      <span>María Claudia R.</span>
+      <div className="cliente-panel-avatar">
+        {getInitials(clientName) || "CB"}
+      </div>
+      <span>{clientName}</span>
     </div>
   );
 }
 
 function EspecialistasSection({
-
   beluers,
   favoritas,
   onToggleFavorita,
   goToReserva,
+  clientName,
 }: {
   beluers: Beluer[];
   favoritas: string[];
   onToggleFavorita: (nombre: string) => void;
   goToReserva: () => void;
+  clientName: string;
 }) {
   const [filtroCategoria, setFiltroCategoria] = useState<
     "todas" | "lashes" | "nails" | "mixta"
@@ -1399,7 +1492,7 @@ function EspecialistasSection({
           <p>Beluers verificadas para lashes, nails y servicios mixtos.</p>
         </div>
 
-        <UserPill />
+        <UserPill clientName={clientName} />
       </div>
 
       <div className="cliente-panel-beluers-toolbar">
@@ -1456,12 +1549,14 @@ function FavoritasSection({
   onToggleFavorita,
   goToReserva,
   goToEspecialistas,
+  clientName,
 }: {
   beluers: Beluer[];
   favoritas: string[];
   onToggleFavorita: (nombre: string) => void;
   goToReserva: () => void;
   goToEspecialistas: () => void;
+  clientName: string;
 }) {
   const beluersFavoritas = beluers.filter((beluer) =>
     favoritas.includes(beluer.nombre)
@@ -1478,7 +1573,7 @@ function FavoritasSection({
           </p>
         </div>
 
-        <UserPill />
+        <UserPill clientName={clientName} />
       </div>
 
       {beluersFavoritas.length === 0 ? (
