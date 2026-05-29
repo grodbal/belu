@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { createClientProfileAction } from "@/app/actions/auth/createClientProfile";
 
 export default function RegisterForm() {
   const [fullName, setFullName] = useState("");
@@ -19,26 +20,45 @@ export default function RegisterForm() {
 
     const supabase = createClient();
 
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: {
           full_name: fullName,
-          role: "cliente",
         },
       },
     });
 
-    setIsLoading(false);
-
     if (error) {
+      setIsLoading(false);
       setMessage(error.message);
       return;
     }
 
+    const authUserId = data.user?.id;
+
+    if (!authUserId) {
+      setIsLoading(false);
+      setMessage("No se pudo obtener el usuario creado.");
+      return;
+    }
+
+    const profileResult = await createClientProfileAction({
+      authUserId,
+      fullName,
+      email,
+    });
+
+    setIsLoading(false);
+
+    if (!profileResult.success) {
+      setMessage(profileResult.message);
+      return;
+    }
+
     setMessage(
-      "Cuenta creada. Revisa tu correo para confirmar tu registro antes de ingresar."
+      "Cuenta creada correctamente. Ya puedes iniciar sesión."
     );
 
     setFullName("");

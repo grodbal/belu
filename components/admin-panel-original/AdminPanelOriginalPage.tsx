@@ -109,12 +109,14 @@ type AdminPanelOriginalPageProps = {
   beluersListSlot?: ReactNode;
   registerBeluerSlot?: ReactNode;
   servicesSlot?: ReactNode;
+  bookingsSlot?: ReactNode;
 };
 
 export default function AdminPanelOriginalPage({
   beluersListSlot,
   registerBeluerSlot,
   servicesSlot,
+  bookingsSlot,
 }: AdminPanelOriginalPageProps) {
   const [activeSection, setActiveSection] =
     useState<AdminSection>("dashboard");
@@ -412,14 +414,7 @@ const handleCambiarEstadoPago = (id: string, nuevoEstado: AdminPagoEstado) => {
       onGuardar={handleGuardarServiciosAdmin}
     />
   ))}
-{activeSection === "reservas" && (
-  <AdminReservasSection
-    reservas={reservas}
-    beluers={beluers}
-    onVerDetalle={setReservaDetalle}
-    onCambiarEstado={handleCambiarEstadoReserva}
-  />
-)}
+{activeSection === "reservas" && bookingsSlot}
 {activeSection === "fotos" && (
   <AdminFotosSection
     fotos={fotos}

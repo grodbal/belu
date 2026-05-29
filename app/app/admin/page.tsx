@@ -3,15 +3,17 @@ import AdminPanelOriginalPage from "@/components/admin-panel-original/AdminPanel
 import CreateBeluerForm from "@/components/admin-panel-original/CreateBeluerForm";
 import AdminBeluersRealList from "@/components/admin-panel-original/AdminBeluersRealList";
 import AdminServicesRealList from "@/components/admin-panel-original/AdminServicesRealList";
+import AdminBookingsRealList from "@/components/admin-panel-original/AdminBookingsRealList";
 
 export default function AdminPage() {
   return (
     <>
       <AdminPanelOriginalPage
-        beluersListSlot={<BeluersListSection />}
-        registerBeluerSlot={<RegisterBeluerSection />}
-        servicesSlot={<ServicesSection />}
-      />
+  beluersListSlot={<BeluersListSection />}
+  registerBeluerSlot={<RegisterBeluerSection />}
+  servicesSlot={<ServicesSection />}
+  bookingsSlot={<BookingsSection />}
+/>
       
 
       <LogoutButton className="fixed right-6 bottom-6 z-50 rounded-full bg-[#e60023] px-5 py-3 text-sm font-bold text-white shadow-lg transition hover:bg-[#c4001d]" />
@@ -35,6 +37,26 @@ function ServicesSection() {
       </div>
 
       <AdminServicesRealList />
+    </section>
+  );
+}
+
+function BookingsSection() {
+  return (
+    <section className="admin-panel-section active">
+      <div className="admin-panel-top-bar">
+        <div className="admin-panel-greeting">
+          <h1>Reservas</h1>
+          <p>
+            Revisa las reservas registradas, su estado, pago, servicio y Beluer
+            asignada.
+          </p>
+        </div>
+
+        <div className="admin-panel-pill">Base real</div>
+      </div>
+
+      <AdminBookingsRealList />
     </section>
   );
 }
