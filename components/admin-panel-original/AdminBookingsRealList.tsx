@@ -1,5 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import UpdateBookingStatusForm from "@/components/admin-panel-original/UpdateBookingStatusForm";
+import UpdateBookingPaymentStatusForm from "@/components/admin-panel-original/UpdateBookingPaymentStatusForm";
 
 type Booking = {
   id: string;
@@ -392,6 +393,16 @@ export default async function AdminBookingsRealList() {
         bookingId={booking.id}
         currentStatus={booking.status}
       />
+      <div>
+  <p className="mb-2 text-[11px] font-black uppercase tracking-[0.16em] text-neutral-400">
+    Cambiar pago
+  </p>
+
+  <UpdateBookingPaymentStatusForm
+    bookingId={booking.id}
+    currentPaymentStatus={booking.payment_status}
+  />
+</div>
     </div>
   </div>
 </td>
