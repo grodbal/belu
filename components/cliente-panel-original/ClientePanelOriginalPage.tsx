@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { createBookingAction } from "@/app/actions/client/createBooking";
 import {
   addonsLashes,
   addonsNails,
@@ -121,9 +122,13 @@ export default function ClientePanelOriginalPage({
   const [servicioLashes, setServicioLashes] = useState<Service | null>(null);
   const [servicioNails, setServicioNails] = useState<Service | null>(null);
   const [addonsSeleccionados, setAddonsSeleccionados] = useState<string[]>([]);
-  const [fecha, setFecha] = useState("2026-05-15");
-  const [hora, setHora] = useState("14:30");
-  const [urgencia, setUrgencia] = useState(false);
+const [fecha, setFecha] = useState("2026-05-15");
+const [hora, setHora] = useState("14:30");
+const [direccionReserva, setDireccionReserva] = useState("");
+const [distritoReserva, setDistritoReserva] = useState("Miraflores");
+const [notasReserva, setNotasReserva] = useState("");
+const [bookingLoading, setBookingLoading] = useState(false);
+const [urgencia, setUrgencia] = useState(false);
   const [modoAsignacion, setModoAsignacion] =
     useState<AssignmentMode>("gestionado");
   const [beluerSeleccionada, setBeluerSeleccionada] = useState("");
@@ -199,9 +204,31 @@ const [nuevaBeluer, setNuevaBeluer] = useState("");
     setBeluerSeleccionada("");
   };
 
-  const handleConfirmarReserva = () => {
+const handleConfirmarReserva = () => {
   if (serviciosSeleccionados.length === 0) {
     alert("Selecciona al menos un servicio.");
+    return;
+  }
+
+  if (serviciosSeleccionados.length > 1) {
+    alert(
+      "Por ahora solo puedes reservar un servicio a la vez. Luego activaremos reservas combinadas."
+    );
+    return;
+  }
+
+  if (!fecha || !hora) {
+    alert("Selecciona fecha y hora.");
+    return;
+  }
+
+  if (!direccionReserva.trim()) {
+    alert("Ingresa la dirección donde se realizará el servicio.");
+    return;
+  }
+
+  if (!distritoReserva) {
+    alert("Selecciona el distrito.");
     return;
   }
 
@@ -213,10 +240,45 @@ const [nuevaBeluer, setNuevaBeluer] = useState("");
   setPagoOpen(true);
 };
 
-const handleConfirmarPago = () => {
+const handleConfirmarPago = async () => {
+  const servicioPrincipal = serviciosSeleccionados[0];
+
+  if (!servicioPrincipal) {
+    alert("Selecciona un servicio antes de confirmar.");
+    return;
+  }
+
+  setBookingLoading(true);
+
+  const formData = new FormData();
+  formData.append("serviceName", servicioPrincipal.nombre);
+  formData.append("bookingMode", modoAsignacion);
+formData.append("selectedBeluerName", beluerSeleccionada);
+  formData.append("scheduledDate", fecha);
+  formData.append("scheduledTime", hora);
+  formData.append("address", direccionReserva.trim());
+  formData.append("district", distritoReserva);
+  formData.append("notes", notasReserva.trim());
+  formData.append("isExpress", urgencia ? "true" : "false");
+
+  const result = await createBookingAction(
+    {
+      success: false,
+      message: "",
+    },
+    formData
+  );
+
+  setBookingLoading(false);
+
+  if (!result.success) {
+    alert(result.message);
+    return;
+  }
+
   setPagoOpen(false);
   setConfirmacionOpen(true);
-  setReservaConfirmada(true);
+  setReservaConfirmada(false);
 };
 
 const handleIrDashboard = () => {
@@ -398,6 +460,32 @@ const hasRealBooking = Boolean(nextBooking);
                   />
                 </div>
 
+                <div className="cliente-panel-form-group">
+  <label>Distrito</label>
+  <select
+    value={distritoReserva}
+    onChange={(event) => setDistritoReserva(event.target.value)}
+  >
+    <option value="Miraflores">Miraflores</option>
+    <option value="San Isidro">San Isidro</option>
+    <option value="Surco">Surco</option>
+    <option value="La Molina">La Molina</option>
+    <option value="Barranco">Barranco</option>
+    <option value="San Borja">San Borja</option>
+    <option value="San Miguel">San Miguel</option>
+  </select>
+</div>
+
+<div className="cliente-panel-form-group">
+  <label>Dirección del servicio</label>
+  <input
+    type="text"
+    value={direccionReserva}
+    onChange={(event) => setDireccionReserva(event.target.value)}
+    placeholder="Ej: Av. Santa Cruz 950, dpto 402"
+  />
+</div>
+
                 <label className="cliente-panel-urgencia-toggle">
                   <input
                     type="checkbox"
@@ -479,9 +567,13 @@ const hasRealBooking = Boolean(nextBooking);
                 )}
 
                 <div className="cliente-panel-form-group">
-                  <label>Instrucciones adicionales</label>
-                  <textarea placeholder="Ej: prefiero diseño francés, color rojo intenso..." />
-                </div>
+  <label>Instrucciones adicionales</label>
+  <textarea
+    value={notasReserva}
+    onChange={(event) => setNotasReserva(event.target.value)}
+    placeholder="Ej: prefiero diseño francés, color rojo intenso..."
+  />
+</div>
 
                 {serviciosSeleccionados.length > 0 && (
                   <div className="cliente-panel-resumen-pago">
@@ -700,12 +792,13 @@ activeSection !== "perfil" && (
       </div>
 
       <button
-        className="cliente-panel-btn-r cliente-panel-full-btn"
-        type="button"
-        onClick={handleConfirmarPago}
-      >
-        Confirmar pago
-      </button>
+  className="cliente-panel-btn-r cliente-panel-full-btn"
+  type="button"
+  onClick={handleConfirmarPago}
+  disabled={bookingLoading}
+>
+  {bookingLoading ? "Creando reserva..." : "Confirmar pago"}
+</button>
     </div>
   </div>
 )}

@@ -19,11 +19,37 @@ const allowedDistricts = [
   "San Miguel",
 ];
 
+const serviceNameAliases: Record<string, string> = {
+  "Mega Volumen 5D": "Mega Volumen 5D",
+  "Mega Volume 5D": "Mega Volumen 5D",
+  "Mega Volume": "Mega Volumen 5D",
+  "Acrilico Sculpted": "Acrílico Sculpted",
+  "Acrílico Sculpted": "Acrílico Sculpted",
+  "Extensiones Classic": "Extensiones Classic",
+  "Extensiones Volume": "Extensiones Volume",
+  "Lifting de Pestañas": "Lifting de Pestañas",
+  "Semipermanente": "Semipermanente",
+  "Nail Art Premium": "Nail Art Premium",
+};
+
 export async function createBookingAction(
   previousState: CreateBookingState,
   formData: FormData
 ): Promise<CreateBookingState> {
   const serviceId = String(formData.get("serviceId") || "");
+  const rawServiceName = String(formData.get("serviceName") || "").trim();
+  const serviceName = serviceNameAliases[rawServiceName] || rawServiceName;
+
+  const selectedBeluerName = String(
+    formData.get("selectedBeluerName") || ""
+  ).trim();
+
+  const bookingMode =
+    String(formData.get("bookingMode") || "") === "libre" &&
+    selectedBeluerName
+      ? "libre"
+      : "managed";
+
   const scheduledDate = String(formData.get("scheduledDate") || "");
   const scheduledTime = String(formData.get("scheduledTime") || "");
   const address = String(formData.get("address") || "").trim();
@@ -31,7 +57,7 @@ export async function createBookingAction(
   const notes = String(formData.get("notes") || "").trim();
   const isExpress = String(formData.get("isExpress") || "") === "true";
 
-  if (!serviceId) {
+  if (!serviceId && !serviceName) {
     return { success: false, message: "Selecciona un servicio." };
   }
 
@@ -83,18 +109,46 @@ export async function createBookingAction(
     };
   }
 
-  const { data: service, error: serviceError } = await supabase
+let service = null;
+let serviceError = null;
+
+if (serviceId) {
+  const response = await supabase
     .from("services")
-    .select("id, public_price, logistic_fee, base_price, status")
+    .select("id, name, public_price, logistic_fee, base_price, status")
     .eq("id", serviceId)
     .single();
 
-  if (serviceError || !service) {
-    return {
-      success: false,
-      message: "No se encontró el servicio seleccionado.",
-    };
-  }
+  service = response.data;
+  serviceError = response.error;
+} else {
+  const possibleServiceNames = Array.from(
+    new Set([
+      rawServiceName,
+      serviceName,
+      "Mega Volumen 5D",
+      "Mega Volume",
+      "Mega Volume 5D",
+    ])
+  );
+
+  const response = await supabase
+    .from("services")
+    .select("id, name, public_price, logistic_fee, base_price, status")
+    .in("name", possibleServiceNames)
+    .limit(1)
+    .maybeSingle();
+
+  service = response.data;
+  serviceError = response.error;
+}
+
+if (serviceError || !service) {
+  return {
+    success: false,
+    message: `No se encontró el servicio seleccionado en Supabase. Servicio recibido: ${rawServiceName}. Revisa que exista en la tabla services.`,
+  };
+}
 
   if (service.status !== "active") {
     return {
@@ -103,20 +157,51 @@ export async function createBookingAction(
     };
   }
 
+  let beluerProfileId: string | null = null;
+
+  if (bookingMode === "libre") {
+    const { data: beluer, error: beluerError } = await supabase
+      .from("beluer_profiles")
+      .select("id, public_name, status, is_available")
+      .eq("public_name", selectedBeluerName)
+      .single();
+
+    if (beluerError || !beluer) {
+      return {
+        success: false,
+        message: `No se encontró la Beluer seleccionada: ${selectedBeluerName}`,
+      };
+    }
+
+    if (beluer.status !== "approved") {
+      return {
+        success: false,
+        message: "La Beluer seleccionada aún no está aprobada.",
+      };
+    }
+
+    if (!beluer.is_available) {
+      return {
+        success: false,
+        message: "La Beluer seleccionada no está disponible actualmente.",
+      };
+    }
+
+    beluerProfileId = beluer.id;
+  }
+
   const expressFee = isExpress ? 20 : 0;
 
-  // En Modo Gestionado todavía no hay Beluer asignada.
-  // Por ahora calculamos con comisión estándar provisional.
   const commissionRate = 13;
   const basePrice = Number(service.base_price);
   const beluCommissionAmount = basePrice * (commissionRate / 100);
-  const beluerPaymentAmount = basePrice - beluCommissionAmount;
+  const beluerPaymentAmount = basePrice - beluCommissionAmount + expressFee;
 
   const { error: bookingError } = await supabase.from("bookings").insert({
     client_profile_id: profile.id,
-    beluer_profile_id: null,
+    beluer_profile_id: beluerProfileId,
     service_id: service.id,
-    booking_mode: "managed",
+    booking_mode: bookingMode,
     scheduled_date: scheduledDate,
     scheduled_time: scheduledTime,
     address,
@@ -124,7 +209,7 @@ export async function createBookingAction(
     notes,
     is_express: isExpress,
     express_fee: expressFee,
-    status: "pending",
+    status: bookingMode === "libre" ? "assigned" : "pending",
     public_price: service.public_price,
     logistic_fee: service.logistic_fee,
     base_price: service.base_price,
