@@ -111,6 +111,7 @@ export default async function AdminBeluersRealList() {
   }
 
   const profileIds = beluerProfiles?.map((beluer) => beluer.profile_id) ?? [];
+  const beluerProfileIds = beluerProfiles?.map((beluer) => beluer.id) ?? [];
 
   const { data: profiles, error: profilesError } =
     profileIds.length > 0
@@ -167,11 +168,11 @@ if (servicesError) {
 }
 
 const { data: beluerSkills, error: skillsError } =
-  profileIds.length > 0
+  beluerProfileIds.length > 0
     ? await supabase
         .from("beluer_service_skills")
         .select("beluer_profile_id, service_id")
-        .in("beluer_profile_id", profileIds)
+        .in("beluer_profile_id", beluerProfileIds)
     : { data: [], error: null };
 
 if (skillsError) {
@@ -223,6 +224,7 @@ const skillsByBeluerId = new Map<string, string[]>();
                 <th className="px-5 py-4 font-black">Beluer</th>
 <th className="px-5 py-4 font-black">Contacto</th>
 <th className="px-5 py-4 font-black">Distritos</th>
+<th className="px-5 py-4 font-black">Servicios</th>
 <th className="px-5 py-4 font-black">Nivel</th>
 <th className="px-5 py-4 font-black">Estado</th>
 <th className="px-5 py-4 font-black">Disponible</th>
@@ -234,6 +236,11 @@ const skillsByBeluerId = new Map<string, string[]>();
             <tbody className="divide-y divide-neutral-100">
               {beluerProfiles.map((beluer) => {
                 const profile = profilesById.get(beluer.profile_id);
+                const assignedServiceIds = skillsByBeluerId.get(beluer.id) ?? [];
+
+const assignedServices = ((services as ServiceOption[]) ?? []).filter(
+  (service) => assignedServiceIds.includes(service.id)
+);
 
                 return (
                   <tr key={beluer.id} className="align-top">
@@ -268,6 +275,25 @@ const skillsByBeluerId = new Map<string, string[]>();
                     </td>
 
                     <td className="px-5 py-5">
+
+                      <td className="px-5 py-5">
+  {assignedServices.length > 0 ? (
+    <div className="flex max-w-[220px] flex-wrap gap-2">
+      {assignedServices.map((service) => (
+        <span
+          key={service.id}
+          className="rounded-full bg-[#FFD6E2] px-3 py-1 text-xs font-black text-[#E60023]"
+        >
+          {service.name}
+        </span>
+      ))}
+    </div>
+  ) : (
+    <span className="text-xs font-bold text-neutral-400">
+      Sin servicios asignados
+    </span>
+  )}
+</td>
   <div className="space-y-3">
     <div className="space-y-2">
       <span className="inline-flex rounded-full bg-[#FFD6E2] px-3 py-1 text-xs font-black text-[#E60023]">
