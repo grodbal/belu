@@ -1,5 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import UpdateServiceStatusForm from "@/components/admin-panel-original/UpdateServiceStatusForm";
+import EditServiceForm from "@/components/admin-panel-original/EditServiceForm";
 
 type Service = {
   id: string;
@@ -110,6 +111,7 @@ export default async function AdminServicesRealList() {
                 <th className="px-5 py-4 font-black">Pago Beluer</th>
                 <th className="px-5 py-4 font-black">Duración</th>
                 <th className="px-5 py-4 font-black">Estado</th>
+                <th className="px-5 py-4 font-black">Gestión</th>
               </tr>
             </thead>
 
@@ -199,6 +201,19 @@ export default async function AdminServicesRealList() {
     <UpdateServiceStatusForm
       serviceId={service.id}
       currentStatus={service.status}
+    />
+  </div>
+</td>
+<td className="px-5 py-5">
+  <div className="min-w-[260px]">
+    <EditServiceForm
+      serviceId={service.id}
+      category={service.category}
+      name={service.name}
+      description={service.description || ""}
+      publicPrice={service.public_price}
+      logisticFee={service.logistic_fee}
+      durationMinutes={service.duration_minutes}
     />
   </div>
 </td>
