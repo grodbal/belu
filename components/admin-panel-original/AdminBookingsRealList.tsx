@@ -1,4 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin";
+import UpdateBookingStatusForm from "@/components/admin-panel-original/UpdateBookingStatusForm";
 
 type Booking = {
   id: string;
@@ -371,14 +372,29 @@ export default async function AdminBookingsRealList() {
                     </td>
 
                     <td className="px-5 py-5">
-                      <span className="inline-flex rounded-full bg-neutral-100 px-3 py-1 text-xs font-black text-neutral-700">
-                        {getStatusLabel(booking.status)}
-                      </span>
+  <div className="space-y-3">
+    <div>
+      <span className="inline-flex rounded-full bg-neutral-100 px-3 py-1 text-xs font-black text-neutral-700">
+        {getStatusLabel(booking.status)}
+      </span>
 
-                      <span className="mt-2 inline-flex rounded-full bg-[#FFD6E2] px-3 py-1 text-xs font-black text-[#E60023]">
-                        Pago: {getPaymentStatusLabel(booking.payment_status)}
-                      </span>
-                    </td>
+      <span className="mt-2 inline-flex rounded-full bg-[#FFD6E2] px-3 py-1 text-xs font-black text-[#E60023]">
+        Pago: {getPaymentStatusLabel(booking.payment_status)}
+      </span>
+    </div>
+
+    <div>
+      <p className="mb-2 text-[11px] font-black uppercase tracking-[0.16em] text-neutral-400">
+        Cambiar estado
+      </p>
+
+      <UpdateBookingStatusForm
+        bookingId={booking.id}
+        currentStatus={booking.status}
+      />
+    </div>
+  </div>
+</td>
                   </tr>
                 );
               })}
