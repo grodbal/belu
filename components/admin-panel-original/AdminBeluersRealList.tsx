@@ -3,6 +3,7 @@ import UpdateBeluerStatusForm from "@/components/admin-panel-original/UpdateBelu
 import UpdateBeluerLevelForm from "@/components/admin-panel-original/UpdateBeluerLevelForm";
 import UpdateBeluerAvailabilityForm from "@/components/admin-panel-original/UpdateBeluerAvailabilityForm";
 import EditBeluerProfileForm from "@/components/admin-panel-original/EditBeluerProfileForm";
+import UpdateBeluerServiceSkillsForm from "@/components/admin-panel-original/UpdateBeluerServiceSkillsForm";
 
 type Profile = {
   id: string;
@@ -27,6 +28,17 @@ type BeluerProfile = {
   is_available: boolean | null;
   created_at: string | null;
   bio: string | null;
+};
+
+type ServiceOption = {
+  id: string;
+  name: string;
+  category: string;
+};
+
+type BeluerServiceSkill = {
+  beluer_profile_id: string;
+  service_id: string;
 };
 
 function formatDistricts(districts: BeluerProfile["districts"]) {
@@ -137,6 +149,49 @@ export default async function AdminBeluersRealList() {
       </div>
     );
   }
+
+  const { data: services, error: servicesError } = await supabase
+  .from("services")
+  .select("id, name, category")
+  .eq("status", "active")
+  .order("category", { ascending: true })
+  .order("name", { ascending: true });
+
+if (servicesError) {
+  return (
+    <div className="rounded-[2rem] bg-[#FFD6E2] p-6 text-[#E60023]">
+      <h3 className="text-lg font-black">Error al cargar servicios</h3>
+      <p className="mt-2 text-sm font-bold">{servicesError.message}</p>
+    </div>
+  );
+}
+
+const { data: beluerSkills, error: skillsError } =
+  profileIds.length > 0
+    ? await supabase
+        .from("beluer_service_skills")
+        .select("beluer_profile_id, service_id")
+        .in("beluer_profile_id", profileIds)
+    : { data: [], error: null };
+
+if (skillsError) {
+  return (
+    <div className="rounded-[2rem] bg-[#FFD6E2] p-6 text-[#E60023]">
+      <h3 className="text-lg font-black">Error al cargar servicios asignados</h3>
+      <p className="mt-2 text-sm font-bold">{skillsError.message}</p>
+    </div>
+  );
+}
+
+const skillsByBeluerId = new Map<string, string[]>();
+
+(beluerSkills as BeluerServiceSkill[]).forEach((skill) => {
+  const current = skillsByBeluerId.get(skill.beluer_profile_id) ?? [];
+  skillsByBeluerId.set(skill.beluer_profile_id, [
+    ...current,
+    skill.service_id,
+  ]);
+});
 
   return (
     <section className="mt-14 rounded-[2rem] bg-white p-6 shadow-sm ring-1 ring-black/5 md:p-8">
@@ -322,6 +377,18 @@ export default async function AdminBeluersRealList() {
   <p className="mb-2 text-[11px] font-black uppercase tracking-[0.16em] text-neutral-400">
     Perfil
   </p>
+
+  <div>
+  <p className="mb-2 text-[11px] font-black uppercase tracking-[0.16em] text-neutral-400">
+    Servicios
+  </p>
+
+  <UpdateBeluerServiceSkillsForm
+    beluerProfileId={beluer.id}
+    services={(services as ServiceOption[]) ?? []}
+    assignedServiceIds={skillsByBeluerId.get(beluer.id) ?? []}
+  />
+</div>
 
   <EditBeluerProfileForm
     profileId={beluer.profile_id}
