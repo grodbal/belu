@@ -49,6 +49,7 @@ type ClientBooking = {
 type ClientePanelOriginalPageProps = {
   clientProfile: ClientProfile | null;
   nextBooking: ClientBooking | null;
+  realBeluers: Beluer[];
 };
 
 const icons = {
@@ -115,6 +116,7 @@ const navItems: {
 export default function ClientePanelOriginalPage({
   clientProfile,
   nextBooking,
+  realBeluers,
 }: ClientePanelOriginalPageProps) {
   const [activeSection, setActiveSection] = useState<PanelSection>("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -161,14 +163,34 @@ const [nuevaBeluer, setNuevaBeluer] = useState("");
     );
   }, [addonsSeleccionados]);
 
-  const beluersDisponibles = useMemo(() => {
-    if (serviciosSeleccionados.length === 0) return beluersData;
+const normalizarTexto = (texto: string) =>
+  texto
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim();
 
-    const requeridos = serviciosSeleccionados.map((servicio) => servicio.nombre);
-    return beluersData.filter((beluer) =>
-      requeridos.every((servicio) => beluer.serviciosActivos.includes(servicio))
+const beluersDisponibles = useMemo(() => {
+  if (serviciosSeleccionados.length === 0) return realBeluers;
+
+  const requeridos = serviciosSeleccionados.map((servicio) =>
+    normalizarTexto(servicio.nombre)
+  );
+
+  return realBeluers.filter((beluer) => {
+    const serviciosBeluer = beluer.serviciosActivos.map((servicio) =>
+      normalizarTexto(servicio)
     );
-  }, [serviciosSeleccionados]);
+
+    return requeridos.every((servicioRequerido) =>
+      serviciosBeluer.some(
+        (servicioBeluer) =>
+          servicioBeluer.includes(servicioRequerido) ||
+          servicioRequerido.includes(servicioBeluer)
+      )
+    );
+  });
+}, [serviciosSeleccionados, realBeluers]);
 
   const totalServicios = serviciosSeleccionados.reduce(
     (acc, servicio) => acc + servicio.precio,

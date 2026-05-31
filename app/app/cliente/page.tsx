@@ -2,6 +2,7 @@
 import LogoutButton from "@/components/auth/LogoutButton";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import type { Beluer } from "@/components/cliente-panel-original/clientePanelTypes";
 
 type ClientProfile = {
   id: string;
@@ -28,6 +29,44 @@ type ClientBooking = {
   } | null;
 };
 
+type BeluerServiceSkillRow = {
+  status: string;
+  services: {
+    name: string;
+    category: string;
+  } | null;
+};
+
+type BeluerProfileRow = {
+  id: string;
+  public_name: string | null;
+  profile_photo_url: string | null;
+  districts: string[] | null;
+  rating_average: number | null;
+  total_bookings: number | null;
+  beluer_service_skills: BeluerServiceSkillRow[] | null;
+};
+
+function normalizeBeluerCategory(categories: string[]): Beluer["categoria"] {
+  const normalizedCategories = categories.map((category) =>
+    category.toLowerCase()
+  );
+
+  const hasLashes = normalizedCategories.some((category) =>
+    category.includes("lash")
+  );
+
+  const hasNails = normalizedCategories.some((category) =>
+    category.includes("nail")
+  );
+
+  if (hasLashes && hasNails) return "mixta";
+  if (hasLashes) return "lashes";
+  if (hasNails) return "nails";
+
+  return "mixta";
+}
+
 export default async function ClientePanelPage() {
   const authClient = await createClient();
 
@@ -37,6 +76,7 @@ export default async function ClientePanelPage() {
 
   let profile: ClientProfile | null = null;
   let nextBooking: ClientBooking | null = null;
+  let realBeluers: Beluer[] = [];
 
   if (user) {
     const supabase = createAdminClient();
@@ -48,6 +88,59 @@ export default async function ClientePanelPage() {
       .single();
 
     profile = profileData as ClientProfile | null;
+
+    const { data: beluersData } = await supabase
+      .from("beluer_profiles")
+      .select(
+        `
+        id,
+        public_name,
+        profile_photo_url,
+        districts,
+        rating_average,
+        total_bookings,
+        beluer_service_skills (
+          status,
+          services (
+            name,
+            category
+          )
+        )
+      `
+      )
+      .eq("status", "approved")
+      .eq("is_available", true)
+      .order("rating_average", { ascending: false });
+
+    realBeluers = ((beluersData as BeluerProfileRow[] | null) || [])
+      .map((beluer): Beluer => {
+        const activeSkills =
+          beluer.beluer_service_skills?.filter(
+            (skill) => skill.status === "active"
+          ) || [];
+
+        const servicios = activeSkills
+          .map((skill) => skill.services?.name)
+          .filter((name): name is string => Boolean(name));
+
+        const categorias = activeSkills
+          .map((skill) => skill.services?.category)
+          .filter((category): category is string => Boolean(category));
+
+        return {
+  nombre: beluer.public_name || "Beluer verificada",
+  foto: beluer.profile_photo_url || "/beluer-placeholder.jpg",
+  espec:
+    servicios.length > 0
+      ? servicios.slice(0, 2).join(" + ")
+      : "Especialista belu",
+  categoria: normalizeBeluerCategory(categorias),
+  rating: Number(beluer.rating_average || 5).toFixed(1),
+  citas: Number(beluer.total_bookings || 0),
+  serviciosActivos: servicios,
+};
+      })
+      .filter((beluer) => beluer.serviciosActivos.length > 0);
 
     if (profile) {
       const { data: bookingData } = await supabase
@@ -87,6 +180,7 @@ export default async function ClientePanelPage() {
       <ClientePanelOriginalPage
         clientProfile={profile}
         nextBooking={nextBooking}
+        realBeluers={realBeluers}
       />
 
       <LogoutButton className="fixed right-6 bottom-6 z-50 rounded-full bg-[#E60023] px-5 py-3 text-sm font-bold text-white shadow-lg transition hover:bg-[#C4001D]" />
