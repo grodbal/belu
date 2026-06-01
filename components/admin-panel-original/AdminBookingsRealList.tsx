@@ -7,7 +7,7 @@ type Booking = {
   client_profile_id: string | null;
   beluer_profile_id: string | null;
   service_id: string;
-  booking_mode: "managed" | "free";
+  booking_mode: "managed" | "libre";
   scheduled_date: string;
   scheduled_time: string;
   address: string;

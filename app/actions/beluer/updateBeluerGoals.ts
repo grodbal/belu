@@ -12,15 +12,7 @@ type UpdateBeluerGoalsState = {
 export async function updateBeluerGoalsAction(
   formData: FormData
 ): Promise<UpdateBeluerGoalsState> {
-  const weeklyIncomeGoal = Number(formData.get("weeklyIncomeGoal") || 0);
   const monthlyIncomeGoal = Number(formData.get("monthlyIncomeGoal") || 0);
-
-  if (!weeklyIncomeGoal || weeklyIncomeGoal <= 0) {
-    return {
-      success: false,
-      message: "Ingresa una meta semanal válida.",
-    };
-  }
 
   if (!monthlyIncomeGoal || monthlyIncomeGoal <= 0) {
     return {
@@ -39,7 +31,7 @@ export async function updateBeluerGoalsAction(
   if (userError || !user) {
     return {
       success: false,
-      message: "Debes iniciar sesión para actualizar tus metas.",
+      message: "Debes iniciar sesión para actualizar tu meta.",
     };
   }
 
@@ -61,7 +53,7 @@ export async function updateBeluerGoalsAction(
   if (profile.role !== "beluer") {
     return {
       success: false,
-      message: "Solo las Beluers pueden actualizar sus metas.",
+      message: "Solo las Beluers pueden actualizar su meta.",
     };
   }
 
@@ -81,7 +73,6 @@ export async function updateBeluerGoalsAction(
   const { error: updateError } = await supabase
     .from("beluer_profiles")
     .update({
-      weekly_income_goal: weeklyIncomeGoal,
       monthly_income_goal: monthlyIncomeGoal,
       updated_at: new Date().toISOString(),
     })
@@ -90,7 +81,7 @@ export async function updateBeluerGoalsAction(
   if (updateError) {
     return {
       success: false,
-      message: `No se pudieron actualizar tus metas: ${updateError.message}`,
+      message: `No se pudo actualizar tu meta: ${updateError.message}`,
     };
   }
 
@@ -98,6 +89,6 @@ export async function updateBeluerGoalsAction(
 
   return {
     success: true,
-    message: "Tus metas fueron actualizadas correctamente.",
+    message: "Tu meta mensual fue actualizada correctamente.",
   };
 }
