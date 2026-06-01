@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { updateBeluerGoalsAction } from "@/app/actions/beluer/updateBeluerGoals";
 import { updateBeluerPublicProfileAction } from "@/app/actions/beluer/updateBeluerPublicProfile";
+import { updateBeluerBookingStatusAction } from "@/app/actions/beluer/updateBeluerBookingStatus";
 import {
   fotosPortafolioIniciales,
   ingresosIniciales,
@@ -96,16 +97,20 @@ type BeluerPanelProfile = {
 monthlyIncomeGoal: number;
 weeklyIncome: number;
 monthlyIncome: number;
+weeklyRangeLabel: string;
 };
+
 
 type BeluerPanelOriginalPageProps = {
   beluerProfile: BeluerPanelProfile | null;
   realReservas: ReservaBeluer[];
+  realIngresos: IngresoBeluer[];
 };
 
 export default function BeluerPanelOriginalPage({
   beluerProfile,
   realReservas,
+  realIngresos,
 }: BeluerPanelOriginalPageProps) {
   const [activeSection, setActiveSection] =
     useState<BeluerSection>("dashboard");
@@ -119,7 +124,9 @@ const [servicios, setServicios] =
   const [fotosPortafolio, setFotosPortafolio] = useState<FotoPortafolio[]>(
   fotosPortafolioIniciales
 );
-const [ingresos] = useState<IngresoBeluer[]>(ingresosIniciales);
+const [ingresos, setIngresos] = useState<IngresoBeluer[]>(
+  realIngresos.length > 0 ? realIngresos : []
+);
 const [perfilBeluer, setPerfilBeluer] = useState<PerfilBeluer>(() => ({
   ...perfilInicial,
   nombrePublico: beluerProfile?.publicName || perfilInicial.nombrePublico,
@@ -141,12 +148,12 @@ const beluerPhoto = beluerProfile?.photoUrl || "/beluer-placeholder.jpg";
 const beluerInitials = beluerProfile?.initials || "B";
 const beluerRating = beluerProfile?.rating || "5.0";
 
-const ingresosMes = reservas
-  .filter((reserva) => reserva.estado === "aceptada")
-  .reduce((acc, reserva) => acc + Number(reserva.total || 0), 0);
+const ingresosMes = beluerProfile?.monthlyIncome || 0;
 
   const weeklyIncome = beluerProfile?.weeklyIncome || 0;
 const weeklyIncomeGoal = beluerProfile?.weeklyIncomeGoal || 1000;
+const weeklyRangeLabel =
+  beluerProfile?.weeklyRangeLabel || "Semana actual";
 const weeklyProgress =
   weeklyIncomeGoal > 0
     ? Math.min((weeklyIncome / weeklyIncomeGoal) * 100, 100)
@@ -179,24 +186,40 @@ const reservasAceptadas = reservas.filter(
   (reserva) => reserva.estado === "aceptada"
 );
 
-const handleAceptarReserva = (id: string) => {
-  setReservas((current) =>
-    current.map((reserva) =>
-      reserva.id === id ? { ...reserva, estado: "aceptada" } : reserva
-    )
-  );
+const handleAceptarReserva = async (id: string) => {
+  const result = await updateBeluerBookingStatusAction({
+    bookingId: id,
+    action: "accept",
+  });
 
-  setReservaDetalle(null);
+  if (!result.success) {
+    alert(result.message);
+    return;
+  }
+
+  alert(result.message);
+  window.location.reload();
 };
 
-const handleRechazarReserva = (id: string) => {
-  setReservas((current) =>
-    current.map((reserva) =>
-      reserva.id === id ? { ...reserva, estado: "rechazada" } : reserva
-    )
+const handleRechazarReserva = async (id: string) => {
+  const confirmar = window.confirm(
+    "¿Seguro que quieres rechazar esta reserva? Esta acción la marcará como cancelada."
   );
 
-  setReservaDetalle(null);
+  if (!confirmar) return;
+
+  const result = await updateBeluerBookingStatusAction({
+    bookingId: id,
+    action: "reject",
+  });
+
+  if (!result.success) {
+    alert(result.message);
+    return;
+  }
+
+  alert(result.message);
+  window.location.reload();
 };
 const handleToggleServicio = (id: string) => {
   setServicios((current) =>
@@ -416,6 +439,7 @@ const handleGuardarPerfilBeluer = async () => {
 
                 <div className="beluer-panel-card">
                   <h2>Meta semanal</h2>
+<p>{weeklyRangeLabel}</p>
 <p>Vas {weeklyProgress.toFixed(0)}% hacia tu meta de ingresos.</p>
 <div className="beluer-panel-progress">
   <span style={{ width: `${weeklyProgress}%` }} />

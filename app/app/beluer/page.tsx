@@ -2,7 +2,10 @@ import LogoutButton from "@/components/auth/LogoutButton";
 import BeluerPanelOriginalPage from "@/components/beluer-panel-original/BeluerPanelOriginalPage";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import type { ReservaBeluer } from "@/components/beluer-panel-original/beluerPanelTypes";
+import type {
+  ReservaBeluer,
+  IngresoBeluer,
+} from "@/components/beluer-panel-original/beluerPanelTypes";
 
 type BeluerPanelProfile = {
   publicName: string;
@@ -22,6 +25,7 @@ type BeluerPanelProfile = {
   monthlyIncomeGoal: number;
   weeklyIncome: number;
   monthlyIncome: number;
+  weeklyRangeLabel: string;
 };
 
 type BookingRow = {
@@ -35,6 +39,7 @@ type BookingRow = {
   status: string;
   payment_status: string;
   public_price: number;
+  belu_commission_amount: number;
   beluer_payment_amount: number;
   services: {
     name: string;
@@ -80,7 +85,6 @@ function mapBookingStatusToBeluerStatus(
   if (status === "cancelled") return "rechazada";
 
   if (
-    status === "assigned" ||
     status === "confirmed" ||
     status === "in_progress" ||
     status === "completed"
@@ -91,18 +95,41 @@ function mapBookingStatusToBeluerStatus(
   return "pendiente";
 }
 
+function mapPaymentStatusToIngresoStatus(
+  paymentStatus: string
+): IngresoBeluer["estadoPago"] {
+  if (paymentStatus === "paid") return "pagado";
+  if (paymentStatus === "refunded") return "retenido";
+  return "pendiente";
+}
+
+function formatDateForDisplay(date: Date) {
+  return date.toLocaleDateString("es-PE", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+}
+
 function getCurrentWeekRange() {
   const now = new Date();
 
   const startOfWeek = new Date(now);
-  startOfWeek.setDate(now.getDate() - now.getDay() + 1);
+  const day = now.getDay();
+  const diffToMonday = day === 0 ? -6 : 1 - day;
+
+  startOfWeek.setDate(now.getDate() + diffToMonday);
   startOfWeek.setHours(0, 0, 0, 0);
 
   const endOfWeek = new Date(startOfWeek);
   endOfWeek.setDate(startOfWeek.getDate() + 6);
   endOfWeek.setHours(23, 59, 59, 999);
 
-  return { startOfWeek, endOfWeek };
+  const weeklyRangeLabel = `Semana del ${formatDateForDisplay(
+    startOfWeek
+  )} al ${formatDateForDisplay(endOfWeek)}`;
+
+  return { startOfWeek, endOfWeek, weeklyRangeLabel };
 }
 
 function getCurrentMonthRange() {
@@ -154,6 +181,7 @@ export default async function BeluerPanelPage() {
 
   let beluerProfile: BeluerPanelProfile | null = null;
   let realReservas: ReservaBeluer[] = [];
+  let realIngresos: IngresoBeluer[] = [];
 
   if (user) {
     const supabase = createAdminClient();
@@ -204,6 +232,7 @@ export default async function BeluerPanelPage() {
             status,
             payment_status,
             public_price,
+            belu_commission_amount,
             beluer_payment_amount,
             services (
               name,
@@ -218,7 +247,9 @@ export default async function BeluerPanelPage() {
 
         const bookings = (bookingsData as BookingRow[] | null) || [];
 
-        const { startOfWeek, endOfWeek } = getCurrentWeekRange();
+        const { startOfWeek, endOfWeek, weeklyRangeLabel } =
+          getCurrentWeekRange();
+
         const { startOfMonth, endOfMonth } = getCurrentMonthRange();
 
         const weeklyIncome = calculateIncomeByDateRange({
@@ -253,6 +284,7 @@ export default async function BeluerPanelPage() {
           monthlyIncomeGoal: Number(beluer.monthly_income_goal || 4000),
           weeklyIncome,
           monthlyIncome,
+          weeklyRangeLabel,
         };
 
         const clientIds = Array.from(
@@ -294,6 +326,41 @@ export default async function BeluerPanelPage() {
             estado: mapBookingStatusToBeluerStatus(booking.status),
           };
         });
+
+        realIngresos = bookings
+          .filter((booking) =>
+            ["assigned", "confirmed", "in_progress", "completed"].includes(
+              booking.status
+            )
+          )
+          .map((booking) => {
+            const client = clients.find(
+              (item) => item.id === booking.client_profile_id
+            );
+
+            const totalServicio = Number(booking.public_price || 0);
+            const netoBeluer = Number(
+              booking.beluer_payment_amount || booking.public_price || 0
+            );
+
+            const comisionBelu = Number(
+              booking.belu_commission_amount ||
+                Math.max(totalServicio - netoBeluer, 0)
+            );
+
+            return {
+              id: booking.id,
+              servicio: booking.services?.name || "Servicio belu",
+              clienta: client?.full_name || client?.email || "Clienta belu",
+              fecha: booking.scheduled_date,
+              totalServicio,
+              comisionBelu,
+              netoBeluer,
+              estadoPago: mapPaymentStatusToIngresoStatus(
+                booking.payment_status
+              ),
+            };
+          });
       }
     }
   }
@@ -303,6 +370,7 @@ export default async function BeluerPanelPage() {
       <BeluerPanelOriginalPage
         beluerProfile={beluerProfile}
         realReservas={realReservas}
+        realIngresos={realIngresos}
       />
 
       <LogoutButton className="fixed right-6 bottom-6 z-50 rounded-full bg-[#E60023] px-5 py-3 text-sm font-bold text-white shadow-lg hover:bg-[#C4001D] transition" />
