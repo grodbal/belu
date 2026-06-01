@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { createBookingAction } from "@/app/actions/client/createBooking";
+import { cancelBookingAction } from "@/app/actions/client/cancelBooking";
 import {
   addonsLashes,
   addonsNails,
@@ -138,6 +139,7 @@ const [urgencia, setUrgencia] = useState(false);
 const [confirmacionOpen, setConfirmacionOpen] = useState(false);
 const [metodoPago, setMetodoPago] = useState<PaymentMethod>("tarjeta");
 const [reservaConfirmada, setReservaConfirmada] = useState(false);
+const [cancelLoading, setCancelLoading] = useState(false);
 const [beluersFavoritas, setBeluersFavoritas] = useState<string[]>([
   "Andrea Robles",
 ]);
@@ -333,10 +335,30 @@ const handleCambiarBeluer = () => {
   alert(`Tu Beluer ha sido cambiada a ${nuevaBeluer}.`);
 };
 
-const handleCancelarReserva = () => {
+const handleCancelarReserva = async () => {
+  if (!nextBooking?.id) {
+    setReservaConfirmada(false);
+    setModalGestion(null);
+    alert("Tu reserva ha sido cancelada.");
+    return;
+  }
+
+  setCancelLoading(true);
+
+  const result = await cancelBookingAction(nextBooking.id);
+
+  setCancelLoading(false);
+
+  if (!result.success) {
+    alert(result.message);
+    return;
+  }
+
   setReservaConfirmada(false);
   setModalGestion(null);
-  alert("Tu reserva ha sido cancelada.");
+  alert(result.message);
+
+  window.location.reload();
 };
 
 const clientName = clientProfile?.full_name || "Clienta";
@@ -1034,12 +1056,13 @@ activeSection !== "perfil" && (
         </button>
 
         <button
-          className="cliente-panel-btn-r cliente-panel-btn-muted"
-          type="button"
-          onClick={handleCancelarReserva}
-        >
-          Sí, cancelar
-        </button>
+  className="cliente-panel-btn-r cliente-panel-btn-muted"
+  type="button"
+  onClick={handleCancelarReserva}
+  disabled={cancelLoading}
+>
+  {cancelLoading ? "Cancelando..." : "Sí, cancelar"}
+</button>
       </div>
     </div>
   </div>

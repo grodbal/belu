@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { updateBeluerGoalsAction } from "@/app/actions/beluer/updateBeluerGoals";
+import { updateBeluerPublicProfileAction } from "@/app/actions/beluer/updateBeluerPublicProfile";
 import {
   fotosPortafolioIniciales,
   ingresosIniciales,
@@ -76,11 +78,39 @@ const navItems: {
 
 
 
-export default function BeluerPanelOriginalPage() {
+type BeluerPanelProfile = {
+  publicName: string;
+  firstName: string;
+  levelLabel: "Beluer Nueva" | "Beluer Verificada" | "Beluer Top ✦";
+  statusLabel: "Activo" | "En revisión" | "Pausado";
+  photoUrl: string;
+  initials: string;
+  rating: string;
+  instagram: string;
+  phone: string;
+  bio: string;
+  experienceYears: number;
+  districts: string[];
+  isAvailable: boolean;
+  weeklyIncomeGoal: number;
+monthlyIncomeGoal: number;
+weeklyIncome: number;
+monthlyIncome: number;
+};
+
+type BeluerPanelOriginalPageProps = {
+  beluerProfile: BeluerPanelProfile | null;
+  realReservas: ReservaBeluer[];
+};
+
+export default function BeluerPanelOriginalPage({
+  beluerProfile,
+  realReservas,
+}: BeluerPanelOriginalPageProps) {
   const [activeSection, setActiveSection] =
     useState<BeluerSection>("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [reservas, setReservas] = useState<ReservaBeluer[]>(reservasIniciales);
+  const [reservas, setReservas] = useState<ReservaBeluer[]>(realReservas);
 const [reservaDetalle, setReservaDetalle] = useState<ReservaBeluer | null>(
   null
 );
@@ -90,8 +120,52 @@ const [servicios, setServicios] =
   fotosPortafolioIniciales
 );
 const [ingresos] = useState<IngresoBeluer[]>(ingresosIniciales);
-const [perfilBeluer, setPerfilBeluer] =
-  useState<PerfilBeluer>(perfilInicial);
+const [perfilBeluer, setPerfilBeluer] = useState<PerfilBeluer>(() => ({
+  ...perfilInicial,
+  nombrePublico: beluerProfile?.publicName || perfilInicial.nombrePublico,
+  instagram: beluerProfile?.instagram || "",
+  whatsapp: beluerProfile?.phone || "",
+  experiencia: beluerProfile?.experienceYears || 0,
+  bio: beluerProfile?.bio || "",
+  nivel: beluerProfile?.levelLabel || perfilInicial.nivel,
+  estado: beluerProfile?.statusLabel || perfilInicial.estado,
+  distritos: beluerProfile?.districts || [],
+  disponibilidadGeneral: beluerProfile?.isAvailable ?? false,
+}));
+
+  const beluerDisplayName = beluerProfile?.publicName || perfilBeluer.nombrePublico;
+const beluerFirstName =
+  beluerProfile?.firstName || beluerDisplayName.split(" ")[0] || "Beluer";
+const beluerLevel = beluerProfile?.levelLabel || perfilBeluer.nivel;
+const beluerPhoto = beluerProfile?.photoUrl || "/beluer-placeholder.jpg";
+const beluerInitials = beluerProfile?.initials || "B";
+const beluerRating = beluerProfile?.rating || "5.0";
+
+const ingresosMes = reservas
+  .filter((reserva) => reserva.estado === "aceptada")
+  .reduce((acc, reserva) => acc + Number(reserva.total || 0), 0);
+
+  const weeklyIncome = beluerProfile?.weeklyIncome || 0;
+const weeklyIncomeGoal = beluerProfile?.weeklyIncomeGoal || 1000;
+const weeklyProgress =
+  weeklyIncomeGoal > 0
+    ? Math.min((weeklyIncome / weeklyIncomeGoal) * 100, 100)
+    : 0;
+
+    const monthlyIncome = beluerProfile?.monthlyIncome || 0;
+const monthlyIncomeGoal = beluerProfile?.monthlyIncomeGoal || 4000;
+const monthlyProgress =
+  monthlyIncomeGoal > 0
+    ? Math.min((monthlyIncome / monthlyIncomeGoal) * 100, 100)
+    : 0;
+
+const [weeklyGoalInput, setWeeklyGoalInput] = useState(
+  String(weeklyIncomeGoal)
+);
+const [monthlyGoalInput, setMonthlyGoalInput] = useState(
+  String(monthlyIncomeGoal)
+);
+const [goalLoading, setGoalLoading] = useState(false);
 
   const goToSection = (section: BeluerSection) => {
     setActiveSection(section);
@@ -206,18 +280,22 @@ const handleToggleDistrito = (distrito: string) => {
   });
 };
 
-const handleGuardarPerfilBeluer = () => {
-  if (!perfilBeluer.nombrePublico.trim()) {
-    alert("El nombre público no puede estar vacío.");
+const handleGuardarPerfilBeluer = async () => {
+  const formData = new FormData();
+
+  formData.append("instagram", perfilBeluer.instagram);
+  formData.append("phone", perfilBeluer.whatsapp);
+  formData.append("bio", perfilBeluer.bio);
+
+  const result = await updateBeluerPublicProfileAction(formData);
+
+  if (!result.success) {
+    alert(result.message);
     return;
   }
 
-  if (perfilBeluer.distritos.length === 0) {
-    alert("Selecciona al menos un distrito de atención.");
-    return;
-  }
-
-  alert("Tu perfil de Beluer fue actualizado correctamente.");
+  alert(result.message);
+  window.location.reload();
 };
 
   return (
@@ -246,15 +324,12 @@ const handleGuardarPerfilBeluer = () => {
           </div>
 
           <div className="beluer-panel-profile-mini">
-            <img
-              src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&q=80"
-              alt="Andrea Robles"
-            />
-            <div>
-              <strong>Andrea Robles</strong>
-              <span>Beluer Top ✦</span>
-            </div>
-          </div>
+  <img src={beluerPhoto} alt={beluerDisplayName} />
+  <div>
+    <strong>{beluerDisplayName}</strong>
+    <span>{beluerLevel}</span>
+  </div>
+</div>
 
           <ul className="beluer-panel-sidebar-nav">
             {navItems.map((item) => (
@@ -281,18 +356,18 @@ const handleGuardarPerfilBeluer = () => {
             <section className="beluer-panel-section active">
               <div className="beluer-panel-top-bar">
                 <div className="beluer-panel-greeting">
-                  <h1>Hola, Andrea ✦</h1>
+                  <h1>Hola, {beluerFirstName} ✦</h1>
                   <p>Este es tu centro de control como Beluer.</p>
                 </div>
 
-                <BeluerPill />
+                <BeluerPill nombre={beluerDisplayName} iniciales={beluerInitials} />
               </div>
 
               <div className="beluer-panel-kpi-grid">
                 <KpiCard label="Reservas pendientes" value={String(reservasPendientes.length)} />
 <KpiCard label="Reservas aceptadas" value={String(reservasAceptadas.length)} />
-<KpiCard label="Ingresos del mes" value="S/ 1,280" />
-<KpiCard label="Rating promedio" value="5.0" />
+<KpiCard label="Ingresos del mes" value={`S/ ${ingresosMes.toFixed(2)}`} />
+<KpiCard label="Rating promedio" value={beluerRating} />
               </div>
 
               <div className="beluer-panel-dashboard-grid">
@@ -341,13 +416,13 @@ const handleGuardarPerfilBeluer = () => {
 
                 <div className="beluer-panel-card">
                   <h2>Meta semanal</h2>
-                  <p>Vas 65% hacia tu meta de ingresos.</p>
-
-                  <div className="beluer-panel-progress">
-                    <span style={{ width: "65%" }} />
-                  </div>
-
-                  <strong>S/ 650 de S/ 1,000</strong>
+<p>Vas {weeklyProgress.toFixed(0)}% hacia tu meta de ingresos.</p>
+<div className="beluer-panel-progress">
+  <span style={{ width: `${weeklyProgress}%` }} />
+</div>
+<strong>
+  S/ {weeklyIncome.toFixed(2)} de S/ {weeklyIncomeGoal.toFixed(2)}
+</strong>
                 </div>
               </div>
             </section>
@@ -359,6 +434,8 @@ const handleGuardarPerfilBeluer = () => {
     onAceptar={handleAceptarReserva}
     onRechazar={handleRechazarReserva}
     onVerDetalle={setReservaDetalle}
+    beluerDisplayName={beluerDisplayName}
+    beluerInitials={beluerInitials}
   />
 )}
 {activeSection === "servicios" && (
@@ -367,6 +444,8 @@ const handleGuardarPerfilBeluer = () => {
     onToggleServicio={handleToggleServicio}
     onCambiarPrecio={handleCambiarPrecioServicio}
     onGuardar={handleGuardarServicios}
+    beluerDisplayName={beluerDisplayName}
+    beluerInitials={beluerInitials}
   />
 )}
 
@@ -376,15 +455,55 @@ const handleGuardarPerfilBeluer = () => {
     onAgregarFoto={handleAgregarFoto}
     onEliminarFoto={handleEliminarFoto}
     onMarcarPortada={handleMarcarPortada}
+    beluerDisplayName={beluerDisplayName}
+    beluerInitials={beluerInitials}
   />
 )}
-{activeSection === "ingresos" && <IngresosSection ingresos={ingresos} />}
+{activeSection === "ingresos" && (
+  <IngresosSection
+    ingresos={ingresos}
+    beluerDisplayName={beluerDisplayName}
+    beluerInitials={beluerInitials}
+    weeklyIncome={weeklyIncome}
+    weeklyIncomeGoal={weeklyIncomeGoal}
+    weeklyProgress={weeklyProgress}
+    monthlyIncome={monthlyIncome}
+    monthlyIncomeGoal={monthlyIncomeGoal}
+    monthlyProgress={monthlyProgress}
+    weeklyGoalInput={weeklyGoalInput}
+    monthlyGoalInput={monthlyGoalInput}
+    goalLoading={goalLoading}
+    onWeeklyGoalChange={setWeeklyGoalInput}
+    onMonthlyGoalChange={setMonthlyGoalInput}
+    onSaveGoals={async () => {
+      setGoalLoading(true);
+
+      const formData = new FormData();
+      formData.append("weeklyIncomeGoal", weeklyGoalInput);
+      formData.append("monthlyIncomeGoal", monthlyGoalInput);
+
+      const result = await updateBeluerGoalsAction(formData);
+
+      setGoalLoading(false);
+
+      if (!result.success) {
+        alert(result.message);
+        return;
+      }
+
+      alert(result.message);
+      window.location.reload();
+    }}
+  />
+)}
 {activeSection === "perfil" && (
   <PerfilBeluerSection
     perfil={perfilBeluer}
     onActualizarCampo={handleActualizarCampoPerfil}
     onToggleDistrito={handleToggleDistrito}
     onGuardar={handleGuardarPerfilBeluer}
+    beluerDisplayName={beluerDisplayName}
+    beluerInitials={beluerInitials}
   />
 )}
 
@@ -401,7 +520,7 @@ const handleGuardarPerfilBeluer = () => {
                   <p>Esta sección se construirá en el siguiente bloque.</p>
                 </div>
 
-                <BeluerPill />
+                <BeluerPill nombre={beluerDisplayName} iniciales={beluerInitials} />
               </div>
 
               <div className="beluer-panel-card">
@@ -512,11 +631,15 @@ function ReservasSection({
   onAceptar,
   onRechazar,
   onVerDetalle,
+  beluerDisplayName,
+  beluerInitials,
 }: {
   reservas: ReservaBeluer[];
   onAceptar: (id: string) => void;
   onRechazar: (id: string) => void;
   onVerDetalle: (reserva: ReservaBeluer) => void;
+  beluerDisplayName: string;
+  beluerInitials: string;
 }) {
   const pendientes = reservas.filter((reserva) => reserva.estado === "pendiente");
   const aceptadas = reservas.filter((reserva) => reserva.estado === "aceptada");
@@ -530,7 +653,7 @@ function ReservasSection({
           <p>Gestiona tus solicitudes, citas aceptadas y reservas rechazadas.</p>
         </div>
 
-        <BeluerPill />
+        <BeluerPill nombre={beluerDisplayName} iniciales={beluerInitials} />
       </div>
 
       <div className="beluer-panel-reservas-summary">
@@ -667,11 +790,15 @@ function ServiciosSection({
   onToggleServicio,
   onCambiarPrecio,
   onGuardar,
+  beluerDisplayName,
+  beluerInitials,
 }: {
   servicios: ServicioBeluer[];
   onToggleServicio: (id: string) => void;
   onCambiarPrecio: (id: string, precio: number) => void;
   onGuardar: () => void;
+  beluerDisplayName: string;
+  beluerInitials: string;
 }) {
   const activos = servicios.filter((servicio) => servicio.activo);
   const lashes = servicios.filter((servicio) => servicio.categoria === "lashes");
@@ -689,7 +816,7 @@ function ServiciosSection({
           </p>
         </div>
 
-        <BeluerPill />
+        <BeluerPill nombre={beluerDisplayName} iniciales={beluerInitials} />
       </div>
 
       <div className="beluer-panel-servicios-summary">
@@ -834,11 +961,15 @@ function PortafolioSection({
   onAgregarFoto,
   onEliminarFoto,
   onMarcarPortada,
+  beluerDisplayName,
+  beluerInitials,
 }: {
   fotos: FotoPortafolio[];
   onAgregarFoto: () => void;
   onEliminarFoto: (id: string) => void;
   onMarcarPortada: (id: string) => void;
+  beluerDisplayName: string;
+  beluerInitials: string;
 }) {
   const [filtro, setFiltro] = useState<"todas" | "lashes" | "nails" | "brows">(
     "todas"
@@ -863,7 +994,7 @@ function PortafolioSection({
           </p>
         </div>
 
-        <BeluerPill />
+        <BeluerPill nombre={beluerDisplayName} iniciales={beluerInitials} />
       </div>
 
       <div className="beluer-panel-portafolio-summary">
@@ -978,7 +1109,39 @@ function PortafolioSection({
     </section>
   );
 }
-function IngresosSection({ ingresos }: { ingresos: IngresoBeluer[] }) {
+function IngresosSection({
+  ingresos,
+  beluerDisplayName,
+  beluerInitials,
+  weeklyIncome,
+  weeklyIncomeGoal,
+  weeklyProgress,
+  monthlyIncome,
+  monthlyIncomeGoal,
+  monthlyProgress,
+  weeklyGoalInput,
+  monthlyGoalInput,
+  goalLoading,
+  onWeeklyGoalChange,
+  onMonthlyGoalChange,
+  onSaveGoals,
+}: {
+  ingresos: IngresoBeluer[];
+  beluerDisplayName: string;
+  beluerInitials: string;
+  weeklyIncome: number;
+  weeklyIncomeGoal: number;
+  weeklyProgress: number;
+  monthlyIncome: number;
+  monthlyIncomeGoal: number;
+  monthlyProgress: number;
+  weeklyGoalInput: string;
+  monthlyGoalInput: string;
+  goalLoading: boolean;
+  onWeeklyGoalChange: (value: string) => void;
+  onMonthlyGoalChange: (value: string) => void;
+  onSaveGoals: () => void;
+}) {
   const totalBruto = ingresos.reduce(
     (acc, ingreso) => acc + ingreso.totalServicio,
     0
@@ -1011,8 +1174,69 @@ function IngresosSection({ ingresos }: { ingresos: IngresoBeluer[] }) {
           </p>
         </div>
 
-        <BeluerPill />
+        <BeluerPill nombre={beluerDisplayName} iniciales={beluerInitials} />
       </div>
+
+      <div className="beluer-panel-card beluer-panel-goals-card">
+  <div className="beluer-panel-card-header">
+    <div>
+      <span className="beluer-panel-eyebrow">Metas personales</span>
+      <h2>Mis metas de ingresos</h2>
+      <p>
+        Define tus objetivos. belu calculará el avance usando tus reservas reales.
+      </p>
+    </div>
+  </div>
+
+  <div className="beluer-panel-goals-grid">
+    <div className="beluer-panel-goal-box">
+      <h3>Meta semanal</h3>
+      <p>
+        S/ {weeklyIncome.toFixed(2)} de S/ {weeklyIncomeGoal.toFixed(2)}
+      </p>
+
+      <div className="beluer-panel-progress">
+        <span style={{ width: `${weeklyProgress}%` }} />
+      </div>
+
+      <label>Editar meta semanal</label>
+      <input
+        type="number"
+        min={1}
+        value={weeklyGoalInput}
+        onChange={(event) => onWeeklyGoalChange(event.target.value)}
+      />
+    </div>
+
+    <div className="beluer-panel-goal-box">
+      <h3>Meta mensual</h3>
+      <p>
+        S/ {monthlyIncome.toFixed(2)} de S/ {monthlyIncomeGoal.toFixed(2)}
+      </p>
+
+      <div className="beluer-panel-progress">
+        <span style={{ width: `${monthlyProgress}%` }} />
+      </div>
+
+      <label>Editar meta mensual</label>
+      <input
+        type="number"
+        min={1}
+        value={monthlyGoalInput}
+        onChange={(event) => onMonthlyGoalChange(event.target.value)}
+      />
+    </div>
+  </div>
+
+  <button
+    className="beluer-panel-btn-primary"
+    type="button"
+    onClick={onSaveGoals}
+    disabled={goalLoading}
+  >
+    {goalLoading ? "Guardando metas..." : "Guardar metas"}
+  </button>
+</div>
 
       <div className="beluer-panel-ingresos-hero">
         <div>
@@ -1130,6 +1354,8 @@ function PerfilBeluerSection({
   onActualizarCampo,
   onToggleDistrito,
   onGuardar,
+  beluerDisplayName,
+  beluerInitials,
 }: {
   perfil: PerfilBeluer;
   onActualizarCampo: <K extends keyof PerfilBeluer>(
@@ -1138,6 +1364,8 @@ function PerfilBeluerSection({
   ) => void;
   onToggleDistrito: (distrito: string) => void;
   onGuardar: () => void;
+  beluerDisplayName: string;
+  beluerInitials: string;
 }) {
   const distritosDisponibles = [
     "Miraflores",
@@ -1157,7 +1385,7 @@ function PerfilBeluerSection({
           </p>
         </div>
 
-        <BeluerPill />
+        <BeluerPill nombre={beluerDisplayName} iniciales={beluerInitials} />
       </div>
 
       <div className="beluer-panel-perfil-layout">
@@ -1207,12 +1435,10 @@ function PerfilBeluerSection({
             <div className="beluer-panel-form-group">
               <label>Nombre público</label>
               <input
-                type="text"
-                value={perfil.nombrePublico}
-                onChange={(event) =>
-                  onActualizarCampo("nombrePublico", event.target.value)
-                }
-              />
+  type="text"
+  value={perfil.nombrePublico}
+  readOnly
+/>
             </div>
 
             <div className="beluer-panel-form-group">
@@ -1240,13 +1466,11 @@ function PerfilBeluerSection({
             <div className="beluer-panel-form-group">
               <label>Años de experiencia</label>
               <input
-                type="number"
-                min={0}
-                value={perfil.experiencia}
-                onChange={(event) =>
-                  onActualizarCampo("experiencia", Number(event.target.value))
-                }
-              />
+  type="number"
+  min={0}
+  value={perfil.experiencia}
+  readOnly
+/>
             </div>
           </div>
 
@@ -1263,36 +1487,20 @@ function PerfilBeluerSection({
           <div className="beluer-panel-form-grid">
             <div className="beluer-panel-form-group">
               <label>Nivel Beluer</label>
-              <select
-                value={perfil.nivel}
-                onChange={(event) =>
-                  onActualizarCampo(
-                    "nivel",
-                    event.target.value as PerfilBeluer["nivel"]
-                  )
-                }
-              >
-                <option value="Beluer Nueva">Beluer Nueva</option>
-                <option value="Beluer Verificada">Beluer Verificada</option>
-                <option value="Beluer Top ✦">Beluer Top ✦</option>
-              </select>
+              <input
+  type="text"
+  value={perfil.nivel}
+  readOnly
+/>
             </div>
 
             <div className="beluer-panel-form-group">
               <label>Estado del perfil</label>
-              <select
-                value={perfil.estado}
-                onChange={(event) =>
-                  onActualizarCampo(
-                    "estado",
-                    event.target.value as PerfilBeluer["estado"]
-                  )
-                }
-              >
-                <option value="Activo">Activo</option>
-                <option value="En revisión">En revisión</option>
-                <option value="Pausado">Pausado</option>
-              </select>
+              <input
+  type="text"
+  value={perfil.estado}
+  readOnly
+/>
             </div>
           </div>
 
@@ -1301,31 +1509,24 @@ function PerfilBeluerSection({
 
             <div className="beluer-panel-distritos-grid">
               {distritosDisponibles.map((distrito) => (
-                <button
-                  key={distrito}
-                  type="button"
-                  className={
-                    perfil.distritos.includes(distrito) ? "active" : ""
-                  }
-                  onClick={() => onToggleDistrito(distrito)}
-                >
-                  {distrito}
-                </button>
-              ))}
+  <button
+    key={distrito}
+    type="button"
+    className={perfil.distritos.includes(distrito) ? "active" : ""}
+    disabled
+  >
+    {distrito}
+  </button>
+))}
             </div>
           </div>
 
           <label className="beluer-panel-disponibilidad-toggle">
             <input
-              type="checkbox"
-              checked={perfil.disponibilidadGeneral}
-              onChange={(event) =>
-                onActualizarCampo(
-                  "disponibilidadGeneral",
-                  event.target.checked
-                )
-              }
-            />
+  type="checkbox"
+  checked={perfil.disponibilidadGeneral}
+  readOnly
+/>
             <span>
               Estoy disponible para recibir nuevas solicitudes de belu.
             </span>
@@ -1344,11 +1545,17 @@ function PerfilBeluerSection({
   );
 }
 
-function BeluerPill() {
-  return (  
+function BeluerPill({
+  nombre = "Beluer",
+  iniciales = "B",
+}: {
+  nombre?: string;
+  iniciales?: string;
+}) {
+  return (
     <div className="beluer-panel-user-pill">
-      <div className="beluer-panel-avatar">AR</div>
-      <span>Andrea Robles</span>
+      <div className="beluer-panel-avatar">{iniciales}</div>
+      <span>{nombre}</span>
     </div>
   );
 }
