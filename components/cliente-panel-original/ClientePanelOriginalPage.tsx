@@ -50,6 +50,7 @@ type ClientBooking = {
 type ClientePanelOriginalPageProps = {
   clientProfile: ClientProfile | null;
   nextBooking: ClientBooking | null;
+  bookingHistory: ClientBooking[];
   realBeluers: Beluer[];
 };
 
@@ -117,6 +118,7 @@ const navItems: {
 export default function ClientePanelOriginalPage({
   clientProfile,
   nextBooking,
+  bookingHistory,
   realBeluers,
 }: ClientePanelOriginalPageProps) {
   const [activeSection, setActiveSection] = useState<PanelSection>("dashboard");

@@ -76,6 +76,7 @@ export default async function ClientePanelPage() {
 
   let profile: ClientProfile | null = null;
   let nextBooking: ClientBooking | null = null;
+  let bookingHistory: ClientBooking[] = [];
   let realBeluers: Beluer[] = [];
 
   if (user) {
@@ -128,50 +129,59 @@ export default async function ClientePanelPage() {
           .filter((category): category is string => Boolean(category));
 
         return {
-  nombre: beluer.public_name || "Beluer verificada",
-  foto: beluer.profile_photo_url || "/beluer-placeholder.jpg",
-  espec:
-    servicios.length > 0
-      ? servicios.slice(0, 2).join(" + ")
-      : "Especialista belu",
-  categoria: normalizeBeluerCategory(categorias),
-  rating: Number(beluer.rating_average || 5).toFixed(1),
-  citas: Number(beluer.total_bookings || 0),
-  serviciosActivos: servicios,
-};
+          nombre: beluer.public_name || "Beluer verificada",
+          foto: beluer.profile_photo_url || "/beluer-placeholder.jpg",
+          espec:
+            servicios.length > 0
+              ? servicios.slice(0, 2).join(" + ")
+              : "Especialista belu",
+          categoria: normalizeBeluerCategory(categorias),
+          rating: Number(beluer.rating_average || 5).toFixed(1),
+          citas: Number(beluer.total_bookings || 0),
+          serviciosActivos: servicios,
+        };
       })
       .filter((beluer) => beluer.serviciosActivos.length > 0);
 
     if (profile) {
+      const bookingsSelect = `
+        id,
+        scheduled_date,
+        scheduled_time,
+        status,
+        payment_status,
+        public_price,
+        district,
+        address,
+        services (
+          name,
+          category
+        ),
+        beluer_profiles (
+          public_name
+        )
+      `;
+
       const { data: bookingData } = await supabase
         .from("bookings")
-        .select(
-          `
-          id,
-          scheduled_date,
-          scheduled_time,
-          status,
-          payment_status,
-          public_price,
-          district,
-          address,
-          services (
-            name,
-            category
-          ),
-          beluer_profiles (
-            public_name
-          )
-        `
-        )
+        .select(bookingsSelect)
         .eq("client_profile_id", profile.id)
-        .not("status", "eq", "cancelled")
+        .in("status", ["pending", "assigned", "confirmed", "in_progress"])
         .order("scheduled_date", { ascending: true })
         .order("scheduled_time", { ascending: true })
         .limit(1)
         .maybeSingle();
 
       nextBooking = bookingData as ClientBooking | null;
+
+      const { data: historyData } = await supabase
+        .from("bookings")
+        .select(bookingsSelect)
+        .eq("client_profile_id", profile.id)
+        .order("scheduled_date", { ascending: false })
+        .order("scheduled_time", { ascending: false });
+
+      bookingHistory = (historyData as ClientBooking[] | null) || [];
     }
   }
 
@@ -180,6 +190,7 @@ export default async function ClientePanelPage() {
       <ClientePanelOriginalPage
         clientProfile={profile}
         nextBooking={nextBooking}
+        bookingHistory={bookingHistory}
         realBeluers={realBeluers}
       />
 
