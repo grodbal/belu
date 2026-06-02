@@ -61,7 +61,13 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  const userRole = user.app_metadata?.role ?? "cliente";
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("auth_user_id", user.id)
+    .maybeSingle();
+
+  const userRole = profile?.role ?? user.app_metadata?.role ?? "cliente";
 
   const requiredRole = Object.entries(routeRoleMap).find(([route]) =>
     pathname.startsWith(route)

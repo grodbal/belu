@@ -4,6 +4,23 @@ import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
+function getRoleHome(role: string) {
+  if (role === "admin") return "/app/admin";
+  if (role === "beluer") return "/app/beluer";
+
+  return "/app/cliente";
+}
+
+function getLoginDestination(role: string, redirectTo: string | null) {
+  const roleHome = getRoleHome(role);
+
+  if (redirectTo?.startsWith(roleHome)) {
+    return redirectTo;
+  }
+
+  return roleHome;
+}
+
 export default function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -34,26 +51,17 @@ export default function LoginForm() {
       return;
     }
 
-    const redirectTo = searchParams.get("redirectTo");
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("auth_user_id", data.user.id)
+      .maybeSingle();
 
-    if (redirectTo?.startsWith("/app/")) {
-      router.push(redirectTo);
-      return;
-    }
+    const role = profile?.role ?? data.user?.app_metadata?.role ?? "cliente";
+    const destination = getLoginDestination(role, searchParams.get("redirectTo"));
 
-    const role = data.user?.app_metadata?.role ?? "cliente";
-
-    if (role === "admin") {
-      router.push("/app/admin");
-      return;
-    }
-
-    if (role === "beluer") {
-      router.push("/app/beluer");
-      return;
-    }
-
-    router.push("/app/cliente");
+    router.replace(destination);
+    router.refresh();
   }
 
   return (
