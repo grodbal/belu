@@ -725,4 +725,4 @@ El Admin debe poder responder rápido a estas preguntas:
 - ¿Dónde se está trabando la operación?
 - ¿Cuánto está generando belu realmente?
 
-El objetivo del Admin no es solo administrar datos. Es controlar calidad, velocidad y rentabilidad.
+El objetivo del Admin no es solo administrar datos. Es controlar calidad, velocidad y rentabilidad. 

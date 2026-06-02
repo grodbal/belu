@@ -2158,3 +2158,17 @@
     height: 120px;
   }
 }
+.admin-panel-sidebar-nav button.admin-panel-nav-highlight {
+  background: #e60023;
+  color: #ffffff;
+  box-shadow: 0 18px 40px rgba(230, 0, 35, 0.22);
+}
+
+.admin-panel-sidebar-nav button.admin-panel-nav-highlight svg {
+  stroke: #ffffff;
+}
+
+.admin-panel-sidebar-nav button.admin-panel-nav-highlight.active {
+  background: #c4001d;
+  color: #ffffff;
+}
