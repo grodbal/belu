@@ -4,7 +4,7 @@
 
 Esta carpeta contiene la estructura base de Supabase para belu.
 
-Por ahora estos archivos no están conectados al proyecto Next.js. Están versionados para dejar preparada la arquitectura de base de datos, permisos, storage, triggers, funciones RPC, vistas de lectura, auditoría y datos iniciales antes de la integración real.
+Estos archivos estan versionados como referencia reproducible del esquema, permisos, storage, triggers, funciones RPC, vistas de lectura, auditoria y datos iniciales. Los cambios remotos se aplican manualmente desde Supabase y luego se documentan aqui.
 
 ---
 
@@ -102,6 +102,55 @@ current_beluer_profile_id()
 ```
 
 Este archivo debe ejecutarse después de `schema.sql`, porque necesita que las tablas y enums ya existan.
+
+---
+
+### Permisos de perfil de clienta
+
+La migracion remota de perfiles usa el enum:
+
+```txt
+cliente
+beluer
+admin
+```
+
+`profiles` conserva los datos base de identidad. Para el rol `authenticated`:
+
+- Puede leer perfiles segun RLS.
+- Puede actualizar solamente `phone`.
+- No puede actualizar `full_name`, `email`, `role`, `auth_user_id`, `id`, `created_at` ni `updated_at`.
+- No puede insertar ni eliminar filas directamente.
+
+`client_profiles` conserva los datos especificos de una clienta:
+
+```txt
+id
+profile_id
+district
+main_address
+beauty_preference
+whatsapp_notifications_enabled
+day_21_reminder_enabled
+created_at
+updated_at
+```
+
+Para el rol `authenticated`:
+
+- Puede leer solamente su propia fila.
+- Puede actualizar solamente `beauty_preference` en su propia fila.
+- No puede actualizar `profile_id`, direccion, distrito, preferencias de notificacion, ids ni timestamps.
+- No puede insertar ni eliminar filas directamente.
+
+`service_role` mantiene `select`, `insert`, `update` y `delete` sobre ambas tablas. Esta clave se usa solo desde codigo de servidor protegido. El registro de clienta crea o asegura la fila complementaria en `client_profiles`.
+
+En el MVP, la seccion Mi Perfil permite editar solamente:
+
+```txt
+profiles.phone
+client_profiles.beauty_preference
+```
 
 ---
 

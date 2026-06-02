@@ -103,6 +103,25 @@ alter table reviews enable row level security;
 alter table automations_log enable row level security;
 
 -- =====================================================
+-- COLUMN PRIVILEGES FOR CLIENT PROFILE EDITING
+-- =====================================================
+
+-- Client-facing writes are deliberately limited by column privileges.
+-- Trusted Server Actions use service_role for full operations.
+
+revoke all privileges on table public.profiles from anon;
+revoke insert, update, delete on table public.profiles from authenticated;
+grant select on table public.profiles to authenticated;
+grant update (phone) on table public.profiles to authenticated;
+grant select, insert, update, delete on table public.profiles to service_role;
+
+revoke all privileges on table public.client_profiles from anon;
+revoke insert, update, delete on table public.client_profiles from authenticated;
+grant select on table public.client_profiles to authenticated;
+grant update (beauty_preference) on table public.client_profiles to authenticated;
+grant select, insert, update, delete on table public.client_profiles to service_role;
+
+-- =====================================================
 -- PROFILES
 -- =====================================================
 
@@ -110,65 +129,55 @@ drop policy if exists "profiles_select_own_or_admin" on profiles;
 create policy "profiles_select_own_or_admin"
 on profiles
 for select
+to authenticated
 using (
   auth_user_id = auth.uid()
   or public.is_admin()
 );
 
 drop policy if exists "profiles_update_own_or_admin" on profiles;
-create policy "profiles_update_own_or_admin"
+drop policy if exists "profiles_update_own_phone" on profiles;
+create policy "profiles_update_own_phone"
 on profiles
 for update
+to authenticated
 using (
   auth_user_id = auth.uid()
-  or public.is_admin()
 )
 with check (
   auth_user_id = auth.uid()
-  or public.is_admin()
 );
 
 drop policy if exists "profiles_insert_admin" on profiles;
-create policy "profiles_insert_admin"
-on profiles
-for insert
-with check (
-  public.is_admin()
-);
 
 -- =====================================================
 -- CLIENT PROFILES
 -- =====================================================
 
 drop policy if exists "client_profiles_select_own_or_admin" on client_profiles;
-create policy "client_profiles_select_own_or_admin"
+drop policy if exists "client_profiles_select_own" on client_profiles;
+create policy "client_profiles_select_own"
 on client_profiles
 for select
+to authenticated
 using (
   profile_id = public.current_profile_id()
-  or public.is_admin()
 );
 
 drop policy if exists "client_profiles_update_own_or_admin" on client_profiles;
-create policy "client_profiles_update_own_or_admin"
+drop policy if exists "client_profiles_update_own_beauty_preference" on client_profiles;
+create policy "client_profiles_update_own_beauty_preference"
 on client_profiles
 for update
+to authenticated
 using (
   profile_id = public.current_profile_id()
-  or public.is_admin()
 )
 with check (
   profile_id = public.current_profile_id()
-  or public.is_admin()
 );
 
 drop policy if exists "client_profiles_insert_admin" on client_profiles;
-create policy "client_profiles_insert_admin"
-on client_profiles
-for insert
-with check (
-  public.is_admin()
-);
 
 -- =====================================================
 -- BELUER PROFILES

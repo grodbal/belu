@@ -11,9 +11,30 @@ create extension if not exists "pgcrypto";
 -- =====================================================
 
 do $$ begin
-  create type user_role as enum ('clienta', 'beluer', 'admin');
+  create type user_role as enum ('cliente', 'beluer', 'admin');
 exception
   when duplicate_object then null;
+end $$;
+
+-- Keep older local installations aligned with the remote enum.
+do $$ begin
+  if exists (
+    select 1
+    from pg_enum e
+    join pg_type t on t.oid = e.enumtypid
+    where t.typnamespace = 'public'::regnamespace
+      and t.typname = 'user_role'
+      and e.enumlabel = 'clienta'
+  ) and not exists (
+    select 1
+    from pg_enum e
+    join pg_type t on t.oid = e.enumtypid
+    where t.typnamespace = 'public'::regnamespace
+      and t.typname = 'user_role'
+      and e.enumlabel = 'cliente'
+  ) then
+    alter type public.user_role rename value 'clienta' to 'cliente';
+  end if;
 end $$;
 
 do $$ begin
