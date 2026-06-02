@@ -9,6 +9,7 @@ type ClientProfile = {
   full_name: string | null;
   email: string | null;
   phone: string | null;
+  beauty_preference: string | null;
 };
 
 type ClientBooking = {
@@ -88,7 +89,23 @@ export default async function ClientePanelPage() {
       .eq("auth_user_id", user.id)
       .single();
 
-    profile = profileData as ClientProfile | null;
+    const baseProfile = profileData as Omit<
+      ClientProfile,
+      "beauty_preference"
+    > | null;
+
+    if (baseProfile) {
+      const { data: clientProfileData } = await supabase
+        .from("client_profiles")
+        .select("beauty_preference")
+        .eq("profile_id", baseProfile.id)
+        .maybeSingle();
+
+      profile = {
+        ...baseProfile,
+        beauty_preference: clientProfileData?.beauty_preference || null,
+      };
+    }
 
     const { data: beluersData } = await supabase
       .from("beluer_profiles")

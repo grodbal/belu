@@ -84,27 +84,48 @@ export async function createClientProfileAction({
     };
   }
 
-  const { error: profileError } = existingProfile
-    ? await supabase
-        .from("profiles")
-        .update({
-          role: "cliente",
-          full_name: normalizedFullName,
-          email,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", existingProfile.id)
-    : await supabase.from("profiles").insert({
+  let profileId = existingProfile?.id;
+
+  if (!profileId) {
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .insert({
         auth_user_id: user.id,
         role: "cliente",
         full_name: normalizedFullName,
         email,
-      });
+      })
+      .select("id")
+      .single();
 
-  if (profileError) {
+    if (profileError || !profile) {
+      return {
+        success: false,
+        message: `No se pudo guardar el perfil de clienta: ${
+          profileError?.message || "No se obtuvo el perfil creado."
+        }`,
+      };
+    }
+
+    profileId = profile.id;
+  }
+
+  const { error: clientProfileError } = await supabase
+    .from("client_profiles")
+    .upsert(
+      {
+        profile_id: profileId,
+      },
+      {
+        onConflict: "profile_id",
+        ignoreDuplicates: true,
+      }
+    );
+
+  if (clientProfileError) {
     return {
       success: false,
-      message: `No se pudo guardar el perfil de clienta: ${profileError.message}`,
+      message: `No se pudo guardar el perfil complementario de clienta: ${clientProfileError.message}`,
     };
   }
 

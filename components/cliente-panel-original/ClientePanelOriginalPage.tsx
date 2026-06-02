@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { createBookingAction } from "@/app/actions/client/createBooking";
 import { cancelBookingAction } from "@/app/actions/client/cancelBooking";
+import { updateClientProfileAction } from "@/app/actions/client/updateClientProfile";
 import {
   addonsLashes,
   addonsNails,
@@ -27,6 +28,7 @@ type ClientProfile = {
   full_name: string | null;
   email: string | null;
   phone: string | null;
+  beauty_preference: string | null;
 };
 
 type ClientBooking = {
@@ -1426,21 +1428,29 @@ function PerfilSection({
   clientName: string;
   clientProfile: ClientProfile | null;
 }) {
-  const [nombre, setNombre] = useState(clientName);
-  const [email, setEmail] = useState(clientProfile?.email || "");
+  const nombre = clientName;
+  const email = clientProfile?.email || "";
   const [whatsapp, setWhatsapp] = useState(clientProfile?.phone || "");
-  const [distrito, setDistrito] = useState("Miraflores");
-  const [direccion, setDireccion] = useState(
-    "Av. Comandante Espinar 456, Miraflores"
+  const [profileLoading, setProfileLoading] = useState(false);
+  const distrito = "Miraflores";
+  const direccion = "Av. Comandante Espinar 456, Miraflores";
+  const [preferencia, setPreferencia] = useState(
+    clientProfile?.beauty_preference || "Lashes naturales"
   );
-  const [preferencia, setPreferencia] = useState("Lashes naturales");
-  const [notificaciones, setNotificaciones] = useState(true);
+  const notificaciones = true;
   
 
-  const handleGuardarPerfil = () => {
-    alert(
-      `Perfil actualizado correctamente.\n\nNombre: ${nombre}\nWhatsApp: ${whatsapp}\nDistrito: ${distrito}`
-    );
+  const handleGuardarPerfil = async () => {
+    setProfileLoading(true);
+
+    const formData = new FormData();
+    formData.append("phone", whatsapp);
+    formData.append("beautyPreference", preferencia);
+
+    const result = await updateClientProfileAction(formData);
+
+    setProfileLoading(false);
+    alert(result.message);
   };
 
   
@@ -1497,7 +1507,7 @@ function PerfilSection({
               <input
                 type="text"
                 value={nombre}
-                onChange={(event) => setNombre(event.target.value)}
+                readOnly
               />
             </div>
 
@@ -1506,7 +1516,7 @@ function PerfilSection({
               <input
                 type="email"
                 value={email}
-                onChange={(event) => setEmail(event.target.value)}
+                readOnly
               />
             </div>
 
@@ -1523,7 +1533,7 @@ function PerfilSection({
               <label>Distrito</label>
               <select
                 value={distrito}
-                onChange={(event) => setDistrito(event.target.value)}
+                disabled
               >
                 <option value="Miraflores">Miraflores</option>
                 <option value="San Isidro">San Isidro</option>
@@ -1539,7 +1549,7 @@ function PerfilSection({
             <input
               type="text"
               value={direccion}
-              onChange={(event) => setDireccion(event.target.value)}
+              readOnly
             />
           </div>
 
@@ -1561,7 +1571,7 @@ function PerfilSection({
             <input
               type="checkbox"
               checked={notificaciones}
-              onChange={(event) => setNotificaciones(event.target.checked)}
+              disabled
             />
             <span>
               Quiero recibir recordatorios por WhatsApp, incluyendo mi retoque
@@ -1573,8 +1583,9 @@ function PerfilSection({
             className="cliente-panel-btn-r cliente-panel-full-btn"
             type="button"
             onClick={handleGuardarPerfil}
+            disabled={profileLoading}
           >
-            Guardar cambios
+            {profileLoading ? "Guardando..." : "Guardar cambios"}
           </button>
         </div>
       </div>
