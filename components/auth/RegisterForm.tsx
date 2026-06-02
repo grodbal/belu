@@ -20,7 +20,7 @@ export default function RegisterForm() {
 
     const supabase = createClient();
 
-    const { data, error } = await supabase.auth.signUp({
+    const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -36,18 +36,8 @@ export default function RegisterForm() {
       return;
     }
 
-    const authUserId = data.user?.id;
-
-    if (!authUserId) {
-      setIsLoading(false);
-      setMessage("No se pudo obtener el usuario creado.");
-      return;
-    }
-
     const profileResult = await createClientProfileAction({
-      authUserId,
       fullName,
-      email,
     });
 
     setIsLoading(false);
