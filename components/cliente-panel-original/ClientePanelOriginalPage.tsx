@@ -7,9 +7,7 @@ import { updateClientProfileAction } from "@/app/actions/client/updateClientProf
 import {
   addonsLashes,
   addonsNails,
-  beluersData,
   crearPlaceholder,
-  pagosData,
 } from "./clientePanelData";
 import type {
   Addon,
@@ -153,9 +151,7 @@ const [confirmacionOpen, setConfirmacionOpen] = useState(false);
 const [metodoPago, setMetodoPago] = useState<PaymentMethod>("tarjeta");
 const [reservaConfirmada, setReservaConfirmada] = useState(false);
 const [cancelLoading, setCancelLoading] = useState(false);
-const [beluersFavoritas, setBeluersFavoritas] = useState<string[]>([
-  "Andrea Robles",
-]);
+const [beluersFavoritas, setBeluersFavoritas] = useState<string[]>([]);
 const [modalGestion, setModalGestion] =
   useState<GestionReservaModal>(null);
 
@@ -709,7 +705,7 @@ const hasRealBooking = Boolean(nextBooking);
 
           {activeSection === "beluers" && (
   <EspecialistasSection
-    beluers={beluersData}
+    beluers={realBeluers}
     favoritas={beluersFavoritas}
     onToggleFavorita={toggleBeluerFavorita}
     goToReserva={() => goToSection("reserva")}
@@ -720,7 +716,7 @@ const hasRealBooking = Boolean(nextBooking);
 
 {activeSection === "favoritas" && (
   <FavoritasSection
-    beluers={beluersData}
+    beluers={realBeluers}
     favoritas={beluersFavoritas}
     onToggleFavorita={toggleBeluerFavorita}
     goToReserva={() => goToSection("reserva")}
@@ -736,7 +732,9 @@ const hasRealBooking = Boolean(nextBooking);
     clientName={clientName}
   />
 )}
-{activeSection === "pagos" && <PagosSection clientName={clientName} />}
+{activeSection === "pagos" && (
+  <PagosSection clientName={clientName} bookingHistory={bookingHistory} />
+)}
 {activeSection === "perfil" && (
   <PerfilSection clientName={clientName} clientProfile={clientProfile} />
 )}
@@ -1292,6 +1290,10 @@ function HistorialSection({
   goToReserva: () => void;
   clientName: string;
 }) {
+  const [selectedBooking, setSelectedBooking] = useState<ClientBooking | null>(
+    null
+  );
+
   const statusLabels: Record<string, string> = {
     pending: "Pendiente",
     pending_payment: "Pendiente de pago",
@@ -1386,7 +1388,11 @@ function HistorialSection({
                   Repetir reserva ✦
                 </button>
 
-                <button type="button" className="cliente-panel-btn-ghost">
+                <button
+                  type="button"
+                  className="cliente-panel-btn-ghost"
+                  onClick={() => setSelectedBooking(item)}
+                >
                   Ver detalle
                 </button>
               </div>
@@ -1394,16 +1400,95 @@ function HistorialSection({
           </article>
         ))}
       </div>
+
+      {selectedBooking && (
+        <div className="cliente-panel-modal-overlay">
+          <div className="cliente-panel-gestion-modal">
+            <button
+              type="button"
+              className="cliente-panel-modal-close"
+              onClick={() => setSelectedBooking(null)}
+              aria-label="Cerrar detalle de reserva"
+            >
+              ×
+            </button>
+
+            <h3>Detalle de reserva</h3>
+
+            <div className="cliente-panel-detalle-reserva">
+              <p>
+                <strong>Servicio:</strong>{" "}
+                {selectedBooking.services?.name || "Servicio belu"}
+              </p>
+              <p>
+                <strong>Beluer:</strong>{" "}
+                {selectedBooking.beluer_profiles?.public_name ||
+                  "Pendiente de asignación"}
+              </p>
+              <p>
+                <strong>Fecha:</strong> {selectedBooking.scheduled_date}
+              </p>
+              <p>
+                <strong>Hora:</strong>{" "}
+                {selectedBooking.scheduled_time.slice(0, 5)}
+              </p>
+              <p>
+                <strong>Estado:</strong>{" "}
+                {statusLabels[selectedBooking.status] || selectedBooking.status}
+              </p>
+              <p>
+                <strong>Estado de pago:</strong>{" "}
+                {paymentStatusLabels[selectedBooking.payment_status] ||
+                  selectedBooking.payment_status}
+              </p>
+              <p>
+                <strong>Precio:</strong> S/ {selectedBooking.public_price}
+              </p>
+              <p>
+                <strong>Distrito:</strong> {selectedBooking.district}
+              </p>
+              <p>
+                <strong>Dirección:</strong> {selectedBooking.address}
+              </p>
+            </div>
+
+            <button
+              type="button"
+              className="cliente-panel-btn-ghost"
+              onClick={() => setSelectedBooking(null)}
+            >
+              Cerrar
+            </button>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
 function PagosSection({
   clientName,
+  bookingHistory,
 }: {
   clientName: string;
+  bookingHistory: ClientBooking[];
 }) {
-  
-  const totalPagado = pagosData.reduce((acc, pago) => acc + pago.monto, 0);
+  const paymentStatusLabels: Record<string, string> = {
+    pending: "Pago pendiente",
+    paid: "Pagado",
+    failed: "Pago fallido",
+    refunded: "Reembolsado",
+    partially_refunded: "Reembolso parcial",
+  };
+  const totalRegistrado = bookingHistory.reduce(
+    (acc, booking) => acc + Number(booking.public_price || 0),
+    0
+  );
+  const ultimoEstadoPago = bookingHistory[0]?.payment_status
+    ? paymentStatusLabels[bookingHistory[0].payment_status] ||
+      bookingHistory[0].payment_status
+    : "Sin pagos";
+  const comprobanteMessage =
+    "Comprobante disponible cuando se conecte la pasarela de pagos.";
 
   return (
     <section className="cliente-panel-section active">
@@ -1418,52 +1503,67 @@ function PagosSection({
 
       <div className="cliente-panel-pagos-summary">
         <div>
-  <span>Total pagado</span>
-          <strong>S/ {totalPagado}</strong>
+  <span>Total registrado</span>
+          <strong>S/ {totalRegistrado}</strong>
 </div>
 
         <div>
-          <span>Transacciones</span>
-          <strong>{pagosData.length}</strong>
+          <span>Reservas</span>
+          <strong>{bookingHistory.length}</strong>
         </div>
 
         <div>
-          <span>Último método</span>
-          <strong>{pagosData[0].metodo}</strong>
+          <span>Último estado</span>
+          <strong>{ultimoEstadoPago}</strong>
         </div>
       </div>
 
       <div className="cliente-panel-pagos-list">
-        {pagosData.map((pago) => (
-          <article className="cliente-panel-pago-card" key={pago.id}>
+        {bookingHistory.length === 0 ? (
+          <div className="cliente-panel-card">
+            <p>Aún no tienes pagos registrados.</p>
+          </div>
+        ) : (
+          bookingHistory.map((booking) => (
+          <article className="cliente-panel-pago-card" key={booking.id}>
             <div className="cliente-panel-pago-main">
               <div>
-                <div className="cliente-panel-pago-id">{pago.id}</div>
-                <h3>{pago.concepto}</h3>
-                <p>Atención realizada por {pago.beluer}</p>
+                <div className="cliente-panel-pago-id">
+                  {paymentStatusLabels[booking.payment_status] ||
+                    booking.payment_status}
+                </div>
+                <h3>{booking.services?.name || "Servicio belu"}</h3>
+                <p>
+                  Beluer:{" "}
+                  {booking.beluer_profiles?.public_name ||
+                    "Pendiente de asignación"}
+                </p>
               </div>
 
               <div className="cliente-panel-pago-monto">
-                <span>{pago.estado}</span>
-                <strong>S/ {pago.monto}</strong>
+                <span>
+                  {paymentStatusLabels[booking.payment_status] ||
+                    booking.payment_status}
+                </span>
+                <strong>S/ {booking.public_price}</strong>
               </div>
             </div>
 
             <div className="cliente-panel-pago-meta">
-              <span>📅 {pago.fecha}</span>
-              <span>💳 {pago.metodo}</span>
-              <span>🔐 Operación {pago.operacion}</span>
+              <span>Fecha: {booking.scheduled_date}</span>
+              <span>Hora: {booking.scheduled_time.slice(0, 5)}</span>
+              <span>
+                Pago:{" "}
+                {paymentStatusLabels[booking.payment_status] ||
+                  booking.payment_status}
+              </span>
             </div>
 
             <div className="cliente-panel-pago-actions">
               <button
                 type="button"
                 className="cliente-panel-btn-ghost"
-                onClick={() =>
-                  alert(
-                    `Comprobante simulado\n\nCódigo: ${pago.id}\nOperación: ${pago.operacion}\nMonto: S/ ${pago.monto}`
-                  )
-                }
+                onClick={() => alert(comprobanteMessage)}
               >
                 Ver comprobante
               </button>
@@ -1471,17 +1571,14 @@ function PagosSection({
               <button
                 type="button"
                 className="cliente-panel-btn-ghost"
-                onClick={() =>
-                  alert(
-                    "Más adelante este botón descargará el comprobante real generado por la pasarela de pago."
-                  )
-                }
+                onClick={() => alert(comprobanteMessage)}
               >
                 Descargar
               </button>
             </div>
           </article>
-        ))}
+          ))
+        )}
       </div>
     </section>
   );
@@ -1746,7 +1843,12 @@ function EspecialistasSection({
       </div>
 
       <div className="cliente-panel-beluers-grid">
-        {beluersFiltradas.map((beluer) => (
+        {beluersFiltradas.length === 0 ? (
+          <div className="cliente-panel-card">
+            <p>Aún no hay especialistas disponibles.</p>
+          </div>
+        ) : (
+          beluersFiltradas.map((beluer) => (
           <BeluerCard
             key={beluer.nombre}
             beluer={beluer}
@@ -1754,7 +1856,8 @@ function EspecialistasSection({
             onToggleFavorita={() => onToggleFavorita(beluer.nombre)}
             goToReserva={goToReserva}
           />
-        ))}
+          ))
+        )}
       </div>
     </section>
   );
@@ -1795,7 +1898,7 @@ function FavoritasSection({
       {beluersFavoritas.length === 0 ? (
         <div className="cliente-panel-favoritas-empty">
           <div className="cliente-panel-empty-heart">♥</div>
-          <h2>Aún no tienes favoritas.</h2>
+          <h2>Aún no tienes Beluers favoritas.</h2>
           <p>
             Marca con corazón a tus Beluers preferidas para encontrarlas más
             rápido la próxima vez.
