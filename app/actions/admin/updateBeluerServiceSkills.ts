@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { requireAdmin } from "@/lib/auth/requireAdmin";
 
 type UpdateBeluerServiceSkillsState = {
   success: boolean;
@@ -12,6 +13,8 @@ export async function updateBeluerServiceSkillsAction(
   previousState: UpdateBeluerServiceSkillsState,
   formData: FormData
 ): Promise<UpdateBeluerServiceSkillsState> {
+  await requireAdmin();
+
   const beluerProfileId = String(formData.get("beluerProfileId") || "");
   const serviceIds = formData
     .getAll("serviceIds")

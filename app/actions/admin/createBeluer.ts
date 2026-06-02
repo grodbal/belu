@@ -1,6 +1,7 @@
 "use server";
 
 import { createAdminClient } from "@/lib/supabase/admin";
+import { requireAdmin } from "@/lib/auth/requireAdmin";
 
 type CreateBeluerState = {
   success: boolean;
@@ -11,6 +12,8 @@ export async function createBeluerAction(
   _previousState: CreateBeluerState,
   formData: FormData
 ): Promise<CreateBeluerState> {
+  await requireAdmin();
+
   const fullName = String(formData.get("fullName") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "").trim();

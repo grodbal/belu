@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { requireAdmin } from "@/lib/auth/requireAdmin";
 
 type UpdateBookingPaymentStatusState = {
   success: boolean;
@@ -14,6 +15,8 @@ export async function updateBookingPaymentStatusAction(
   previousState: UpdateBookingPaymentStatusState,
   formData: FormData
 ): Promise<UpdateBookingPaymentStatusState> {
+  await requireAdmin();
+
   const bookingId = String(formData.get("bookingId") || "");
   const paymentStatus = String(formData.get("paymentStatus") || "");
 

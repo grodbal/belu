@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { requireAdmin } from "@/lib/auth/requireAdmin";
 
 type UpdateServiceState = {
   success: boolean;
@@ -14,6 +15,8 @@ export async function updateServiceAction(
   previousState: UpdateServiceState,
   formData: FormData
 ): Promise<UpdateServiceState> {
+  await requireAdmin();
+
   const serviceId = String(formData.get("serviceId") || "");
 
   const category = String(formData.get("category") || "");

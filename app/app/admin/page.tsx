@@ -4,8 +4,11 @@ import CreateBeluerForm from "@/components/admin-panel-original/CreateBeluerForm
 import AdminBeluersRealList from "@/components/admin-panel-original/AdminBeluersRealList";
 import AdminServicesRealList from "@/components/admin-panel-original/AdminServicesRealList";
 import AdminBookingsRealList from "@/components/admin-panel-original/AdminBookingsRealList";
+import { requireAdmin } from "@/lib/auth/requireAdmin";
 
-export default function AdminPage() {
+export default async function AdminPage() {
+  await requireAdmin();
+
   return (
     <>
       <AdminPanelOriginalPage
