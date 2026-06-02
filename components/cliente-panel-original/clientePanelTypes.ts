@@ -20,6 +20,7 @@ export type GestionReservaModal =
   | null;
 
 export type Service = {
+  id?: string;
   nombre: string;
   precio: number;
   desc: string;

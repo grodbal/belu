@@ -2,7 +2,11 @@
 import LogoutButton from "@/components/auth/LogoutButton";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import type { Beluer } from "@/components/cliente-panel-original/clientePanelTypes";
+import { crearPlaceholder } from "@/components/cliente-panel-original/clientePanelData";
+import type {
+  Beluer,
+  Service,
+} from "@/components/cliente-panel-original/clientePanelTypes";
 
 type ClientProfile = {
   id: string;
@@ -36,6 +40,14 @@ type BeluerServiceSkillRow = {
     name: string;
     category: string;
   } | null;
+};
+
+type ServiceRow = {
+  id: string;
+  name: string;
+  category: Service["categoria"];
+  description: string | null;
+  public_price: number;
 };
 
 type BeluerProfileRow = {
@@ -79,6 +91,7 @@ export default async function ClientePanelPage() {
   let nextBooking: ClientBooking | null = null;
   let bookingHistory: ClientBooking[] = [];
   let realBeluers: Beluer[] = [];
+  let realServices: Service[] = [];
 
   if (user) {
     const supabase = createAdminClient();
@@ -106,6 +119,28 @@ export default async function ClientePanelPage() {
         beauty_preference: clientProfileData?.beauty_preference || null,
       };
     }
+
+    const { data: servicesData } = await supabase
+      .from("services")
+      .select("id, name, category, description, public_price")
+      .eq("status", "active")
+      .in("category", ["lashes", "nails"])
+      .order("category", { ascending: true })
+      .order("public_price", { ascending: true });
+
+    realServices = ((servicesData as ServiceRow[] | null) || []).map(
+      (service): Service => ({
+        id: service.id,
+        nombre: service.name,
+        precio: Number(service.public_price),
+        desc: service.description || "",
+        foto: crearPlaceholder(
+          service.name,
+          service.category === "nails" ? "D81B60" : "AD1457"
+        ),
+        categoria: service.category,
+      })
+    );
 
     const { data: beluersData } = await supabase
       .from("beluer_profiles")
@@ -209,6 +244,7 @@ export default async function ClientePanelPage() {
         nextBooking={nextBooking}
         bookingHistory={bookingHistory}
         realBeluers={realBeluers}
+        realServices={realServices}
       />
 
       <LogoutButton className="fixed right-6 bottom-6 z-50 rounded-full bg-[#E60023] px-5 py-3 text-sm font-bold text-white shadow-lg transition hover:bg-[#C4001D]" />

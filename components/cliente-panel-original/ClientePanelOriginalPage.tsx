@@ -8,9 +8,7 @@ import {
   addonsLashes,
   addonsNails,
   beluersData,
-  catalogoLashes,
-  catalogoNails,
-  historialData,
+  crearPlaceholder,
   pagosData,
 } from "./clientePanelData";
 import type {
@@ -54,7 +52,17 @@ type ClientePanelOriginalPageProps = {
   nextBooking: ClientBooking | null;
   bookingHistory: ClientBooking[];
   realBeluers: Beluer[];
+  realServices: Service[];
 };
+
+function getTodayLocalDate() {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const day = String(today.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
 
 const icons = {
   dashboard: (
@@ -122,6 +130,7 @@ export default function ClientePanelOriginalPage({
   nextBooking,
   bookingHistory,
   realBeluers,
+  realServices,
 }: ClientePanelOriginalPageProps) {
   const [activeSection, setActiveSection] = useState<PanelSection>("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -129,7 +138,7 @@ export default function ClientePanelOriginalPage({
   const [servicioLashes, setServicioLashes] = useState<Service | null>(null);
   const [servicioNails, setServicioNails] = useState<Service | null>(null);
   const [addonsSeleccionados, setAddonsSeleccionados] = useState<string[]>([]);
-const [fecha, setFecha] = useState("2026-05-15");
+const [fecha, setFecha] = useState(getTodayLocalDate);
 const [hora, setHora] = useState("14:30");
 const [direccionReserva, setDireccionReserva] = useState("");
 const [distritoReserva, setDistritoReserva] = useState("Miraflores");
@@ -153,6 +162,12 @@ const [modalGestion, setModalGestion] =
 const [nuevaFecha, setNuevaFecha] = useState(fecha);
 const [nuevaHora, setNuevaHora] = useState(hora);
 const [nuevaBeluer, setNuevaBeluer] = useState("");
+const catalogoLashes = realServices.filter(
+  (servicio) => servicio.categoria === "lashes"
+);
+const catalogoNails = realServices.filter(
+  (servicio) => servicio.categoria === "nails"
+);
 
   const goToSection = (section: PanelSection) => {
     setActiveSection(section);
@@ -239,6 +254,7 @@ const handleConfirmarReserva = () => {
   }
 
   if (serviciosSeleccionados.length > 1) {
+    // Combos need booking_items (or equivalent) to persist multiple services.
     alert(
       "Por ahora solo puedes reservar un servicio a la vez. Luego activaremos reservas combinadas."
     );
@@ -279,6 +295,9 @@ const handleConfirmarPago = async () => {
   setBookingLoading(true);
 
   const formData = new FormData();
+  if (servicioPrincipal.id) {
+    formData.append("serviceId", servicioPrincipal.id);
+  }
   formData.append("serviceName", servicioPrincipal.nombre);
   formData.append("bookingMode", modoAsignacion);
 formData.append("selectedBeluerName", beluerSeleccionada);
@@ -711,7 +730,11 @@ const hasRealBooking = Boolean(nextBooking);
 )}
 
 {activeSection === "historial" && (
-  <HistorialSection goToReserva={() => goToSection("reserva")} clientName={clientName} />
+  <HistorialSection
+    bookingHistory={bookingHistory}
+    goToReserva={() => goToSection("reserva")}
+    clientName={clientName}
+  />
 )}
 {activeSection === "pagos" && <PagosSection clientName={clientName} />}
 {activeSection === "perfil" && (
@@ -1261,12 +1284,35 @@ function DashboardSection({
   );
 }
 function HistorialSection({
+  bookingHistory,
   goToReserva,
   clientName,
 }: {
+  bookingHistory: ClientBooking[];
   goToReserva: () => void;
   clientName: string;
 }) {
+  const statusLabels: Record<string, string> = {
+    pending: "Pendiente",
+    pending_payment: "Pendiente de pago",
+    paid: "Pagada",
+    pending_beluer_assignment: "Pendiente de asignación",
+    assigned: "Asignada",
+    confirmed: "Confirmada",
+    in_progress: "En curso",
+    completed: "Completada",
+    cancelled: "Cancelada",
+    rescheduled: "Reprogramada",
+    refunded: "Reembolsada",
+  };
+
+  const paymentStatusLabels: Record<string, string> = {
+    pending: "Pago pendiente",
+    paid: "Pagado",
+    failed: "Pago fallido",
+    refunded: "Reembolsado",
+    partially_refunded: "Reembolso parcial",
+  };
   
   return (
     <section className="cliente-panel-section active">
@@ -1280,36 +1326,55 @@ function HistorialSection({
       </div>
 
       <div className="cliente-panel-historial-grid">
-        {historialData.map((item) => (
+        {bookingHistory.length === 0 && (
+          <div className="cliente-panel-card">
+            <p>Aún no tienes reservas registradas.</p>
+          </div>
+        )}
+
+        {bookingHistory.map((item) => (
           <article className="cliente-panel-historial-card" key={item.id}>
             <div className="cliente-panel-historial-img">
-              <img src={item.foto} alt={item.servicio} />
-              <span>{item.estado}</span>
+              <img
+                src={crearPlaceholder(
+                  item.services?.name || "Servicio belu",
+                  item.services?.category === "nails" ? "D81B60" : "AD1457"
+                )}
+                alt={item.services?.name || "Servicio belu"}
+              />
+              <span>{statusLabels[item.status] || item.status}</span>
             </div>
 
             <div className="cliente-panel-historial-body">
               <div className="cliente-panel-historial-header">
                 <div>
-                  <h3>{item.servicio}</h3>
-                  <p>Realizado por {item.beluer}</p>
+                  <h3>{item.services?.name || "Servicio belu"}</h3>
+                  <p>
+                    Beluer:{" "}
+                    {item.beluer_profiles?.public_name ||
+                      "Pendiente de asignación"}
+                  </p>
                 </div>
 
-                <strong>S/ {item.total}</strong>
+                <strong>S/ {item.public_price}</strong>
               </div>
 
               <div className="cliente-panel-historial-meta">
-                <span>📅 {item.fecha}</span>
-                <span>🕒 {item.hora}</span>
-                <span>💳 {item.metodo}</span>
+                <span>📅 {item.scheduled_date}</span>
+                <span>🕒 {item.scheduled_time.slice(0, 5)}</span>
+                <span>
+                  💳{" "}
+                  {paymentStatusLabels[item.payment_status] ||
+                    item.payment_status}
+                </span>
               </div>
 
               <div className="cliente-panel-historial-rating">
-                {"★".repeat(item.rating)}
-                {"☆".repeat(5 - item.rating)}
+                Reserva registrada en belu
               </div>
 
               <p className="cliente-panel-historial-comment">
-                “{item.comentario}”
+                {item.district} · {item.address}
               </p>
 
               <div className="cliente-panel-historial-actions">

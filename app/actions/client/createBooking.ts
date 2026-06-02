@@ -27,6 +27,7 @@ const serviceNameAliases: Record<string, string> = {
   "Acrílico Sculpted": "Acrílico Sculpted",
   "Extensiones Classic": "Extensiones Classic",
   "Extensiones Volume": "Extensiones Volume",
+  "Lifting de pestañas": "Lifting de Pestañas",
   "Lifting de Pestañas": "Lifting de Pestañas",
   "Semipermanente": "Semipermanente",
   "Nail Art Premium": "Nail Art Premium",
@@ -122,21 +123,10 @@ if (serviceId) {
   service = response.data;
   serviceError = response.error;
 } else {
-  const possibleServiceNames = Array.from(
-    new Set([
-      rawServiceName,
-      serviceName,
-      "Mega Volumen 5D",
-      "Mega Volume",
-      "Mega Volume 5D",
-    ])
-  );
-
   const response = await supabase
     .from("services")
     .select("id, name, public_price, logistic_fee, base_price, status")
-    .in("name", possibleServiceNames)
-    .limit(1)
+    .eq("name", serviceName)
     .maybeSingle();
 
   service = response.data;
