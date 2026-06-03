@@ -321,8 +321,8 @@ export default async function BeluerPanelPage() {
             instrucciones: booking.notes || "Sin instrucciones adicionales.",
             metodoPago:
               booking.payment_status === "paid"
-                ? "Pago confirmado"
-                : "Pago pendiente",
+                ? "Pago registrado por belu"
+                : "Pendiente de liquidación",
             estado: mapBookingStatusToBeluerStatus(booking.status),
           };
         });

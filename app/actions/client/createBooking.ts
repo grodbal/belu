@@ -206,7 +206,7 @@ if (serviceError || !service) {
     belu_commission_rate: commissionRate,
     belu_commission_amount: beluCommissionAmount,
     beluer_payment_amount: beluerPaymentAmount,
-    payment_status: "pending",
+    payment_status: "paid",
   });
 
   if (bookingError) {

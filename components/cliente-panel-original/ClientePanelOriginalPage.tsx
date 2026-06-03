@@ -1319,8 +1319,8 @@ function HistorialSection({
   };
 
   const paymentStatusLabels: Record<string, string> = {
-    pending: "Pago pendiente",
-    paid: "Pagado",
+    pending: "Pago pendiente de confirmación",
+    paid: "Pago confirmado",
     failed: "Pago fallido",
     refunded: "Reembolsado",
     partially_refunded: "Reembolso parcial",
@@ -1483,8 +1483,8 @@ function PagosSection({
   bookingHistory: ClientBooking[];
 }) {
   const paymentStatusLabels: Record<string, string> = {
-    pending: "Pago pendiente",
-    paid: "Pagado",
+    pending: "Pago pendiente de confirmación",
+    paid: "Pago confirmado",
     failed: "Pago fallido",
     refunded: "Reembolsado",
     partially_refunded: "Reembolso parcial",

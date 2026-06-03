@@ -1300,7 +1300,7 @@ function IngresosSection({
         </div>
 
         <div>
-          <span>Pendiente de pago</span>
+          <span>Pendiente de liquidación</span>
           <strong>S/ {formatMoney(pagosPendientes)}</strong>
         </div>
 
@@ -1376,8 +1376,8 @@ function IngresosSection({
 
 function getIngresoEstadoLabel(estado: IngresoBeluer["estadoPago"]) {
   const labels: Record<IngresoBeluer["estadoPago"], string> = {
-    pendiente: "Pendiente",
-    pagado: "Pagado",
+    pendiente: "Pendiente de liquidación",
+    pagado: "Pago registrado por belu",
     retenido: "Retenido",
   };
 
