@@ -250,9 +250,9 @@ const handleConfirmarReserva = () => {
   }
 
   if (serviciosSeleccionados.length > 1) {
-    // Combos need booking_items (or equivalent) to persist multiple services.
+    // Fase 2: reservas combinadas requieren booking_items para persistir múltiples servicios con snapshots de precio, comisión y duración.
     alert(
-      "Por ahora solo puedes reservar un servicio a la vez. Luego activaremos reservas combinadas."
+      "Por ahora cada servicio se reserva por separado para asegurar disponibilidad y asignar correctamente a la Beluer. Elige un servicio para continuar y luego podrás reservar el siguiente."
     );
     return;
   }
