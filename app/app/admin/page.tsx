@@ -4,6 +4,8 @@ import CreateBeluerForm from "@/components/admin-panel-original/CreateBeluerForm
 import AdminBeluersRealList from "@/components/admin-panel-original/AdminBeluersRealList";
 import AdminServicesRealList from "@/components/admin-panel-original/AdminServicesRealList";
 import AdminBookingsRealList from "@/components/admin-panel-original/AdminBookingsRealList";
+import AdminPhotosRealList from "@/components/admin-panel-original/AdminPhotosRealList";
+import AdminPaymentsRealList from "@/components/admin-panel-original/AdminPaymentsRealList";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
 
 export default async function AdminPage() {
@@ -16,6 +18,8 @@ export default async function AdminPage() {
   registerBeluerSlot={<RegisterBeluerSection />}
   servicesSlot={<ServicesSection />}
   bookingsSlot={<BookingsSection />}
+  photosSlot={<PhotosSection />}
+  paymentsSlot={<PaymentsSection />}
 />
       
 
@@ -60,6 +64,45 @@ function BookingsSection() {
       </div>
 
       <AdminBookingsRealList />
+    </section>
+  );
+}
+
+function PhotosSection() {
+  return (
+    <section className="admin-panel-section active">
+      <div className="admin-panel-top-bar">
+        <div className="admin-panel-greeting">
+          <h1>Fotos</h1>
+          <p>
+            Revisa fotos reales de portafolio cuando exista contenido cargado en
+            Supabase.
+          </p>
+        </div>
+
+        <div className="admin-panel-pill">Base real</div>
+      </div>
+
+      <AdminPhotosRealList />
+    </section>
+  );
+}
+
+function PaymentsSection() {
+  return (
+    <section className="admin-panel-section active">
+      <div className="admin-panel-top-bar">
+        <div className="admin-panel-greeting">
+          <h1>Pagos</h1>
+          <p>
+            Vista básica de pagos basada en reservas reales y su estado de pago.
+          </p>
+        </div>
+
+        <div className="admin-panel-pill">Base real</div>
+      </div>
+
+      <AdminPaymentsRealList />
     </section>
   );
 }

@@ -5,7 +5,6 @@ import {
   adminAlerts,
   beluersIniciales,
   distritosTopIniciales,
-  fotosIniciales,
   pagosIniciales,
   reservasIniciales,
   semanasIniciales,
@@ -110,6 +109,8 @@ type AdminPanelOriginalPageProps = {
   registerBeluerSlot?: ReactNode;
   servicesSlot?: ReactNode;
   bookingsSlot?: ReactNode;
+  photosSlot?: ReactNode;
+  paymentsSlot?: ReactNode;
 };
 
 export default function AdminPanelOriginalPage({
@@ -117,6 +118,8 @@ export default function AdminPanelOriginalPage({
   registerBeluerSlot,
   servicesSlot,
   bookingsSlot,
+  photosSlot,
+  paymentsSlot,
 }: AdminPanelOriginalPageProps) {
   const [activeSection, setActiveSection] =
     useState<AdminSection>("dashboard");
@@ -127,7 +130,7 @@ const [servicios, setServicios] =
   useState<AdminServicio[]>(serviciosIniciales);
   const [reservas, setReservas] = useState<AdminReserva[]>(reservasIniciales);
 const [reservaDetalle, setReservaDetalle] = useState<AdminReserva | null>(null);
-const [fotos, setFotos] = useState<AdminFoto[]>(fotosIniciales);
+const [fotos, setFotos] = useState<AdminFoto[]>([]);
 const [fotoDetalle, setFotoDetalle] = useState<AdminFoto | null>(null);
 const [pagos, setPagos] = useState<AdminPago[]>(pagosIniciales);
 const [pagoDetalle, setPagoDetalle] = useState<AdminPago | null>(null);
@@ -235,6 +238,7 @@ const handleAsignarBeluerReserva = (id: string, beluer: string) => {
 
   setReservaDetalle(null);
 };
+
 const handleCambiarEstadoFoto = (id: string, nuevoEstado: AdminFotoEstado) => {
   setFotos((current) =>
     current.map((foto) =>
@@ -255,6 +259,7 @@ const handleMarcarFotoDestacada = (id: string) => {
 
   setFotoDetalle(null);
 };
+
 const handleCambiarEstadoPago = (id: string, nuevoEstado: AdminPagoEstado) => {
   setPagos((current) =>
     current.map((pago) =>
@@ -415,22 +420,9 @@ const handleCambiarEstadoPago = (id: string, nuevoEstado: AdminPagoEstado) => {
     />
   ))}
 {activeSection === "reservas" && bookingsSlot}
-{activeSection === "fotos" && (
-  <AdminFotosSection
-    fotos={fotos}
-    onVerDetalle={setFotoDetalle}
-    onCambiarEstado={handleCambiarEstadoFoto}
-    onMarcarDestacada={handleMarcarFotoDestacada}
-  />
-)}
+{activeSection === "fotos" && photosSlot}
 
-{activeSection === "pagos" && (
-  <AdminPagosSection
-    pagos={pagos}
-    onVerDetalle={setPagoDetalle}
-    onCambiarEstado={handleCambiarEstadoPago}
-  />
-)}
+{activeSection === "pagos" && paymentsSlot}
 {activeSection === "metricas" && (
   <AdminMetricasSection
     beluers={beluers}

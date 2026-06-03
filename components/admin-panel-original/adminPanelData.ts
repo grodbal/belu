@@ -1,7 +1,6 @@
 import type {
   AdminAlert,
   AdminBeluer,
-  AdminFoto,
   AdminMetricaDistrito,
   AdminMetricaSemana,
   AdminMetricaServicio,
@@ -248,70 +247,6 @@ export const reservasIniciales: AdminReserva[] = [
     estado: "cancelada",
     modoAsignacion: "gestionado",
     instrucciones: "Cancelada por solicitud de la clienta.",
-  },
-];
-
-export const fotosIniciales: AdminFoto[] = [
-  {
-    id: "FOTO-001",
-    beluer: "Andrea Robles",
-    categoria: "lashes",
-    titulo: "Volumen natural",
-    imagen:
-      "https://images.unsplash.com/photo-1583001931096-959e9a1a6223?w=800&q=80",
-    estado: "aprobada",
-    destacada: true,
-    fechaSubida: "2026-05-10",
-    notaRevision: "Buena iluminación y resultado limpio.",
-  },
-  {
-    id: "FOTO-002",
-    beluer: "Camila V.",
-    categoria: "nails",
-    titulo: "Rubber nude",
-    imagen:
-      "https://images.unsplash.com/photo-1604654894610-df63bc536371?w=800&q=80",
-    estado: "pendiente",
-    destacada: false,
-    fechaSubida: "2026-05-16",
-    notaRevision: "Revisar nitidez y encuadre antes de aprobar.",
-  },
-  {
-    id: "FOTO-003",
-    beluer: "Sofía T.",
-    categoria: "lashes",
-    titulo: "Efecto Aura",
-    imagen:
-      "https://images.unsplash.com/photo-1516975080664-ed2fc6a32937?w=800&q=80",
-    estado: "pendiente",
-    destacada: false,
-    fechaSubida: "2026-05-17",
-    notaRevision:
-      "Buen resultado, pero falta validar consistencia con el portafolio.",
-  },
-  {
-    id: "FOTO-004",
-    beluer: "Valeria M.",
-    categoria: "brows",
-    titulo: "Brows clean",
-    imagen:
-      "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=800&q=80",
-    estado: "rechazada",
-    destacada: false,
-    fechaSubida: "2026-05-12",
-    notaRevision: "Imagen no cumple con el estándar visual de belu.",
-  },
-  {
-    id: "FOTO-005",
-    beluer: "Lucía P.",
-    categoria: "nails",
-    titulo: "Acrílicas soft pink",
-    imagen:
-      "https://images.unsplash.com/photo-1610992015732-2449b76344bc?w=800&q=80",
-    estado: "aprobada",
-    destacada: false,
-    fechaSubida: "2026-05-08",
-    notaRevision: "Buen acabado, imagen usable para catálogo.",
   },
 ];
 
