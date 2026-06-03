@@ -3,8 +3,10 @@ import BeluerPanelOriginalPage from "@/components/beluer-panel-original/BeluerPa
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type {
+  FotoPortafolio,
   ReservaBeluer,
   IngresoBeluer,
+  ServicioBeluer,
 } from "@/components/beluer-panel-original/beluerPanelTypes";
 
 type BeluerPanelProfile = {
@@ -54,6 +56,28 @@ type ClientProfileRow = {
   phone: string | null;
 };
 
+type BeluerServiceSkillRow = {
+  id: string;
+  status: string | null;
+  services: {
+    id: string;
+    name: string;
+    category: string;
+    public_price: number | null;
+    base_price: number | null;
+    duration_minutes: number | null;
+  } | null;
+};
+
+type BeluerPhotoRow = {
+  id: string;
+  image_url: string;
+  category: string;
+  caption: string | null;
+  is_cover: boolean | null;
+  status: string | null;
+};
+
 function getInitials(name: string) {
   return name
     .split(" ")
@@ -101,6 +125,31 @@ function mapPaymentStatusToIngresoStatus(
   if (paymentStatus === "paid") return "pagado";
   if (paymentStatus === "refunded") return "retenido";
   return "pendiente";
+}
+
+function mapServiceCategory(
+  category: string | null
+): ServicioBeluer["categoria"] | null {
+  if (category === "lashes" || category === "nails" || category === "brows") {
+    return category;
+  }
+
+  return null;
+}
+
+function formatDuration(minutes: number | null) {
+  if (!minutes || minutes <= 0) return "Duración no definida";
+
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+
+  if (hours > 0 && remainingMinutes > 0) {
+    return `${hours}h ${remainingMinutes}min`;
+  }
+
+  if (hours > 0) return `${hours}h`;
+
+  return `${remainingMinutes}min`;
 }
 
 function formatDateForDisplay(date: Date) {
@@ -182,6 +231,8 @@ export default async function BeluerPanelPage() {
   let beluerProfile: BeluerPanelProfile | null = null;
   let realReservas: ReservaBeluer[] = [];
   let realIngresos: IngresoBeluer[] = [];
+  let realServicios: ServicioBeluer[] = [];
+  let realPortafolio: FotoPortafolio[] = [];
 
   if (user) {
     const supabase = createAdminClient();
@@ -218,6 +269,72 @@ export default async function BeluerPanelPage() {
         .single();
 
       if (beluer) {
+        const { data: serviceSkillsData } = await supabase
+          .from("beluer_service_skills")
+          .select(
+            `
+            id,
+            status,
+            services (
+              id,
+              name,
+              category,
+              public_price,
+              base_price,
+              duration_minutes
+            )
+          `
+          )
+          .eq("beluer_profile_id", beluer.id);
+
+        realServicios = ((serviceSkillsData as BeluerServiceSkillRow[] | null) || [])
+          .map((skill) => {
+            const service = skill.services;
+            const category = mapServiceCategory(service?.category || null);
+
+            if (!service || !category) return null;
+
+            const publicPrice = Number(service.public_price || 0);
+            const basePrice = Number(service.base_price || publicPrice || 0);
+
+            return {
+              id: skill.id,
+              nombre: service.name,
+              categoria: category,
+              precio: publicPrice,
+              precioMinimo: basePrice,
+              duracion: formatDuration(service.duration_minutes),
+              activo: skill.status === "active",
+            };
+          })
+          .filter((service): service is ServicioBeluer => Boolean(service));
+
+        const { data: portfolioData } = await supabase
+          .from("beluer_photos")
+          .select("id, image_url, category, caption, is_cover, status")
+          .eq("beluer_id", beluer.id)
+          .eq("status", "approved")
+          .order("is_cover", { ascending: false })
+          .order("created_at", { ascending: false });
+
+        realPortafolio = ((portfolioData as BeluerPhotoRow[] | null) || [])
+          .reduce<FotoPortafolio[]>((acc, photo) => {
+            const category = mapServiceCategory(photo.category || null);
+
+            if (!category) return acc;
+
+            acc.push({
+              id: photo.id,
+              titulo: photo.caption || "Foto de portafolio",
+              categoria: category,
+              imagen: photo.image_url,
+              estado: "aprobada" as const,
+              portada: Boolean(photo.is_cover),
+            });
+
+            return acc;
+          }, []);
+
         const { data: bookingsData } = await supabase
           .from("bookings")
           .select(
@@ -371,6 +488,8 @@ export default async function BeluerPanelPage() {
         beluerProfile={beluerProfile}
         realReservas={realReservas}
         realIngresos={realIngresos}
+        realServicios={realServicios}
+        realPortafolio={realPortafolio}
       />
 
       <LogoutButton className="fixed right-6 bottom-6 z-50 rounded-full bg-[#E60023] px-5 py-3 text-sm font-bold text-white shadow-lg hover:bg-[#C4001D] transition" />

@@ -5,11 +5,7 @@ import type { ReactNode } from "react";
 import { updateBeluerGoalsAction } from "@/app/actions/beluer/updateBeluerGoals";
 import { updateBeluerPublicProfileAction } from "@/app/actions/beluer/updateBeluerPublicProfile";
 import { updateBeluerBookingStatusAction } from "@/app/actions/beluer/updateBeluerBookingStatus";
-import {
-  fotosPortafolioIniciales,
-  perfilInicial,
-  serviciosIniciales,
-} from "./beluerPanelData";
+import { perfilInicial } from "./beluerPanelData";
 import type {
   BeluerSection,
   FotoPortafolio,
@@ -44,6 +40,8 @@ type BeluerPanelOriginalPageProps = {
   beluerProfile: BeluerPanelProfile | null;
   realReservas: ReservaBeluer[];
   realIngresos: IngresoBeluer[];
+  realServicios: ServicioBeluer[];
+  realPortafolio: FotoPortafolio[];
 };
 
 const icons = {
@@ -110,6 +108,8 @@ export default function BeluerPanelOriginalPage({
   beluerProfile,
   realReservas,
   realIngresos,
+  realServicios,
+  realPortafolio,
 }: BeluerPanelOriginalPageProps) {
   const [activeSection, setActiveSection] =
     useState<BeluerSection>("dashboard");
@@ -119,11 +119,10 @@ export default function BeluerPanelOriginalPage({
   const [reservaDetalle, setReservaDetalle] =
     useState<ReservaBeluer | null>(null);
 
-  const [servicios, setServicios] =
-    useState<ServicioBeluer[]>(serviciosIniciales);
+  const [servicios] = useState<ServicioBeluer[]>(realServicios || []);
 
-  const [fotosPortafolio, setFotosPortafolio] = useState<FotoPortafolio[]>(
-    fotosPortafolioIniciales
+  const [fotosPortafolio] = useState<FotoPortafolio[]>(
+    realPortafolio || []
   );
 
   const [ingresos] = useState<IngresoBeluer[]>(realIngresos || []);
@@ -213,64 +212,29 @@ export default function BeluerPanelOriginalPage({
   };
 
   const handleToggleServicio = (id: string) => {
-    setServicios((current) =>
-      current.map((servicio) =>
-        servicio.id === id
-          ? { ...servicio, activo: !servicio.activo }
-          : servicio
-      )
-    );
+    alert("La edición de servicios se gestionará desde Admin en esta fase.");
   };
 
   const handleCambiarPrecioServicio = (id: string, precio: number) => {
-    setServicios((current) =>
-      current.map((servicio) =>
-        servicio.id === id ? { ...servicio, precio } : servicio
-      )
-    );
+    alert("La edición de servicios se gestionará desde Admin en esta fase.");
   };
 
   const handleGuardarServicios = () => {
-    const serviciosConPrecioBajo = servicios.filter(
-      (servicio) => servicio.activo && servicio.precio < servicio.precioMinimo
-    );
-
-    if (serviciosConPrecioBajo.length > 0) {
-      alert("Hay servicios activos con precio menor al mínimo permitido por belu.");
-      return;
-    }
-
-    alert("Tus servicios y precios fueron actualizados correctamente.");
+    alert("La edición de servicios se gestionará desde Admin en esta fase.");
   };
 
   const handleAgregarFoto = () => {
-    const nuevaFoto: FotoPortafolio = {
-      id: `foto-${Date.now()}`,
-      titulo: "Nueva foto pendiente",
-      categoria: "lashes",
-      imagen:
-        "https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?w=800&q=80",
-      estado: "pendiente",
-      portada: false,
-    };
-
-    setFotosPortafolio((current) => [nuevaFoto, ...current]);
     alert(
-      "Foto agregada como simulación. Más adelante se subirá con Supabase Storage."
+      "La subida de fotos se activará cuando conectemos Supabase Storage."
     );
   };
 
   const handleEliminarFoto = (id: string) => {
-    setFotosPortafolio((current) => current.filter((foto) => foto.id !== id));
+    alert("La gestión de fotos se realizará desde Admin en esta fase.");
   };
 
   const handleMarcarPortada = (id: string) => {
-    setFotosPortafolio((current) =>
-      current.map((foto) => ({
-        ...foto,
-        portada: foto.id === id,
-      }))
-    );
+    alert("La gestión de fotos se realizará desde Admin en esta fase.");
   };
 
   const handleActualizarCampoPerfil = <K extends keyof PerfilBeluer>(
@@ -853,8 +817,7 @@ function ServiciosSection({
         <div className="beluer-panel-greeting">
           <h1>Mis servicios</h1>
           <p>
-            Activa los servicios que realizas y define tus precios respetando el
-            mínimo de belu.
+            Revisa los servicios que Admin asignó a tu perfil Beluer.
           </p>
         </div>
 
@@ -884,33 +847,40 @@ function ServiciosSection({
       </div>
 
       <div className="beluer-panel-servicios-alert">
-        <strong>Autonomía con estándar belu ✦</strong>
+        <strong>Servicios gestionados por Admin ✦</strong>
         <span>
-          Puedes definir tus precios, pero cada servicio debe respetar el precio
-          mínimo para proteger el posicionamiento premium de la plataforma.
+          La edición de servicios se gestionará desde Admin en esta fase.
         </span>
       </div>
 
-      <ServicioCategoriaBlock
-        titulo="Lashes"
-        servicios={lashes}
-        onToggleServicio={onToggleServicio}
-        onCambiarPrecio={onCambiarPrecio}
-      />
+      {servicios.length === 0 ? (
+        <div className="beluer-panel-empty-state">
+          Aún no tienes servicios asignados.
+        </div>
+      ) : (
+        <>
+          <ServicioCategoriaBlock
+            titulo="Lashes"
+            servicios={lashes}
+            onToggleServicio={onToggleServicio}
+            onCambiarPrecio={onCambiarPrecio}
+          />
 
-      <ServicioCategoriaBlock
-        titulo="Brows"
-        servicios={brows}
-        onToggleServicio={onToggleServicio}
-        onCambiarPrecio={onCambiarPrecio}
-      />
+          <ServicioCategoriaBlock
+            titulo="Brows"
+            servicios={brows}
+            onToggleServicio={onToggleServicio}
+            onCambiarPrecio={onCambiarPrecio}
+          />
 
-      <ServicioCategoriaBlock
-        titulo="Nails"
-        servicios={nails}
-        onToggleServicio={onToggleServicio}
-        onCambiarPrecio={onCambiarPrecio}
-      />
+          <ServicioCategoriaBlock
+            titulo="Nails"
+            servicios={nails}
+            onToggleServicio={onToggleServicio}
+            onCambiarPrecio={onCambiarPrecio}
+          />
+        </>
+      )}
 
       <div className="beluer-panel-servicios-footer">
         <button
@@ -918,7 +888,7 @@ function ServiciosSection({
           type="button"
           onClick={onGuardar}
         >
-          Guardar cambios
+          Edición gestionada por Admin
         </button>
       </div>
     </section>
@@ -961,6 +931,7 @@ function ServicioCategoriaBlock({
                   type="checkbox"
                   checked={servicio.activo}
                   onChange={() => onToggleServicio(servicio.id)}
+                  disabled
                 />
                 <span />
               </label>
@@ -969,6 +940,7 @@ function ServicioCategoriaBlock({
             <div className="beluer-panel-servicio-meta">
               <span>Duración: {servicio.duracion}</span>
               <span>Mínimo belu: S/ {servicio.precioMinimo}</span>
+              <span>Estado: {servicio.activo ? "Activo" : "Inactivo"}</span>
             </div>
 
             <div className="beluer-panel-servicio-price">
@@ -980,6 +952,7 @@ function ServicioCategoriaBlock({
                   type="number"
                   min={servicio.precioMinimo}
                   value={servicio.precio}
+                  disabled
                   onChange={(event) =>
                     onCambiarPrecio(servicio.id, Number(event.target.value))
                   }
@@ -1032,8 +1005,7 @@ function PortafolioSection({
         <div className="beluer-panel-greeting">
           <h1>Portafolio</h1>
           <p>
-            Gestiona tus fotos de trabajos realizados. Las nuevas fotos quedarán
-            pendientes de aprobación por belu.
+            Revisa las fotos aprobadas de tu portafolio belu.
           </p>
         </div>
 
@@ -1097,7 +1069,7 @@ function PortafolioSection({
           className="beluer-panel-btn-primary"
           onClick={onAgregarFoto}
         >
-          Subir foto simulada
+          Subir foto
         </button>
       </div>
 
@@ -1127,7 +1099,7 @@ function PortafolioSection({
                   <button
                     type="button"
                     onClick={() => onMarcarPortada(foto.id)}
-                    disabled={foto.portada}
+                    disabled
                   >
                     {foto.portada ? "Ya es portada" : "Marcar portada"}
                   </button>
@@ -1136,6 +1108,7 @@ function PortafolioSection({
                     type="button"
                     className="danger"
                     onClick={() => onEliminarFoto(foto.id)}
+                    disabled
                   >
                     Eliminar
                   </button>
@@ -1146,7 +1119,9 @@ function PortafolioSection({
         </div>
       ) : (
         <div className="beluer-panel-empty-state">
-          No hay fotos para este filtro.
+          {fotos.length === 0
+            ? "Aún no tienes fotos aprobadas en tu portafolio."
+            : "No hay fotos aprobadas para este filtro."}
         </div>
       )}
     </section>

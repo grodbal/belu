@@ -1,9 +1,7 @@
 import type {
-  FotoPortafolio,
   IngresoBeluer,
   PerfilBeluer,
   ReservaBeluer,
-  ServicioBeluer,
 } from "./beluerPanelTypes";
 
 export const reservasIniciales: ReservaBeluer[] = [
@@ -58,129 +56,6 @@ export const reservasIniciales: ReservaBeluer[] = [
     estado: "aceptada",
     instrucciones: "Prefiere cejas naturales, no muy marcadas.",
     metodoPago: "Yape",
-  },
-];
-
-export const serviciosIniciales: ServicioBeluer[] = [
-  {
-    id: "srv-001",
-    nombre: "Clásicas",
-    categoria: "lashes",
-    precio: 110,
-    precioMinimo: 100,
-    duracion: "1h 30min",
-    activo: true,
-  },
-  {
-    id: "srv-002",
-    nombre: "Efecto Rímel",
-    categoria: "lashes",
-    precio: 120,
-    precioMinimo: 110,
-    duracion: "1h 45min",
-    activo: true,
-  },
-  {
-    id: "srv-003",
-    nombre: "Volumen 3D",
-    categoria: "lashes",
-    precio: 150,
-    precioMinimo: 140,
-    duracion: "2h",
-    activo: true,
-  },
-  {
-    id: "srv-004",
-    nombre: "Volumen 4D",
-    categoria: "lashes",
-    precio: 170,
-    precioMinimo: 160,
-    duracion: "2h 15min",
-    activo: false,
-  },
-  {
-    id: "srv-005",
-    nombre: "Mega Volumen 5D",
-    categoria: "lashes",
-    precio: 210,
-    precioMinimo: 190,
-    duracion: "2h 30min",
-    activo: false,
-  },
-  {
-    id: "srv-006",
-    nombre: "Lifting de pestañas",
-    categoria: "lashes",
-    precio: 110,
-    precioMinimo: 100,
-    duracion: "1h",
-    activo: true,
-  },
-  {
-    id: "srv-007",
-    nombre: "Planchado de cejas",
-    categoria: "brows",
-    precio: 80,
-    precioMinimo: 70,
-    duracion: "45min",
-    activo: true,
-  },
-  {
-    id: "srv-008",
-    nombre: "Esmaltado Gel",
-    categoria: "nails",
-    precio: 75,
-    precioMinimo: 70,
-    duracion: "1h",
-    activo: false,
-  },
-  {
-    id: "srv-009",
-    nombre: "Rubber",
-    categoria: "nails",
-    precio: 90,
-    precioMinimo: 85,
-    duracion: "1h 15min",
-    activo: false,
-  },
-];
-
-export const fotosPortafolioIniciales: FotoPortafolio[] = [
-  {
-    id: "foto-001",
-    titulo: "Volumen natural",
-    categoria: "lashes",
-    imagen:
-      "https://images.unsplash.com/photo-1583001931096-959e9a1a6223?w=800&q=80",
-    estado: "aprobada",
-    portada: true,
-  },
-  {
-    id: "foto-002",
-    titulo: "Efecto rímel",
-    categoria: "lashes",
-    imagen:
-      "https://images.unsplash.com/photo-1516975080664-ed2fc6a32937?w=800&q=80",
-    estado: "aprobada",
-    portada: false,
-  },
-  {
-    id: "foto-003",
-    titulo: "Lifting natural",
-    categoria: "lashes",
-    imagen:
-      "https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=800&q=80",
-    estado: "pendiente",
-    portada: false,
-  },
-  {
-    id: "foto-004",
-    titulo: "Brows clean",
-    categoria: "brows",
-    imagen:
-      "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=800&q=80",
-    estado: "aprobada",
-    portada: false,
   },
 ];
 
