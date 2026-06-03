@@ -45,18 +45,53 @@ export async function updateBookingStatusAction(
 
   const supabase = createAdminClient();
 
-  const { error } = await supabase
+  if (status === "assigned") {
+    const { data: booking, error: bookingError } = await supabase
+      .from("bookings")
+      .select("id, beluer_profile_id")
+      .eq("id", bookingId)
+      .single();
+
+    if (bookingError || !booking) {
+      return {
+        success: false,
+        message: "No se encontró la reserva.",
+      };
+    }
+
+    if (!booking.beluer_profile_id) {
+      return {
+        success: false,
+        message:
+          "Asigna una Beluer antes de marcar la reserva como asignada.",
+      };
+    }
+  }
+
+  const { data: updatedBooking, error } = await supabase
     .from("bookings")
     .update({
       status,
       updated_at: new Date().toISOString(),
     })
-    .eq("id", bookingId);
+    .eq("id", bookingId)
+    .select("id, status")
+    .single();
 
-  if (error) {
+  if (error || !updatedBooking) {
     return {
       success: false,
-      message: `No se pudo actualizar la reserva: ${error.message}`,
+      message: `No se pudo actualizar la reserva: ${
+        error?.message || "Supabase no devolvió la reserva actualizada."
+      }`,
+    };
+  }
+
+  if (updatedBooking.status !== status) {
+    return {
+      success: false,
+      message:
+        "El estado no quedó persistido en Supabase. Revisa la reserva antes de continuar.",
     };
   }
 

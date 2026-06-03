@@ -108,20 +108,45 @@ export async function updateBeluerBookingStatusAction({
     };
   }
 
+  if (booking.status !== "assigned") {
+    return {
+      success: false,
+      message:
+        "Solo puedes aceptar o rechazar reservas que ya fueron asignadas por Admin.",
+    };
+  }
+
   const nextStatus = action === "accept" ? "confirmed" : "cancelled";
 
-  const { error: updateError } = await supabase
+  const { data: updatedBooking, error: updateError } = await supabase
     .from("bookings")
     .update({
       status: nextStatus,
       updated_at: new Date().toISOString(),
     })
-    .eq("id", bookingId);
+    .eq("id", bookingId)
+    .eq("beluer_profile_id", beluer.id)
+    .eq("status", "assigned")
+    .select("id, beluer_profile_id, status")
+    .single();
 
-  if (updateError) {
+  if (updateError || !updatedBooking) {
     return {
       success: false,
-      message: `No se pudo actualizar la reserva: ${updateError.message}`,
+      message: `No se pudo actualizar la reserva: ${
+        updateError?.message || "Supabase no devolvió la reserva actualizada."
+      }`,
+    };
+  }
+
+  if (
+    updatedBooking.beluer_profile_id !== beluer.id ||
+    updatedBooking.status !== nextStatus
+  ) {
+    return {
+      success: false,
+      message:
+        "El cambio de estado no quedó persistido en Supabase. Revisa la reserva antes de continuar.",
     };
   }
 

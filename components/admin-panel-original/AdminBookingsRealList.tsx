@@ -1,6 +1,7 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import UpdateBookingStatusForm from "@/components/admin-panel-original/UpdateBookingStatusForm";
 import UpdateBookingPaymentStatusForm from "@/components/admin-panel-original/UpdateBookingPaymentStatusForm";
+import AssignBookingBeluerForm from "@/components/admin-panel-original/AssignBookingBeluerForm";
 
 type Booking = {
   id: string;
@@ -45,6 +46,11 @@ type BeluerProfile = {
   id: string;
   public_name: string | null;
   profile_id: string;
+};
+
+type AssignableBeluer = {
+  id: string;
+  public_name: string | null;
 };
 
 type Service = {
@@ -184,6 +190,27 @@ export default async function AdminBookingsRealList() {
     );
   }
 
+  const { data: availableBeluers, error: availableBeluersError } =
+    await supabase
+      .from("beluer_profiles")
+      .select("id, public_name")
+      .eq("status", "approved")
+      .eq("is_available", true)
+      .order("public_name", { ascending: true });
+
+  if (availableBeluersError) {
+    return (
+      <div className="rounded-[2rem] bg-[#FFD6E2] p-6 text-[#E60023]">
+        <h3 className="text-lg font-black">
+          Error al cargar Beluers disponibles
+        </h3>
+        <p className="mt-2 text-sm font-bold">
+          {availableBeluersError.message}
+        </p>
+      </div>
+    );
+  }
+
   const { data: services, error: servicesError } =
     serviceIds.length > 0
       ? await supabase
@@ -212,6 +239,7 @@ export default async function AdminBookingsRealList() {
   const servicesById = new Map(
     (services as Service[]).map((service) => [service.id, service])
   );
+  const availableBeluerOptions = (availableBeluers as AssignableBeluer[]) || [];
 
   return (
     <section className="rounded-[2rem] bg-white p-6 shadow-sm ring-1 ring-black/5 md:p-8">
@@ -315,6 +343,13 @@ export default async function AdminBookingsRealList() {
                       <p className="font-black text-[#1A1A1A]">
                         {beluer?.public_name || "Sin Beluer asignada"}
                       </p>
+
+                      <AssignBookingBeluerForm
+                        bookingId={booking.id}
+                        currentStatus={booking.status}
+                        currentBeluerProfileId={booking.beluer_profile_id}
+                        availableBeluers={availableBeluerOptions}
+                      />
                     </td>
 
                     <td className="px-5 py-5">

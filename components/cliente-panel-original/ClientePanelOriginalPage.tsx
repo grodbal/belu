@@ -1127,6 +1127,17 @@ function DashboardSection({
   nextBooking: ClientBooking | null;
   clientName: string;
 }) {
+  const assignedBeluerName = nextBooking?.beluer_profiles?.public_name || "";
+  const assignmentMessage = nextBooking
+    ? assignedBeluerName
+      ? nextBooking.status === "confirmed"
+        ? `Tu reserva fue confirmada por ${assignedBeluerName}.`
+        : nextBooking.status === "assigned"
+          ? `Tu servicio será realizado por ${assignedBeluerName}. Pendiente de confirmación.`
+          : `Tu servicio será realizado por ${assignedBeluerName}.`
+      : "belu está asignando una especialista para tu servicio."
+    : "Tu servicio ya está agendado. Te notificaremos por WhatsApp con los datos de tu Beluer.";
+
   return (
     <section className="cliente-panel-section active">
       <div className="cliente-panel-top-bar">
@@ -1168,8 +1179,7 @@ function DashboardSection({
     : "Tu cita belu está confirmada ✦"}
 </h2>
           <p>
-            Tu servicio ya está agendado. Te notificaremos por WhatsApp con los
-            datos de tu Beluer.
+            {assignmentMessage}
           </p>
 
           <div className="cliente-panel-ra-grid">
@@ -1212,7 +1222,7 @@ function DashboardSection({
 <div className="full">
   <span>Asignación</span>
   <strong>
-    {nextBooking?.beluer_profiles?.public_name ||
+    {assignedBeluerName ||
       (modoAsignacion === "libre" && beluerSeleccionada
         ? beluerSeleccionada
         : "Gestionado por belu")}
