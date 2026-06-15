@@ -6,6 +6,8 @@ import AdminServicesRealList from "@/components/admin-panel-original/AdminServic
 import AdminBookingsRealList from "@/components/admin-panel-original/AdminBookingsRealList";
 import AdminPhotosRealList from "@/components/admin-panel-original/AdminPhotosRealList";
 import AdminPaymentsRealList from "@/components/admin-panel-original/AdminPaymentsRealList";
+import AdminDashboardRealOverview from "@/components/admin-panel-original/AdminDashboardRealOverview";
+import AdminMetricsRealSection from "@/components/admin-panel-original/AdminMetricsRealSection";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
 
 export default async function AdminPage() {
@@ -14,12 +16,14 @@ export default async function AdminPage() {
   return (
     <>
       <AdminPanelOriginalPage
+  dashboardSlot={<DashboardSection />}
   beluersListSlot={<BeluersListSection />}
   registerBeluerSlot={<RegisterBeluerSection />}
   servicesSlot={<ServicesSection />}
   bookingsSlot={<BookingsSection />}
   photosSlot={<PhotosSection />}
   paymentsSlot={<PaymentsSection />}
+  metricsSlot={<MetricsSection />}
 />
       
 
@@ -68,6 +72,10 @@ function BookingsSection() {
   );
 }
 
+function DashboardSection() {
+  return <AdminDashboardRealOverview />;
+}
+
 function PhotosSection() {
   return (
     <section className="admin-panel-section active">
@@ -105,6 +113,10 @@ function PaymentsSection() {
       <AdminPaymentsRealList />
     </section>
   );
+}
+
+function MetricsSection() {
+  return <AdminMetricsRealSection />;
 }
 
 function BeluersListSection() {

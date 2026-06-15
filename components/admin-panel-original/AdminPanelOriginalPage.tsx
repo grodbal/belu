@@ -4,12 +4,9 @@ import { useState, type ReactNode } from "react";
 import {
   adminAlerts,
   beluersIniciales,
-  distritosTopIniciales,
   pagosIniciales,
   reservasIniciales,
-  semanasIniciales,
   serviciosIniciales,
-  serviciosTopIniciales,
 } from "./adminPanelData";
 import type {
   AdminBeluer,
@@ -105,21 +102,25 @@ const navItems: {
 ];
 
 type AdminPanelOriginalPageProps = {
+  dashboardSlot?: ReactNode;
   beluersListSlot?: ReactNode;
   registerBeluerSlot?: ReactNode;
   servicesSlot?: ReactNode;
   bookingsSlot?: ReactNode;
   photosSlot?: ReactNode;
   paymentsSlot?: ReactNode;
+  metricsSlot?: ReactNode;
 };
 
 export default function AdminPanelOriginalPage({
+  dashboardSlot,
   beluersListSlot,
   registerBeluerSlot,
   servicesSlot,
   bookingsSlot,
   photosSlot,
   paymentsSlot,
+  metricsSlot,
 }: AdminPanelOriginalPageProps) {
   const [activeSection, setActiveSection] =
     useState<AdminSection>("dashboard");
@@ -326,7 +327,8 @@ const handleCambiarEstadoPago = (id: string, nuevoEstado: AdminPagoEstado) => {
         </aside>
 
         <main className="admin-panel-main">
-          {activeSection === "dashboard" && (
+          {activeSection === "dashboard" && dashboardSlot}
+          {activeSection === "dashboard" && !dashboardSlot && (
             <section className="admin-panel-section active">
               <div className="admin-panel-top-bar">
                 <div className="admin-panel-greeting">
@@ -423,16 +425,7 @@ const handleCambiarEstadoPago = (id: string, nuevoEstado: AdminPagoEstado) => {
 {activeSection === "fotos" && photosSlot}
 
 {activeSection === "pagos" && paymentsSlot}
-{activeSection === "metricas" && (
-  <AdminMetricasSection
-    beluers={beluers}
-    reservas={reservas}
-    pagos={pagos}
-    serviciosTop={serviciosTopIniciales}
-    distritosTop={distritosTopIniciales}
-    semanas={semanasIniciales}
-  />
-)}
+{activeSection === "metricas" && metricsSlot}
 
 {activeSection !== "dashboard" &&
   activeSection !== "beluers" &&
@@ -2019,7 +2012,7 @@ function AdminMetricasSection({
           <div className="admin-panel-metricas-card-header">
             <div>
               <h2>Evolución semanal</h2>
-              <p>Reservas e ingresos simulados por semana.</p>
+              <p>Reservas e ingresos por semana.</p>
             </div>
           </div>
 
