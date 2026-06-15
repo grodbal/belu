@@ -109,11 +109,11 @@ export default async function AdminPhotosRealList() {
   );
 
   return (
-    <section className="rounded-[2rem] bg-white p-6 shadow-sm ring-1 ring-black/5 md:p-8">
+    <section className="admin-real-panel rounded-[2rem] bg-white p-6 shadow-sm ring-1 ring-black/5 md:p-8">
       <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <div>
           <p className="mb-2 text-sm font-bold uppercase tracking-[0.25em] text-[#E60023]">
-            Base real
+            Datos reales
           </p>
           <h2 className="text-2xl font-black text-[#1A1A1A]">
             Fotos de portafolio

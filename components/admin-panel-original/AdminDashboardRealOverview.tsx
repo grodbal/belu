@@ -198,7 +198,7 @@ export default async function AdminDashboardRealOverview() {
           <div className="admin-panel-card-header">
             <div>
               <h2>Prioridades operativas</h2>
-              <p>Alertas calculadas desde datos reales de Supabase.</p>
+              <p>Prioridades calculadas desde reservas, pagos y Beluers.</p>
             </div>
           </div>
 

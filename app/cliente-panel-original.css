@@ -2397,3 +2397,261 @@
     width: min(280px, 86vw);
   }
 }
+
+/* ================================
+   PULIDO PREMIUM MVP - CLIENTA
+================================ */
+
+.cliente-panel-shell {
+  --belu-card-border: rgba(230, 0, 35, 0.09);
+  --belu-soft-shadow: 0 18px 48px rgba(26, 26, 26, 0.06);
+  --belu-deep-shadow: 0 26px 70px rgba(26, 26, 26, 0.1);
+}
+
+.cliente-panel-main {
+  width: 100%;
+  padding-top: clamp(2rem, 3vw, 3.25rem);
+  padding-right: clamp(1.5rem, 4vw, 4rem);
+  padding-left: clamp(1.5rem, 4vw, 4rem);
+}
+
+.cliente-panel-top-bar {
+  align-items: flex-start;
+  margin-bottom: 2.2rem;
+}
+
+.cliente-panel-greeting h1 {
+  max-width: 780px;
+  font-size: clamp(1.65rem, 3vw, 2.35rem);
+  line-height: 1.05;
+}
+
+.cliente-panel-greeting p {
+  max-width: 660px;
+  color: rgba(26, 26, 26, 0.58);
+  font-size: 0.95rem;
+}
+
+.cliente-panel-card,
+.cliente-panel-empty-state,
+.cliente-panel-reserva-activa-card,
+.cliente-panel-beluer-card,
+.cliente-panel-historial-card,
+.cliente-panel-pago-card,
+.cliente-panel-perfil-card,
+.cliente-panel-perfil-form-card,
+.cliente-panel-pagos-summary div {
+  border: 1px solid var(--belu-card-border);
+  box-shadow: var(--belu-soft-shadow);
+}
+
+.cliente-panel-card:hover,
+.cliente-panel-reserva-activa-card:hover,
+.cliente-panel-beluer-card:hover,
+.cliente-panel-historial-card:hover,
+.cliente-panel-pago-card:hover {
+  box-shadow: var(--belu-deep-shadow);
+}
+
+.cliente-panel-btn-r,
+.cliente-panel-btn-ghost,
+.cliente-panel-ra-acciones button,
+.cliente-panel-pago-actions button,
+.cliente-panel-historial-actions button {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+}
+
+.cliente-panel-btn-r:focus-visible,
+.cliente-panel-btn-ghost:focus-visible,
+.cliente-panel-ra-acciones button:focus-visible,
+.cliente-panel-sidebar-nav button:focus-visible,
+.cliente-panel-servicio-card:focus-visible,
+.cliente-panel-addon-item:focus-visible,
+.cliente-panel-beluer-mini-card:focus-visible,
+.cliente-panel-fav-btn:focus-visible {
+  outline: 3px solid rgba(230, 0, 35, 0.2);
+  outline-offset: 3px;
+}
+
+.cliente-panel-reserva-activa-card {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(255, 246, 249, 0.86)),
+    radial-gradient(circle at 92% 8%, rgba(230, 0, 35, 0.12), transparent 34%);
+  padding: clamp(1.45rem, 3vw, 2.4rem);
+  overflow: hidden;
+}
+
+.cliente-panel-reserva-activa-card h2 {
+  max-width: 760px;
+  font-size: clamp(1.75rem, 3.4vw, 3rem);
+}
+
+.cliente-panel-reserva-activa-card > p {
+  max-width: 760px;
+  color: rgba(26, 26, 26, 0.64);
+  font-size: 1rem;
+}
+
+.cliente-panel-ra-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.cliente-panel-ra-grid div {
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(230, 0, 35, 0.08);
+}
+
+.cliente-panel-ra-grid span,
+.cliente-panel-pagos-summary span,
+.cliente-panel-historial-meta span,
+.cliente-panel-pago-meta span {
+  color: rgba(26, 26, 26, 0.55);
+}
+
+.cliente-panel-ra-acciones {
+  align-items: stretch;
+  gap: 0.75rem;
+}
+
+.cliente-panel-ra-acciones button {
+  border: 1px solid rgba(26, 26, 26, 0.08);
+  background: rgba(255, 255, 255, 0.78);
+  color: rgba(26, 26, 26, 0.78);
+  box-shadow: none;
+}
+
+.cliente-panel-ra-acciones button:last-child {
+  border-color: rgba(230, 0, 35, 0.18);
+  color: var(--r);
+}
+
+.cliente-panel-ra-acciones button {
+  font-size: 0;
+}
+
+.cliente-panel-ra-acciones button::before {
+  font-size: 0.86rem;
+}
+
+.cliente-panel-ra-acciones button:nth-child(1)::before {
+  content: "Reprogramar";
+}
+
+.cliente-panel-ra-acciones button:nth-child(2)::before {
+  content: "Cambiar Beluer";
+}
+
+.cliente-panel-ra-acciones button:nth-child(3)::before {
+  content: "Cancelar";
+}
+
+.cliente-panel-servicio-card {
+  border-color: rgba(26, 26, 26, 0.06);
+}
+
+.cliente-panel-servicio-card.selected::after {
+  content: "Seleccionado";
+  position: absolute;
+  top: 0.85rem;
+  left: 0.85rem;
+  z-index: 2;
+  border-radius: 999px;
+  background: var(--r);
+  color: white;
+  padding: 0.35rem 0.7rem;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.cliente-panel-info-box,
+.cliente-panel-resumen-pago,
+.cliente-panel-addons-section,
+.cliente-panel-urgencia-toggle,
+.cliente-panel-perfil-toggle {
+  border: 1px solid rgba(230, 0, 35, 0.1);
+}
+
+.cliente-panel-historial-grid,
+.cliente-panel-pagos-list {
+  gap: 1.15rem;
+}
+
+.cliente-panel-historial-card,
+.cliente-panel-pago-card {
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.cliente-panel-historial-img span,
+.cliente-panel-pago-id {
+  background: rgba(255, 255, 255, 0.94);
+  color: var(--r);
+}
+
+.cliente-panel-empty-state,
+.cliente-panel-favoritas-empty {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.88), rgba(255, 246, 249, 0.82)),
+    radial-gradient(circle at 50% 0%, rgba(255, 214, 226, 0.68), transparent 45%);
+}
+
+.cliente-panel-empty-state::before,
+.cliente-panel-favoritas-empty::before {
+  content: "belu ✦";
+  display: inline-flex;
+  margin-bottom: 1rem;
+  border-radius: 999px;
+  background: rgba(230, 0, 35, 0.08);
+  color: var(--r);
+  padding: 0.45rem 0.85rem;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.cliente-panel-form-group input[readonly],
+.cliente-panel-form-group input:disabled,
+.cliente-panel-form-group select:disabled {
+  background: rgba(26, 26, 26, 0.035);
+  color: rgba(26, 26, 26, 0.56);
+  cursor: not-allowed;
+}
+
+@media (max-width: 1100px) {
+  .cliente-panel-ra-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .cliente-panel-main {
+    padding: 5.4rem 1rem 1.5rem;
+  }
+
+  .cliente-panel-greeting h1 {
+    font-size: clamp(1.55rem, 8vw, 2.05rem);
+  }
+
+  .cliente-panel-ra-grid,
+  .cliente-panel-pagos-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .cliente-panel-ra-acciones,
+  .cliente-panel-historial-actions,
+  .cliente-panel-pago-actions {
+    flex-direction: column;
+  }
+
+  .cliente-panel-ra-acciones button,
+  .cliente-panel-historial-actions button,
+  .cliente-panel-pago-actions button {
+    width: 100%;
+  }
+}

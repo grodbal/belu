@@ -195,11 +195,11 @@ const skillsByBeluerId = new Map<string, string[]>();
 });
 
   return (
-    <section className="mt-14 rounded-[2rem] bg-white p-6 shadow-sm ring-1 ring-black/5 md:p-8">
+    <section className="admin-real-panel mt-14 rounded-[2rem] bg-white p-6 shadow-sm ring-1 ring-black/5 md:p-8">
       <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <div>
           <p className="mb-2 text-sm font-bold uppercase tracking-[0.25em] text-[#E60023]">
-            Base real
+            Datos reales
           </p>
 
           <h2 className="text-3xl font-black tracking-tight text-[#1A1A1A]">

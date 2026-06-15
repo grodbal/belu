@@ -101,6 +101,14 @@ function getPaymentStatusLabel(status: Booking["payment_status"]) {
   return labels[status];
 }
 
+function getStatusBadgeClass(status: Booking["status"]) {
+  return `admin-booking-badge ${status}`;
+}
+
+function getPaymentBadgeClass(status: Booking["payment_status"]) {
+  return `admin-payment-badge ${status}`;
+}
+
 function getCategoryLabel(category: string) {
   if (category === "lashes") return "Lashes";
   if (category === "nails") return "Nails";
@@ -242,11 +250,11 @@ export default async function AdminBookingsRealList() {
   const availableBeluerOptions = (availableBeluers as AssignableBeluer[]) || [];
 
   return (
-    <section className="rounded-[2rem] bg-white p-6 shadow-sm ring-1 ring-black/5 md:p-8">
+    <section className="admin-real-panel admin-bookings-real-table rounded-[2rem] bg-white p-6 shadow-sm ring-1 ring-black/5 md:p-8">
       <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <div>
           <p className="mb-2 text-sm font-bold uppercase tracking-[0.25em] text-[#E60023]">
-            Base real
+            Datos reales
           </p>
 
           <h2 className="text-2xl font-black text-[#1A1A1A]">
@@ -254,7 +262,8 @@ export default async function AdminBookingsRealList() {
           </h2>
 
           <p className="mt-2 text-sm leading-relaxed text-neutral-500">
-            Estas reservas leen datos reales desde Supabase. Más adelante se
+            Consulta las reservas registradas, su estado operativo, pago y
+            Beluer asignada. Más adelante se
             conectarán al pago y al flujo de WhatsApp.
           </p>
         </div>

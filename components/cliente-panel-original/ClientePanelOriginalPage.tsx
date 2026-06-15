@@ -62,6 +62,22 @@ function getTodayLocalDate() {
   return `${year}-${month}-${day}`;
 }
 
+function formatDisplayDate(value?: string | null) {
+  if (!value) return "Fecha por definir";
+
+  return new Intl.DateTimeFormat("es-PE", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }).format(new Date(`${value}T00:00:00`));
+}
+
+function formatDisplayTime(value?: string | null) {
+  if (!value) return "Hora por definir";
+
+  return value.slice(0, 5);
+}
+
 const icons = {
   dashboard: (
     <svg viewBox="0 0 24 24">
@@ -437,6 +453,7 @@ const hasRealBooking = Boolean(nextBooking);
   onOpenGestion={setModalGestion}
   clientFirstName={clientFirstName}
   nextBooking={nextBooking}
+  bookingHistory={bookingHistory}
   clientName={clientName}
 />
 )}
@@ -729,7 +746,12 @@ const hasRealBooking = Boolean(nextBooking);
   <PagosSection clientName={clientName} bookingHistory={bookingHistory} />
 )}
 {activeSection === "perfil" && (
-  <PerfilSection clientName={clientName} clientProfile={clientProfile} />
+  <PerfilSection
+    clientName={clientName}
+    clientProfile={clientProfile}
+    bookingCount={bookingHistory.length}
+    favoritesCount={beluersFavoritas.length}
+  />
 )}
 
 {activeSection !== "dashboard" &&
@@ -888,11 +910,11 @@ activeSection !== "perfil" && (
         ))}
 
         <p>
-          <strong>Fecha:</strong> {fecha}
+          <strong>Fecha:</strong> {formatDisplayDate(fecha)}
         </p>
 
         <p>
-          <strong>Hora:</strong> {hora}
+          <strong>Hora:</strong> {formatDisplayTime(hora)}
         </p>
 
         <p>
@@ -1105,6 +1127,7 @@ function DashboardSection({
   onOpenGestion,
   clientFirstName,
   nextBooking,
+  bookingHistory,
   clientName,
 }: {
   goToSection: (section: PanelSection) => void;
@@ -1121,9 +1144,11 @@ function DashboardSection({
   ) => void;
   clientFirstName: string;
   nextBooking: ClientBooking | null;
+  bookingHistory: ClientBooking[];
   clientName: string;
 }) {
   const assignedBeluerName = nextBooking?.beluer_profiles?.public_name || "";
+  const latestPayment = bookingHistory[0];
   const assignmentMessage = nextBooking
     ? assignedBeluerName
       ? nextBooking.status === "confirmed"
@@ -1194,15 +1219,13 @@ function DashboardSection({
 
             <div>
               <span>Fecha</span>
-<strong>{nextBooking?.scheduled_date || fecha}</strong>
+<strong>{formatDisplayDate(nextBooking?.scheduled_date || fecha)}</strong>
             </div>
 
             <div>
               <span>Hora</span>
 <strong>
-  {nextBooking?.scheduled_time
-    ? nextBooking.scheduled_time.slice(0, 5)
-    : hora}
+  {formatDisplayTime(nextBooking?.scheduled_time || hora)}
 </strong>
             </div>
 
@@ -1278,8 +1301,12 @@ function DashboardSection({
 
         <DashboardCard
           icon={icons.pagos}
-          title="Últimos pagos"
-          text="Tu transacción más reciente: S/. 150."
+          title="Pagos"
+          text={
+            latestPayment
+              ? `Último pago registrado: S/ ${latestPayment.public_price}.`
+              : "Cuando reserves, tus pagos aparecerán aquí."
+          }
           button="Ver pagos →"
           onClick={() => goToSection("pagos")}
         />
@@ -1368,8 +1395,8 @@ function HistorialSection({
               </div>
 
               <div className="cliente-panel-historial-meta">
-                <span>📅 {item.scheduled_date}</span>
-                <span>🕒 {item.scheduled_time.slice(0, 5)}</span>
+                <span>{formatDisplayDate(item.scheduled_date)}</span>
+                <span>{formatDisplayTime(item.scheduled_time)}</span>
                 <span>
                   💳{" "}
                   {paymentStatusLabels[item.payment_status] ||
@@ -1432,11 +1459,12 @@ function HistorialSection({
                   "Pendiente de asignación"}
               </p>
               <p>
-                <strong>Fecha:</strong> {selectedBooking.scheduled_date}
+                <strong>Fecha:</strong>{" "}
+                {formatDisplayDate(selectedBooking.scheduled_date)}
               </p>
               <p>
                 <strong>Hora:</strong>{" "}
-                {selectedBooking.scheduled_time.slice(0, 5)}
+                {formatDisplayTime(selectedBooking.scheduled_time)}
               </p>
               <p>
                 <strong>Estado:</strong>{" "}
@@ -1556,8 +1584,8 @@ function PagosSection({
             </div>
 
             <div className="cliente-panel-pago-meta">
-              <span>Fecha: {booking.scheduled_date}</span>
-              <span>Hora: {booking.scheduled_time.slice(0, 5)}</span>
+              <span>Fecha: {formatDisplayDate(booking.scheduled_date)}</span>
+              <span>Hora: {formatDisplayTime(booking.scheduled_time)}</span>
               <span>
                 Pago:{" "}
                 {paymentStatusLabels[booking.payment_status] ||
@@ -1592,9 +1620,13 @@ function PagosSection({
 function PerfilSection({
   clientName,
   clientProfile,
+  bookingCount,
+  favoritesCount,
 }: {
   clientName: string;
   clientProfile: ClientProfile | null;
+  bookingCount: number;
+  favoritesCount: number;
 }) {
   const nombre = clientName;
   const email = clientProfile?.email || "";
@@ -1642,18 +1674,18 @@ function PerfilSection({
 
           <div className="cliente-panel-perfil-stats">
             <div>
-              <strong>3</strong>
+              <strong>{bookingCount}</strong>
               <span>Reservas</span>
             </div>
 
             <div>
-              <strong>2</strong>
+              <strong>{favoritesCount}</strong>
               <span>Favoritas</span>
             </div>
 
             <div>
-              <strong>5.0</strong>
-              <span>Rating</span>
+              <strong>✦</strong>
+              <span>belu</span>
             </div>
           </div>
 
