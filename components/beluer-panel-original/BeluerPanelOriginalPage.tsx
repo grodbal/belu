@@ -192,7 +192,7 @@ export default function BeluerPanelOriginalPage({
 
   const handleRechazarReserva = async (id: string) => {
     const confirmar = window.confirm(
-      "¿Seguro que quieres rechazar esta reserva? Esta acción la marcará como cancelada."
+      "¿Seguro que no puedes tomar esta reserva? Volverá a belu para ser reasignada."
     );
 
     if (!confirmar) return;
@@ -612,7 +612,7 @@ export default function BeluerPanelOriginalPage({
                   className="beluer-panel-btn-secondary"
                   onClick={() => handleRechazarReserva(reservaDetalle.id)}
                 >
-                  Rechazar
+                  No puedo tomar esta reserva
                 </button>
 
                 <button
@@ -655,7 +655,7 @@ function ReservasSection({
       <div className="beluer-panel-top-bar">
         <div className="beluer-panel-greeting">
           <h1>Reservas</h1>
-          <p>Gestiona tus solicitudes, citas aceptadas y reservas rechazadas.</p>
+          <p>Gestiona tus solicitudes y citas aceptadas.</p>
         </div>
 
         <BeluerPill nombre={beluerDisplayName} iniciales={beluerInitials} />
@@ -673,7 +673,7 @@ function ReservasSection({
         </div>
 
         <div>
-          <span>Rechazadas</span>
+          <span>Devueltas a belu</span>
           <strong>{rechazadas.length}</strong>
         </div>
       </div>
@@ -764,7 +764,7 @@ function ReservaBeluerCard({
               className="secondary"
               onClick={() => onRechazar(reserva.id)}
             >
-              Rechazar
+              No puedo tomar esta reserva
             </button>
 
             <button
@@ -785,7 +785,7 @@ function getReservaEstadoLabel(estado: ReservaEstado) {
   const labels: Record<ReservaEstado, string> = {
     pendiente: "Pendiente de aceptar",
     aceptada: "Aceptada",
-    rechazada: "Rechazada",
+    rechazada: "Devuelta a belu",
   };
 
   return labels[estado];

@@ -25,6 +25,13 @@ export async function updateBeluerBookingStatusAction({
     };
   }
 
+  if (action !== "accept" && action !== "reject") {
+    return {
+      success: false,
+      message: "Acción no válida para esta reserva.",
+    };
+  }
+
   const authClient = await createClient();
 
   const {
@@ -116,12 +123,14 @@ export async function updateBeluerBookingStatusAction({
     };
   }
 
-  const nextStatus = action === "accept" ? "confirmed" : "cancelled";
+  const nextStatus = action === "accept" ? "confirmed" : "pending";
+  const nextBeluerProfileId = action === "accept" ? beluer.id : null;
 
   const { data: updatedBooking, error: updateError } = await supabase
     .from("bookings")
     .update({
       status: nextStatus,
+      beluer_profile_id: nextBeluerProfileId,
       updated_at: new Date().toISOString(),
     })
     .eq("id", bookingId)
@@ -140,7 +149,7 @@ export async function updateBeluerBookingStatusAction({
   }
 
   if (
-    updatedBooking.beluer_profile_id !== beluer.id ||
+    updatedBooking.beluer_profile_id !== nextBeluerProfileId ||
     updatedBooking.status !== nextStatus
   ) {
     return {
@@ -159,6 +168,6 @@ export async function updateBeluerBookingStatusAction({
     message:
       action === "accept"
         ? "Reserva aceptada correctamente."
-        : "Reserva rechazada correctamente.",
+        : "La reserva volvió a belu para ser reasignada.",
   };
 }
