@@ -1,14 +1,10 @@
-# Supabase setup para belu ✦
+# Supabase local para belu
 
-## Objetivo
+Esta carpeta documenta el modelo local de Supabase para el MVP actual de belu.
 
-Esta carpeta contiene la estructura base de Supabase para belu.
+Los cambios remotos se aplican manualmente desde Supabase. Codex no ejecuta SQL remoto en estos bloques.
 
-Estos archivos estan versionados como referencia reproducible del esquema, permisos, storage, triggers, funciones RPC, vistas de lectura, auditoria y datos iniciales. Los cambios remotos se aplican manualmente desde Supabase y luego se documentan aqui.
-
----
-
-## Archivos actuales
+## Archivos
 
 ```txt
 supabase/schema.sql
@@ -21,11 +17,7 @@ supabase/views.sql
 supabase/audit.sql
 ```
 
----
-
-## Orden correcto de ejecución
-
-Cuando se cree el proyecto real en Supabase, ejecutar los archivos en este orden:
+## Orden sugerido para un entorno nuevo
 
 ```txt
 1. schema.sql
@@ -38,91 +30,35 @@ Cuando se cree el proyecto real en Supabase, ejecutar los archivos en este orden
 8. audit.sql
 ```
 
-No cambiar este orden. Algunos archivos dependen de tablas, enums, funciones auxiliares, buckets, triggers, funciones RPC o vistas creadas previamente.
+`functions.sql`, `views.sql` y `audit.sql` son placeholders/no-op en el MVP actual porque la app usa Server Actions y consultas directas de servidor. Se mantienen para documentar fases posteriores sin dejar SQL legacy ejecutable.
 
----
+## Modelo actual del MVP
 
-## 1. schema.sql
+### Usuarios y roles
 
-Crea la estructura principal de base de datos.
-
-Incluye:
-
-- Enums.
-- Tablas.
-- Relaciones.
-- Índices.
-- Triggers de `updated_at`.
-
-Tablas principales:
+`profiles` guarda identidad base:
 
 ```txt
-profiles
-client_profiles
-beluer_profiles
-services
-beluer_services
-service_addons
-beluer_photos
-beluer_availability
-bookings
-booking_services
-booking_addons
-payments
-beluer_earnings
-favorites
-reviews
-automations_log
+id
+auth_user_id
+role: cliente | beluer | admin
+full_name
+email
+phone
+created_at
+updated_at
 ```
 
-Este archivo debe ejecutarse primero porque los demás dependen de estas tablas y tipos.
+Reglas de negocio:
 
----
+- Las clientas pueden registrarse solas.
+- Las Beluers no se registran solas; Admin las crea.
+- Admin controla roles, estados, niveles, disponibilidad y datos operativos.
+- `role`, `auth_user_id` e `id` no deben ser modificables por usuarios no-admin.
 
-## 2. rls-policies.sql
+### Clientas
 
-Activa Row Level Security y define permisos base.
-
-Incluye:
-
-- Funciones auxiliares.
-- Políticas para clientas.
-- Políticas para Beluers.
-- Políticas para Admin.
-- Restricciones iniciales de lectura, creación y actualización.
-
-Funciones principales:
-
-```txt
-current_profile_id()
-current_user_role()
-is_admin()
-current_client_profile_id()
-current_beluer_profile_id()
-```
-
-Este archivo debe ejecutarse después de `schema.sql`, porque necesita que las tablas y enums ya existan.
-
----
-
-### Permisos de perfil de clienta
-
-La migracion remota de perfiles usa el enum:
-
-```txt
-cliente
-beluer
-admin
-```
-
-`profiles` conserva los datos base de identidad. Para el rol `authenticated`:
-
-- Puede leer perfiles segun RLS.
-- Puede actualizar solamente `phone`.
-- No puede actualizar `full_name`, `email`, `role`, `auth_user_id`, `id`, `created_at` ni `updated_at`.
-- No puede insertar ni eliminar filas directamente.
-
-`client_profiles` conserva los datos especificos de una clienta:
+`client_profiles` guarda datos complementarios de clienta:
 
 ```txt
 id
@@ -136,237 +72,223 @@ created_at
 updated_at
 ```
 
-Para el rol `authenticated`:
-
-- Puede leer solamente su propia fila.
-- Puede actualizar solamente `beauty_preference` en su propia fila.
-- No puede actualizar `profile_id`, direccion, distrito, preferencias de notificacion, ids ni timestamps.
-- No puede insertar ni eliminar filas directamente.
-
-`service_role` mantiene `select`, `insert`, `update` y `delete` sobre ambas tablas. Esta clave se usa solo desde codigo de servidor protegido. El registro de clienta crea o asegura la fila complementaria en `client_profiles`.
-
-En el MVP, la seccion Mi Perfil permite editar solamente:
+En el panel Clienta del MVP solo se editan:
 
 ```txt
 profiles.phone
 client_profiles.beauty_preference
 ```
 
----
+### Beluers
 
-## 3. seed.sql
-
-Carga datos iniciales del catálogo.
-
-Incluye:
-
-- Servicios de lashes.
-- Servicios de nails.
-- Servicio de brows.
-- Add-ons.
-
-Ejemplos:
+`beluer_profiles` guarda perfil operativo:
 
 ```txt
-Clásicas
-Efecto Rímel
-Volumen 3D
-Lifting de pestañas
-Planchado de cejas
-Esmaltado Gel
-Rubber
-Acrílicas
-Retiro de gel
-Depilación con hilo
+id
+profile_id
+public_name
+bio
+instagram
+phone
+profile_photo_url
+districts
+experience_years
+level
+status
+rating_average
+total_bookings
+is_available
+weekly_income_goal
+monthly_income_goal
+review_notes
+created_at
+updated_at
 ```
 
-Este archivo debe ejecutarse después de `schema.sql`, porque inserta datos en tablas ya creadas.
-
----
-
-## 4. storage-policies.sql
-
-Crea buckets y políticas base para Supabase Storage.
-
-Buckets sugeridos:
+`beluer_service_skills` conecta Beluers con servicios:
 
 ```txt
-beluer-profile-photos
-beluer-portfolio
-service-images
-review-images
-client-uploads
+id
+beluer_profile_id
+service_id
+status
+created_at
+updated_at
 ```
 
-Uso principal:
+Admin asigna servicios a Beluers. La Beluer no edita sus servicios en el MVP.
 
-- Fotos de perfil de Beluers.
-- Fotos de portafolio.
-- Imágenes de servicios.
-- Imágenes asociadas a reviews.
-- Archivos o imágenes subidas por clientas.
+### Servicios
 
-Este archivo debe ejecutarse después de `rls-policies.sql`, porque usa funciones auxiliares como:
+`services` usa el modelo de precios actual:
 
 ```txt
-is_admin()
-current_beluer_profile_id()
-current_client_profile_id()
+id
+category
+name
+description
+public_price
+logistic_fee
+base_price
+duration_minutes
+status
+created_at
+updated_at
 ```
 
----
+La app usa `status = active` para mostrar servicios disponibles.
 
-## 5. triggers.sql
+### Reservas
 
-Crea lógica automática de negocio a nivel base de datos.
-
-Incluye:
-
-- Validar que el precio de una Beluer no esté por debajo del precio mínimo de belu.
-- Sincronizar estado de pago con reserva.
-- Crear ingresos de Beluer después de pago aprobado.
-- Actualizar total de reservas de Beluer.
-- Recalcular rating promedio.
-- Mantener una sola foto de portada por Beluer.
-- Forzar fotos nuevas a revisión.
-- Registrar eventos de automatización.
-- Validar que solo se pueda reseñar una reserva completada.
-
-Este archivo debe ejecutarse después de `schema.sql`, `rls-policies.sql`, `seed.sql` y `storage-policies.sql`.
-
----
-
-## 6. functions.sql
-
-Crea funciones RPC seguras para operaciones sensibles.
-
-Incluye funciones para:
-
-- Crear reserva de clienta.
-- Aceptar reserva como Beluer.
-- Asignar Beluer desde Admin.
-- Cambiar estado de reserva.
-- Cancelar reserva.
-- Reprogramar reserva.
-- Aprobar, rechazar o pausar Beluer.
-- Cambiar nivel de Beluer.
-- Aprobar o rechazar fotos.
-- Marcar foto destacada.
-- Registrar pago manual.
-- Reembolsar pago.
-- Consultar resumen de dashboard Admin.
-- Consultar resumen de dashboard Beluer.
-- Consultar resumen de dashboard Clienta.
-
-El frontend debería usar estas funciones para operaciones sensibles en lugar de actualizar directamente tablas críticas.
-
----
-
-## 7. views.sql
-
-Crea vistas de lectura para simplificar consultas del frontend.
-
-Incluye vistas para:
-
-- Catálogo público de Beluers.
-- Servicios públicos por Beluer.
-- Portafolio público aprobado.
-- Catálogo activo de servicios.
-- Catálogo activo de add-ons.
-- Reservas para Admin.
-- Reservas para Clienta.
-- Reservas para Beluer.
-- Ingresos de Beluer.
-- Pagos para Admin.
-- Moderación de Beluers.
-- Moderación de fotos.
-- Métricas por servicio.
-- Métricas por distrito.
-- Métricas por día.
-- Eventos de automatización.
-
-Vistas principales:
+`bookings` representa una reserva real de la clienta:
 
 ```txt
-v_public_beluer_catalog
-v_public_beluer_services
-v_public_beluer_portfolio
-v_active_services_catalog
-v_active_addons_catalog
-v_admin_bookings_overview
-v_client_bookings_overview
-v_beluer_bookings_overview
-v_beluer_earnings_overview
-v_admin_payments_overview
-v_admin_beluer_moderation
-v_admin_photo_moderation
-v_admin_metrics_by_service
-v_admin_metrics_by_district
-v_admin_metrics_by_day
-v_admin_automation_events
+id
+client_profile_id
+beluer_profile_id
+service_id
+booking_mode
+scheduled_date
+scheduled_time
+address
+district
+notes
+is_express
+express_fee
+status
+public_price
+logistic_fee
+base_price
+belu_commission_rate
+belu_commission_amount
+beluer_payment_amount
+payment_status
+created_at
+updated_at
 ```
 
-Este archivo debe ejecutarse después de `functions.sql`.
+Nota importante: por compatibilidad con la app actual, `bookings.client_profile_id` apunta a `profiles.id` de una clienta. No apunta a `client_profiles.id`.
 
----
-
-## 8. audit.sql
-
-Crea trazabilidad para cambios sensibles.
-
-Incluye:
-
-- Enum de acciones de auditoría.
-- Tabla `audit_log`.
-- Políticas RLS para que solo Admin pueda leer auditoría.
-- Funciones auxiliares para registrar cambios.
-- Triggers de auditoría para tablas sensibles.
-- Vista `v_admin_audit_log`.
-
-Registra cambios en:
+Estados usados por el MVP:
 
 ```txt
-beluer_profiles
-services
-bookings
-payments
-beluer_photos
+pending
+assigned
+confirmed
+in_progress
+completed
+cancelled
+redo_requested
+redo_approved
 ```
 
-Tipos de acciones auditadas:
+Flujo gestionado:
 
 ```txt
-insert
-update
-delete
-status_change
-level_change
-payment_change
-refund
-photo_moderation
-booking_assignment
-booking_status_change
+Clienta crea reserva -> status pending, beluer_profile_id null
+Admin asigna Beluer -> status assigned
+Beluer acepta -> status confirmed
+Beluer no puede tomarla -> status pending, beluer_profile_id null
 ```
 
-Este archivo debe ejecutarse al final porque depende de tablas, enums, funciones auxiliares y vistas ya creadas.
+## Una reserva = un servicio
 
----
+El MVP mantiene un solo `service_id` por reserva.
 
-## Estado actual del frontend
-
-Actualmente los paneles funcionan con datos simulados en archivos locales:
+Servicios multiples quedan para Fase 2 con `booking_items` o equivalente. Esa tabla deberia guardar snapshots por item:
 
 ```txt
-components/cliente-panel-original/clientePanelData.ts
-components/beluer-panel-original/beluerPanelData.ts
-components/admin-panel-original/adminPanelData.ts
+booking_id
+service_id
+service_name_snapshot
+category_snapshot
+public_price_snapshot
+base_price_snapshot
+belu_commission_amount_snapshot
+beluer_payment_amount_snapshot
+duration_minutes_snapshot
 ```
 
-Más adelante, estos datos simulados serán reemplazados por consultas reales a Supabase.
+No usar `booking_services` local legacy para el MVP actual.
 
----
+## Pagos
 
-## Rutas del sistema
+En el MVP, el flujo de reserva simula pago completo y la app crea reservas con:
+
+```txt
+bookings.payment_status = paid
+```
+
+Admin > Pagos lee datos basicos desde `bookings`.
+
+La tabla `payments` queda documentada como base posterior para Culqi/Niubiz/Yape/manual:
+
+- webhook idempotente
+- conciliacion de `payment_status`
+- comprobante o `receipt_url`
+- fallos, reembolsos y reversas
+
+No conectar pasarela real sin revisar este flujo.
+
+## WhatsApp / n8n
+
+`automations_log` queda como base para una fase posterior.
+
+Antes de conectar WhatsApp API/n8n faltan:
+
+- eventos exactos
+- templates aprobados
+- opt-in por usuario
+- retry/idempotencia
+- manejo de errores
+- secretos fuera del frontend
+
+## Portafolio / Supabase Storage
+
+`beluer_photos` queda documentada como tabla de portafolio para una fase posterior con Supabase Storage.
+
+Actualmente:
+
+- Admin Fotos muestra empty state si `beluer_photos` no existe remoto.
+- Panel Beluer no implementa subida real de fotos.
+- No se deben mostrar fotos fake.
+
+Antes de activar Storage faltan:
+
+- bucket de portafolio
+- politicas de Storage
+- validacion de tipo/tamano
+- flujo de subida
+- moderacion Admin
+
+## Seguridad local esperada
+
+`rls-policies.sql` documenta estas reglas:
+
+- `profiles`: authenticated solo puede actualizar `phone`.
+- `client_profiles`: authenticated solo puede actualizar `beauty_preference`.
+- `bookings`: usuarios autenticados pueden leer sus propias reservas; escrituras directas quedan revocadas.
+- `services`: lectura de servicios activos; escritura solo Admin/service_role.
+- `beluer_service_skills`: lectura para catalogo/perfil; escritura solo Admin/service_role.
+- `beluer_photos`: lectura de aprobadas/propias/admin; escritura directa deshabilitada hasta Storage.
+
+Las escrituras sensibles se hacen desde Server Actions protegidas con validacion de rol/propiedad y `service_role`.
+
+## Archivos SQL legacy retirados de ejecucion activa
+
+El modelo anterior usaba:
+
+```txt
+bookings.client_id
+bookings.beluer_id
+assignment_mode
+booking_services
+beluer_services
+```
+
+La app actual ya no usa esas columnas/tablas. Cualquier referencia a ellas debe considerarse legacy o Fase 2 si esta en comentarios.
+
+## Rutas principales
 
 ```txt
 /app/cliente
@@ -374,91 +296,7 @@ Más adelante, estos datos simulados serán reemplazados por consultas reales a 
 /app/admin
 ```
 
----
-
-## Mapeos técnicos existentes
-
-Clienta:
-
-```txt
-components/cliente-panel-original/supabaseMapping.ts
-```
-
-Beluer:
-
-```txt
-components/beluer-panel-original/supabaseMapping.ts
-```
-
-Admin:
-
-```txt
-components/admin-panel-original/supabaseMapping.ts
-```
-
-Estos archivos no conectan Supabase todavía. Solo documentan cómo los datos actuales se relacionarán con las tablas reales.
-
----
-
-## Flujo futuro de integración
-
-### Fase 1: Crear proyecto Supabase
-
-- Crear proyecto en Supabase.
-- Configurar región.
-- Guardar URL del proyecto.
-- Guardar anon key.
-- Guardar service role key en entorno seguro.
-
-### Fase 2: Ejecutar SQL
-
-Ejecutar en el SQL Editor de Supabase:
-
-```txt
-1. schema.sql
-2. rls-policies.sql
-3. seed.sql
-4. storage-policies.sql
-5. triggers.sql
-6. functions.sql
-7. views.sql
-8. audit.sql
-```
-
-### Fase 3: Crear primer usuario Admin
-
-- Crear usuario desde Supabase Auth.
-- Copiar el `auth_user_id`.
-- Insertar registro en `profiles` con rol `admin`.
-
-Ejemplo:
-
-```sql
-insert into profiles (
-  auth_user_id,
-  role,
-  full_name,
-  email,
-  phone
-)
-values (
-  'REPLACE_WITH_SUPABASE_AUTH_USER_ID',
-  'admin',
-  'Admin belu',
-  'admin@somosbelu.pe',
-  null
-);
-```
-
-### Fase 4: Configurar variables de entorno en Next.js
-
-Crear archivo local:
-
-```txt
-.env.local
-```
-
-Variables futuras:
+## Variables de entorno
 
 ```env
 NEXT_PUBLIC_SUPABASE_URL=
@@ -466,98 +304,4 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
 ```
 
-La `SUPABASE_SERVICE_ROLE_KEY` nunca debe exponerse en el frontend.
-
-### Fase 5: Instalar Supabase en Next.js
-
-```powershell
-npm install @supabase/supabase-js
-```
-
-### Fase 6: Crear cliente Supabase
-
-Archivos futuros sugeridos:
-
-```txt
-lib/supabase/client.ts
-lib/supabase/server.ts
-```
-
-### Fase 7: Conectar Auth
-
-- Login de clienta.
-- Login de Beluer.
-- Login de Admin.
-- Protección de rutas según rol.
-
-### Fase 8: Reemplazar datos mock
-
-Reemplazar gradualmente:
-
-```txt
-clientePanelData.ts → consultas reales para clienta
-beluerPanelData.ts → consultas reales para Beluer
-adminPanelData.ts → consultas reales para Admin
-```
-
----
-
-## Precauciones importantes
-
-No ejecutar `rls-policies.sql` antes de `schema.sql`.
-
-No ejecutar `storage-policies.sql` antes de `rls-policies.sql`.
-
-No ejecutar `triggers.sql` antes de tener tablas, funciones auxiliares y seed base.
-
-No ejecutar `functions.sql` antes de `triggers.sql`.
-
-No ejecutar `views.sql` antes de `functions.sql`.
-
-No ejecutar `audit.sql` antes de `views.sql`.
-
-No compartir la `service role key`.
-
-No conectar pagos reales hasta validar bien reservas, usuarios y permisos.
-
-No permitir que Beluers editen campos sensibles como:
-
-```txt
-level
-status
-rating_average
-total_bookings
-review_notes
-```
-
-No permitir que clientas cambien estados internos de reservas fuera de política.
-
-No permitir que una Beluer vea pagos completos de clientas. Su vista financiera debe salir de `beluer_earnings`.
-
----
-
-## Próximos pasos recomendados
-
-```txt
-1. Crear proyecto Supabase real.
-2. Ejecutar archivos SQL en orden.
-3. Instalar @supabase/supabase-js.
-4. Crear clientes Supabase en Next.js.
-5. Configurar variables .env.local.
-6. Crear Auth y roles.
-7. Conectar primero el Admin panel.
-```
-
----
-
-## Nota estratégica
-
-La base de datos de belu no solo debe almacenar información.
-
-Debe proteger tres cosas:
-
-1. La experiencia premium de la clienta.
-2. La autonomía controlada de la Beluer.
-3. La capacidad operativa del Admin.
-
-El objetivo es que la plataforma pueda crecer sin depender de operaciones manuales frágiles.
+`SUPABASE_SERVICE_ROLE_KEY` nunca debe exponerse al frontend.

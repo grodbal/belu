@@ -224,7 +224,7 @@ with check (
 -- =====================================================
 
 -- Recommended object path:
--- review-images/{client_id}/{booking_id}/{filename}
+-- review-images/{client_profile_id}/{booking_id}/{filename}
 --
 -- Bucket is private.
 -- Clienta can upload her own review image.
@@ -265,7 +265,7 @@ using (
 -- =====================================================
 
 -- Recommended object path:
--- client-uploads/{client_id}/{filename}
+-- client-uploads/{client_profile_id}/{filename}
 --
 -- Bucket is private.
 -- Useful later for comprobantes, referencias, reclamos, etc.

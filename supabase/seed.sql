@@ -1,280 +1,108 @@
 -- =====================================================
--- BELU ✦ SEED DATA
--- Initial catalog data for services and add-ons
+-- BELU - SEED DATA
+-- Catalogo base alineado con services del MVP actual.
+--
+-- La app usa:
+-- services.id, name, category, description, public_price,
+-- logistic_fee, base_price, duration_minutes, status.
 -- =====================================================
 
--- Main services: lashes
-
-insert into services (
+insert into public.services (
   name,
   category,
   description,
-  minimum_price,
-  estimated_duration_minutes,
-  image_url,
-  is_active
+  public_price,
+  logistic_fee,
+  base_price,
+  duration_minutes,
+  status
 )
 values
   (
-    'Clásicas',
+    'Extensiones Classic',
     'lashes',
     'Extensiones una a una para un acabado natural.',
+    110,
+    10,
     100,
     90,
-    null,
-    true
+    'active'
   ),
   (
-    'Efecto Rímel',
+    'Extensiones Volume',
     'lashes',
-    'Mayor densidad y oscuridad para una mirada intensa.',
-    110,
-    105,
-    null,
-    true
-  ),
-  (
-    'Volumen 3D',
-    'lashes',
-    'Tres extensiones por pestaña para volumen visible.',
+    'Mayor densidad y volumen visible para una mirada intensa.',
+    150,
+    10,
     140,
     120,
-    null,
-    true
-  ),
-  (
-    'Volumen 4D',
-    'lashes',
-    'Cuatro extensiones ultrafinas para mayor volumen.',
-    160,
-    135,
-    null,
-    true
+    'active'
   ),
   (
     'Mega Volumen 5D',
     'lashes',
     'Efecto de alto impacto con mayor densidad visual.',
+    200,
+    10,
     190,
     150,
-    null,
-    true
+    'active'
   ),
   (
-    'Efecto Whispy',
-    'lashes',
-    'Acabado despuntado y texturizado para una mirada más marcada.',
-    170,
-    130,
-    null,
-    true
-  ),
-  (
-    'Efecto Aura',
-    'lashes',
-    'Volumen suave con longitud gradual en el centro.',
-    130,
-    105,
-    null,
-    true
-  ),
-  (
-    'Lifting de pestañas',
+    'Lifting de Pestañas',
     'lashes',
     'Curva y realce de pestañas naturales sin extensiones.',
+    110,
+    10,
     100,
     60,
-    null,
-    true
+    'active'
   ),
   (
-    'Planchado de cejas',
-    'brows',
-    'Diseño y fijación de cejas para un acabado natural.',
-    70,
-    45,
-    null,
-    true
-  )
-on conflict do nothing;
-
--- Main services: nails
-
-insert into services (
-  name,
-  category,
-  description,
-  minimum_price,
-  estimated_duration_minutes,
-  image_url,
-  is_active
-)
-values
-  (
-    'Esmaltado Gel',
+    'Semipermanente',
     'nails',
     'Esmalte semipermanente con brillo de gel.',
+    80,
+    10,
     70,
     60,
-    null,
-    true
+    'active'
   ),
   (
-    'Rubber',
+    'Nail Art Premium',
     'nails',
-    'Base flexible y resistente para uñas naturales.',
-    85,
-    75,
-    null,
-    true
-  ),
-  (
-    'Gel de Construcción',
-    'nails',
-    'Moldeado y refuerzo con gel estructural.',
-    100,
-    90,
-    null,
-    true
-  ),
-  (
-    'Acrílicas',
-    'nails',
-    'Uñas esculpidas con polvo acrílico de alta resistencia.',
-    125,
+    'Diseño de uñas con detalle artistico avanzado.',
     120,
-    null,
-    true
-  ),
-  (
-    'Polygel',
-    'nails',
-    'Técnica híbrida entre acrílico y gel, ligera y resistente.',
-    125,
-    120,
-    null,
-    true
-  ),
-  (
-    'Softgel',
-    'nails',
-    'Extensión con gel suave y flexible para acabado natural.',
+    10,
     110,
     90,
-    null,
-    true
+    'active'
   ),
   (
-    'Manicura Tradicional',
+    'Acrílico Sculpted',
     'nails',
-    'Cuidado clásico de uñas con esmalte tradicional.',
-    55,
-    50,
-    null,
-    true
-  ),
-  (
-    'Pedicura Tradicional',
-    'nails',
-    'Cuidado completo de pies con esmalte tradicional.',
-    55,
-    60,
-    null,
-    true
-  ),
-  (
-    'Pedicura Gel',
-    'nails',
-    'Pedicura semipermanente con acabado de gel.',
-    70,
-    70,
-    null,
-    true
-  ),
-  (
-    'Acripie',
-    'nails',
-    'Uñas acrílicas en pies para mayor duración.',
+    'Uñas esculpidas con acrilico de alta resistencia.',
+    135,
+    10,
     125,
-    100,
-    null,
-    true
+    120,
+    'active'
   )
-on conflict do nothing;
+on conflict (name) do update
+set
+  category = excluded.category,
+  description = excluded.description,
+  public_price = excluded.public_price,
+  logistic_fee = excluded.logistic_fee,
+  base_price = excluded.base_price,
+  duration_minutes = excluded.duration_minutes,
+  status = excluded.status,
+  updated_at = now();
 
--- Add-ons
+-- Optional demo admin profile.
+-- Intencionalmente comentado: auth_user_id debe venir de Supabase Auth.
 
-insert into service_addons (
-  name,
-  category,
-  description,
-  price,
-  is_active
-)
-values
-  (
-    'Depilación con cera',
-    'lashes',
-    'Depilación complementaria para cejas o zona facial.',
-    35,
-    true
-  ),
-  (
-    'Depilación con hilo',
-    'lashes',
-    'Depilación precisa con hilo para acabado limpio.',
-    35,
-    true
-  ),
-  (
-    'Depilación con navaja',
-    'lashes',
-    'Perfilado rápido con navaja.',
-    25,
-    true
-  ),
-  (
-    'Retiro de extensiones',
-    'lashes',
-    'Retiro seguro de extensiones de pestañas.',
-    35,
-    true
-  ),
-  (
-    'Diseño de cejas con henna',
-    'brows',
-    'Diseño y pigmentación temporal con henna.',
-    25,
-    true
-  ),
-  (
-    'Retiro de gel',
-    'nails',
-    'Retiro seguro de esmalte gel.',
-    25,
-    true
-  ),
-  (
-    'Retiro Rubber/Builder Gel',
-    'nails',
-    'Retiro de base rubber o builder gel.',
-    30,
-    true
-  ),
-  (
-    'Retiro Acrílico/Polygel',
-    'nails',
-    'Retiro seguro de acrílico o polygel.',
-    35,
-    true
-  )
-on conflict do nothing;
-
--- Optional demo admin profile
--- This block is intentionally commented because auth_user_id must come from Supabase Auth.
--- Uncomment and replace auth_user_id after creating the first admin user.
-
--- insert into profiles (
+-- insert into public.profiles (
 --   auth_user_id,
 --   role,
 --   full_name,
