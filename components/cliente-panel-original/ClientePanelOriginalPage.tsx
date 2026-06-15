@@ -151,7 +151,7 @@ const [confirmacionOpen, setConfirmacionOpen] = useState(false);
 const [metodoPago, setMetodoPago] = useState<PaymentMethod>("tarjeta");
 const [reservaConfirmada, setReservaConfirmada] = useState(false);
 const [cancelLoading, setCancelLoading] = useState(false);
-const [beluersFavoritas, setBeluersFavoritas] = useState<string[]>([]);
+const [beluersFavoritas] = useState<string[]>([]);
 const [modalGestion, setModalGestion] =
   useState<GestionReservaModal>(null);
 
@@ -329,29 +329,22 @@ const handleIrDashboard = () => {
   setActiveSection("dashboard");
 };
 const toggleBeluerFavorita = (nombre: string) => {
-  setBeluersFavoritas((current) =>
-    current.includes(nombre)
-      ? current.filter((item) => item !== nombre)
-      : [...current, nombre]
+  alert(
+    `Favoritas se activará pronto. Por ahora, contáctanos por WhatsApp si quieres solicitar a ${nombre}.`
   );
 };
 const handleReprogramarReserva = () => {
-  setFecha(nuevaFecha);
-  setHora(nuevaHora);
   setModalGestion(null);
-  alert("Tu cita ha sido reprogramada correctamente.");
+  alert(
+    "Para reprogramar esta reserva, contáctanos por WhatsApp. Pronto podrás hacerlo desde tu panel."
+  );
 };
 
 const handleCambiarBeluer = () => {
-  if (!nuevaBeluer) {
-    alert("Selecciona una nueva Beluer.");
-    return;
-  }
-
-  setBeluerSeleccionada(nuevaBeluer);
-  setModoAsignacion("libre");
   setModalGestion(null);
-  alert(`Tu Beluer ha sido cambiada a ${nuevaBeluer}.`);
+  alert(
+    "El cambio de Beluer será gestionado por belu para asegurar disponibilidad. Contáctanos por WhatsApp."
+  );
 };
 
 const handleCancelarReserva = async () => {
@@ -950,12 +943,12 @@ activeSection !== "perfil" && (
 
       <h3>📅 Reprogramar cita</h3>
       <p className="subtitulo">
-        Elige una nueva fecha y hora para tu servicio.
+        Para reprogramar esta reserva, contáctanos por WhatsApp.
       </p>
 
       <div className="cliente-panel-gestion-aviso">
-        Las reprogramaciones gratuitas se permiten hasta 4 horas antes del
-        servicio. Después, puede aplicar una tarifa de S/ 10.
+        Pronto podrás hacerlo desde tu panel. En esta fase, el equipo belu
+        gestionará el cambio manualmente para validar disponibilidad.
       </div>
 
       <div className="cliente-panel-form-group">
@@ -964,6 +957,7 @@ activeSection !== "perfil" && (
           type="date"
           value={nuevaFecha}
           onChange={(event) => setNuevaFecha(event.target.value)}
+          disabled
         />
       </div>
 
@@ -973,6 +967,7 @@ activeSection !== "perfil" && (
           type="time"
           value={nuevaHora}
           onChange={(event) => setNuevaHora(event.target.value)}
+          disabled
         />
       </div>
 
@@ -981,7 +976,7 @@ activeSection !== "perfil" && (
         type="button"
         onClick={handleReprogramarReserva}
       >
-        Confirmar nuevo horario
+        Solicitar reprogramación por WhatsApp
       </button>
     </div>
   </div>
@@ -1001,12 +996,12 @@ activeSection !== "perfil" && (
 
       <h3>👩‍🎨 Cambiar tu Beluer</h3>
       <p className="subtitulo">
-        Elige otra especialista disponible para tu servicio.
+        El cambio de Beluer será gestionado por belu para asegurar disponibilidad.
       </p>
 
       <div className="cliente-panel-gestion-aviso">
-        El cambio es gratuito si se realiza hasta 2 horas antes. Solo se
-        muestran Beluers compatibles con los servicios reservados.
+        Contáctanos por WhatsApp y el equipo belu revisará disponibilidad antes
+        de confirmar cualquier cambio.
       </div>
 
       <div className="cliente-panel-beluer-selection-grid">
@@ -1019,6 +1014,7 @@ activeSection !== "perfil" && (
                 nuevaBeluer === beluer.nombre ? "selected" : ""
               }`}
               onClick={() => setNuevaBeluer(beluer.nombre)}
+              disabled
             >
               <img src={beluer.foto} alt={beluer.nombre} />
               <h4>{beluer.nombre}</h4>
@@ -1039,7 +1035,7 @@ activeSection !== "perfil" && (
         type="button"
         onClick={handleCambiarBeluer}
       >
-        Confirmar cambio
+        Solicitar cambio por WhatsApp
       </button>
     </div>
   </div>
