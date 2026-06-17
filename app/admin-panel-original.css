@@ -2615,3 +2615,192 @@
     min-width: 1060px;
   }
 }
+
+/* --------------------------------------------------------------------------
+   BLOQUE 2 - SHELL COMPARTIDO BEAUTY-TECH PREMIUM
+   Solo layout base: sidebar, topbar, contenedor y user pill.
+-------------------------------------------------------------------------- */
+
+.admin-panel-shell {
+  --r: var(--belu-red);
+  --r2: var(--belu-red-press);
+  --rosa: var(--belu-pink);
+  --negro: var(--text);
+  --w: var(--surface);
+
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 12% 8%, color-mix(in srgb, var(--belu-pink) 58%, transparent) 0%, transparent 34%),
+    radial-gradient(circle at 86% 12%, color-mix(in srgb, var(--belu-red) 9%, transparent) 0%, transparent 32%),
+    linear-gradient(135deg, var(--bg-canvas) 0%, #fffaf7 48%, var(--belu-pink-tint) 100%);
+  color: var(--text);
+  font-family: var(--font-sans);
+}
+
+.admin-panel-app {
+  min-height: 100vh;
+}
+
+.admin-panel-sidebar {
+  width: var(--sidebar-w);
+  padding: var(--sp-8) var(--sp-6);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface) 94%, var(--belu-pink-tint)) 0%, var(--surface) 100%);
+  border-right: 1px solid var(--border-frame);
+  box-shadow: 12px 0 40px rgba(26, 26, 26, 0.045);
+}
+
+.admin-panel-sidebar-logo {
+  margin-bottom: var(--sp-5);
+}
+
+.admin-panel-sidebar-logo img {
+  max-height: 46px;
+  width: auto;
+}
+
+.admin-panel-profile-mini {
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  background: color-mix(in srgb, var(--surface) 88%, var(--belu-pink-tint));
+  box-shadow: var(--shadow-sm);
+}
+
+.admin-panel-profile-avatar {
+  background: linear-gradient(135deg, var(--belu-red), var(--belu-red-press));
+  color: var(--surface);
+  box-shadow: 0 0 0 2px var(--surface);
+}
+
+.admin-panel-profile-mini strong {
+  color: var(--text);
+}
+
+.admin-panel-profile-mini span {
+  color: var(--belu-red);
+}
+
+.admin-panel-sidebar-nav {
+  gap: var(--sp-2);
+}
+
+.admin-panel-sidebar-nav button {
+  min-height: 46px;
+  border: 1px solid transparent;
+  border-radius: var(--r-lg);
+  padding: 0.85rem 1rem;
+  color: var(--text-muted);
+  font-size: var(--fs-caption);
+  font-weight: 850;
+  letter-spacing: -0.01em;
+}
+
+.admin-panel-sidebar-nav button::before {
+  display: none;
+}
+
+.admin-panel-sidebar-nav button:hover {
+  background: var(--belu-pink-tint);
+  border-color: var(--border-frame);
+  color: var(--belu-red);
+}
+
+.admin-panel-sidebar-nav button.active {
+  background: linear-gradient(135deg, var(--belu-red), var(--belu-red-press));
+  color: var(--surface);
+  border-color: transparent;
+  box-shadow: var(--shadow-red);
+}
+
+.admin-panel-sidebar-nav button.admin-panel-nav-highlight {
+  background: var(--belu-pink-tint);
+  border-color: var(--border-frame);
+  color: var(--belu-red);
+}
+
+.admin-panel-sidebar-nav button.admin-panel-nav-highlight.active {
+  background: linear-gradient(135deg, var(--belu-red), var(--belu-red-press));
+  color: var(--surface);
+}
+
+.admin-panel-sidebar-footer {
+  border-top: 1px solid var(--divider);
+  padding-top: var(--sp-5);
+}
+
+.admin-panel-sidebar-footer a {
+  color: var(--text-muted);
+  font-weight: 800;
+}
+
+.admin-panel-main {
+  width: calc(100% - var(--sidebar-w));
+  max-width: 1420px;
+  margin-left: var(--sidebar-w);
+  padding: var(--shell-padding);
+}
+
+.admin-panel-section {
+  width: 100%;
+}
+
+.admin-panel-top-bar {
+  align-items: center;
+  margin-bottom: var(--sp-8);
+  padding: var(--sp-5);
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  background: color-mix(in srgb, var(--surface) 88%, var(--belu-pink-tint));
+  box-shadow: var(--shadow-sm);
+}
+
+.admin-panel-greeting h1 {
+  color: var(--text);
+  font-family: var(--font-serif);
+  font-size: var(--fs-h2);
+  font-weight: 900;
+  letter-spacing: -0.04em;
+}
+
+.admin-panel-greeting p {
+  color: var(--text-muted);
+  font-size: var(--fs-caption);
+  font-weight: 650;
+}
+
+.admin-panel-user-pill,
+.admin-panel-pill {
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 88%, var(--belu-pink-tint));
+  border-radius: var(--r-pill);
+  box-shadow: var(--shadow-sm);
+}
+
+.admin-panel-avatar {
+  background: linear-gradient(135deg, var(--belu-red), var(--belu-red-press));
+  color: var(--surface);
+}
+
+.admin-panel-menu-btn {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--belu-red);
+  box-shadow: var(--shadow-sm);
+}
+
+@media (max-width: 900px) {
+  .admin-panel-sidebar {
+    width: min(86vw, var(--sidebar-w));
+  }
+
+  .admin-panel-main {
+    width: 100%;
+    max-width: none;
+    margin-left: 0;
+    padding: calc(var(--topbar-h) + var(--sp-6)) var(--sp-4) var(--sp-6);
+  }
+
+  .admin-panel-top-bar {
+    padding: var(--sp-4);
+  }
+}
