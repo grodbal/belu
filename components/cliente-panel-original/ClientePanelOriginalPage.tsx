@@ -78,6 +78,20 @@ function formatDisplayTime(value?: string | null) {
   return value.slice(0, 5);
 }
 
+function getLimaGreeting() {
+  const limaHour = Number(
+    new Intl.DateTimeFormat("en-US", {
+      hour: "numeric",
+      hour12: false,
+      timeZone: "America/Lima",
+    }).format(new Date())
+  );
+
+  if (limaHour < 12) return "Buenos días";
+  if (limaHour < 19) return "Buenas tardes";
+  return "Buenas noches";
+}
+
 const icons = {
   dashboard: (
     <svg viewBox="0 0 24 24">
@@ -1149,6 +1163,25 @@ function DashboardSection({
 }) {
   const assignedBeluerName = nextBooking?.beluer_profiles?.public_name || "";
   const latestPayment = bookingHistory[0];
+  const greeting = getLimaGreeting();
+  const reservationStatus = nextBooking?.status || "pending";
+  const reservationStatusLabels: Record<string, string> = {
+    pending: "Pendiente",
+    assigned: "Asignada",
+    confirmed: "Confirmada",
+    in_progress: "En curso",
+    completed: "Completada",
+    cancelled: "Cancelada",
+  };
+  const appointmentService =
+    nextBooking?.services?.name ||
+    serviciosSeleccionados.map((servicio) => servicio.nombre).join(" + ") ||
+    "Servicio belu";
+  const appointmentBeluer =
+    assignedBeluerName ||
+    (modoAsignacion === "libre" && beluerSeleccionada
+      ? beluerSeleccionada
+      : "Beluer pendiente de asignación");
   const assignmentMessage = nextBooking
     ? assignedBeluerName
       ? nextBooking.status === "confirmed"
@@ -1160,73 +1193,84 @@ function DashboardSection({
     : "Tu servicio ya está agendado. Te notificaremos por WhatsApp con los datos de tu Beluer.";
 
   return (
-    <section className="cliente-panel-section active">
-      <div className="cliente-panel-top-bar">
+    <section className="cliente-panel-section cliente-panel-dashboard active">
+      <div className="cliente-panel-top-bar cliente-panel-dashboard-topbar">
         <div className="cliente-panel-greeting">
-          <h1>Bienvenida, {clientFirstName} ✦</h1>
-          <p>
-            {reservaConfirmada
-              ? "Tienes una reserva activa"
-              : "Aún no tienes reservas activas"}
-          </p>
+          <span className="cliente-panel-dashboard-kicker">Panel clienta</span>
+          <h1>
+            {greeting}, {clientFirstName} ✦
+          </h1>
+          <p>Tu belleza, coordinada sin moverte de casa.</p>
         </div>
 
         <UserPill clientName={clientName} />
       </div>
 
       {!reservaConfirmada ? (
-        <div className="cliente-panel-empty-state">
-          <h2>No tienes ninguna reserva activa.</h2>
+        <div className="cliente-panel-dashboard-empty">
+          <span className="cliente-panel-dashboard-kicker">Próxima cita</span>
+          <h2>Aún no tienes una cita activa</h2>
           <p>
-            Tu brillo no espera. Es tu momento de consentirte y recordarle al
-            mundo lo increíble que eres.
+            Agenda tu próximo servicio y belu coordinará la atención contigo.
           </p>
 
           <button
-            className="cliente-panel-btn-r"
+            className="cliente-panel-btn-r cliente-panel-dashboard-primary"
             type="button"
             onClick={() => goToSection("reserva")}
           >
-            Agendar mi primera cita ✦
+            Nueva reserva
           </button>
         </div>
       ) : (
-        <div className="cliente-panel-reserva-activa-card">
-          <div className="cliente-panel-ra-badge">Reserva activa</div>
+        <article className="cliente-panel-reserva-activa-card cliente-panel-dashboard-appointment">
+          <div className="cliente-panel-dashboard-card-head">
+            <div>
+              <span className="cliente-panel-dashboard-kicker">
+                Próxima cita
+              </span>
+              <h2>
+                {nextBooking
+                  ? "Tu próxima cita belu ✦"
+                  : "Tu cita belu está confirmada ✦"}
+              </h2>
+              <p>{assignmentMessage}</p>
+            </div>
 
-          <h2>
-  {nextBooking
-    ? "Tu próxima cita belu ✦"
-    : "Tu cita belu está confirmada ✦"}
-</h2>
-          <p>
-            {assignmentMessage}
-          </p>
+            <span
+              className="belu-badge cliente-panel-dashboard-status"
+              data-status={reservationStatus}
+            >
+              {reservationStatusLabels[reservationStatus] || reservationStatus}
+            </span>
+          </div>
+
+          <div className="cliente-panel-dashboard-service">
+            <span>Servicio reservado</span>
+            <strong>{appointmentService}</strong>
+          </div>
 
           <div className="cliente-panel-ra-grid">
             <div>
-              <span>Servicio</span>
-<strong>
-  {nextBooking?.services?.name ||
-    serviciosSeleccionados.map((servicio) => servicio.nombre).join(" + ")}
-</strong>
-            </div>
-
-            <div>
-              <span>Total</span>
-<strong>S/ {nextBooking?.public_price ?? total}</strong>
-            </div>
-
-            <div>
               <span>Fecha</span>
-<strong>{formatDisplayDate(nextBooking?.scheduled_date || fecha)}</strong>
+              <strong>{formatDisplayDate(nextBooking?.scheduled_date || fecha)}</strong>
             </div>
 
             <div>
               <span>Hora</span>
-<strong>
-  {formatDisplayTime(nextBooking?.scheduled_time || hora)}
-</strong>
+              <strong>
+                {formatDisplayTime(nextBooking?.scheduled_time || hora)}
+              </strong>
+            </div>
+
+            <div>
+              <span>Beluer</span>
+              <strong>{appointmentBeluer}</strong>
+            </div>
+
+            <div>
+              <span>Total</span>
+              <strong>S/ {nextBooking?.public_price ?? total}</strong>
             </div>
 
             {addonsActivos.length > 0 && (
@@ -1241,10 +1285,7 @@ function DashboardSection({
 <div className="full">
   <span>Asignación</span>
   <strong>
-    {assignedBeluerName ||
-      (modoAsignacion === "libre" && beluerSeleccionada
-        ? beluerSeleccionada
-        : "Gestionado por belu")}
+    {assignedBeluerName ? "Beluer asignada" : "Coordinación belu"}
   </strong>
 </div>
 
@@ -1271,14 +1312,33 @@ function DashboardSection({
     ❌ Cancelar
   </button>
 </div>
-        </div>
+
+          <p className="cliente-panel-dashboard-manual-note">
+            Las reprogramaciones y cambios de Beluer se coordinan manualmente
+            por WhatsApp en esta etapa.
+          </p>
+        </article>
       )}
 
-      <div className="cliente-panel-card-grid">
+      <div className="cliente-panel-dashboard-section-heading">
+        <span className="cliente-panel-dashboard-kicker">Atajos reales</span>
+        <h2>Gestiona tu experiencia belu</h2>
+        <p>Accede a las secciones disponibles del MVP.</p>
+      </div>
+
+      <div className="cliente-panel-card-grid cliente-panel-dashboard-shortcuts">
+        <DashboardCard
+          icon={icons.reserva}
+          title="Nueva Reserva"
+          text="Agenda lashes o nails a domicilio con coordinación de belu."
+          button="Reservar ahora →"
+          onClick={() => goToSection("reserva")}
+        />
+
         <DashboardCard
           icon={icons.beluers}
           title="Especialistas"
-          text="Conoce a todas nuestras beluers verificadas."
+          text="Conoce a las Beluers disponibles y sus servicios activos."
           button="Ver especialistas →"
           onClick={() => goToSection("beluers")}
         />
@@ -1286,15 +1346,15 @@ function DashboardSection({
         <DashboardCard
           icon={icons.favoritas}
           title="Tus favoritas"
-          text="Accede rápido a las especialistas que más te gustan."
+          text="Todavía no se guarda de forma persistente; úsalo como referencia visual."
           button="Ver favoritas →"
           onClick={() => goToSection("favoritas")}
         />
 
         <DashboardCard
           icon={icons.historial}
-          title="Historial visual"
-          text="Revisa los resultados de tus citas anteriores."
+          title="Historial"
+          text="Revisa tus reservas registradas y su estado operativo."
           button="Ver historial →"
           onClick={() => goToSection("historial")}
         />
@@ -1310,6 +1370,34 @@ function DashboardSection({
           button="Ver pagos →"
           onClick={() => goToSection("pagos")}
         />
+
+        <DashboardCard
+          icon={icons.perfil}
+          title="Mi Perfil"
+          text="Actualiza WhatsApp y tu preferencia de belleza."
+          button="Ver perfil →"
+          onClick={() => goToSection("perfil")}
+        />
+      </div>
+
+      <div className="cliente-panel-dashboard-section-heading">
+        <span className="cliente-panel-dashboard-kicker">Explora servicios</span>
+        <h2>Lashes y nails a domicilio</h2>
+        <p>Elige una categoría y agenda cada servicio por separado.</p>
+      </div>
+
+      <div className="cliente-panel-dashboard-service-grid">
+        <button type="button" onClick={() => goToSection("reserva")}>
+          <span>Lashes</span>
+          <strong>Pestañas diseñadas para tu estilo</strong>
+          <small>Extensiones, lifting y servicios relacionados.</small>
+        </button>
+
+        <button type="button" onClick={() => goToSection("reserva")}>
+          <span>Nails</span>
+          <strong>Manicure y uñas con acabado premium</strong>
+          <small>Servicios de uñas coordinados por belu.</small>
+        </button>
       </div>
     </section>
   );
