@@ -3456,3 +3456,282 @@
     height: 150px;
   }
 }
+
+/* --------------------------------------------------------------------------
+   BLOQUE 7 - AJUSTE COMPACTO CLIENTA
+   Solo proporciones: menos altura, padding y escala tipografica.
+-------------------------------------------------------------------------- */
+
+.cliente-panel-dashboard {
+  gap: var(--sp-5);
+}
+
+.cliente-panel-dashboard-topbar,
+.cliente-panel-reserva-topbar {
+  padding: var(--sp-4);
+}
+
+.cliente-panel-dashboard .cliente-panel-greeting h1,
+.cliente-panel-reserva-section .cliente-panel-greeting h1 {
+  font-size: clamp(1.45rem, 2.4vw, 2.1rem);
+  line-height: 1.05;
+}
+
+.cliente-panel-dashboard .cliente-panel-greeting p,
+.cliente-panel-reserva-section .cliente-panel-greeting p {
+  font-size: 0.86rem;
+}
+
+.cliente-panel-dashboard-kicker,
+.cliente-panel-reserva-block-title span,
+.cliente-panel-categoria-titulo span,
+.cliente-panel-servicio-category,
+.cliente-panel-servicio-selected-label {
+  padding: 0.32rem 0.58rem;
+  font-size: 0.64rem;
+  letter-spacing: 0.11em;
+}
+
+.cliente-panel-dashboard-empty,
+.cliente-panel-dashboard-appointment,
+.cliente-panel-reserva-card {
+  padding: clamp(1rem, 2vw, 1.35rem);
+  border-radius: var(--r-lg);
+}
+
+.cliente-panel-dashboard-empty::after,
+.cliente-panel-dashboard-appointment::after {
+  bottom: -2rem;
+  font-size: clamp(5rem, 12vw, 10rem);
+}
+
+.cliente-panel-dashboard-empty h2,
+.cliente-panel-dashboard-card-head h2 {
+  max-width: 640px;
+  font-size: clamp(1.8rem, 3.2vw, 3rem);
+  line-height: 0.98;
+}
+
+.cliente-panel-dashboard-empty p,
+.cliente-panel-dashboard-card-head p {
+  margin-top: var(--sp-3);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.cliente-panel-dashboard-card-head {
+  gap: var(--sp-4);
+  margin-bottom: var(--sp-4);
+}
+
+.cliente-panel-dashboard-service {
+  gap: var(--sp-1);
+  margin-bottom: var(--sp-4);
+  padding: var(--sp-4);
+  border-radius: var(--r-lg);
+}
+
+.cliente-panel-dashboard-service strong {
+  font-size: clamp(1.35rem, 2.2vw, 2rem);
+}
+
+.cliente-panel-dashboard .cliente-panel-ra-grid {
+  gap: var(--sp-3);
+  padding: var(--sp-3);
+}
+
+.cliente-panel-dashboard .cliente-panel-ra-grid div {
+  min-height: 74px;
+  padding: var(--sp-3);
+  border-radius: var(--r-md);
+}
+
+.cliente-panel-dashboard .cliente-panel-ra-grid strong {
+  font-size: 0.9rem;
+}
+
+.cliente-panel-dashboard .cliente-panel-ra-acciones {
+  gap: var(--sp-2);
+  margin-top: var(--sp-4);
+}
+
+.cliente-panel-dashboard .cliente-panel-ra-acciones button,
+.cliente-panel-reserva-section .cliente-panel-full-btn {
+  min-height: 42px;
+  padding: 0.72rem 1rem;
+  font-size: 0.82rem;
+}
+
+.cliente-panel-dashboard-manual-note,
+.cliente-panel-reserva-single-note,
+.cliente-panel-reserva-mvp-note {
+  padding: var(--sp-3);
+  font-size: 0.82rem;
+}
+
+.cliente-panel-dashboard-section-heading {
+  margin-top: 0;
+}
+
+.cliente-panel-dashboard-section-heading h2,
+.cliente-panel-reserva-block-title h2,
+.cliente-panel-categoria-titulo {
+  font-size: clamp(1.35rem, 2.3vw, 1.9rem);
+  line-height: 1.03;
+}
+
+.cliente-panel-dashboard-section-heading p,
+.cliente-panel-categoria-titulo small,
+.cliente-panel-reserva-block-title p {
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+.cliente-panel-dashboard-shortcuts {
+  gap: var(--sp-3);
+}
+
+.cliente-panel-dashboard-shortcuts .cliente-panel-card {
+  min-height: 156px;
+  padding: var(--sp-4);
+}
+
+.cliente-panel-dashboard-shortcuts .cliente-panel-card h3 {
+  font-size: 1rem;
+}
+
+.cliente-panel-dashboard-shortcuts .cliente-panel-card p {
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+.cliente-panel-dashboard-service-grid {
+  gap: var(--sp-3);
+}
+
+.cliente-panel-dashboard-service-grid button {
+  min-height: 150px;
+  gap: var(--sp-2);
+  padding: var(--sp-4);
+  border-radius: var(--r-lg);
+}
+
+.cliente-panel-dashboard-service-grid button::after {
+  right: var(--sp-3);
+  bottom: -1.45rem;
+  font-size: 4.7rem;
+}
+
+.cliente-panel-dashboard-service-grid strong {
+  font-size: clamp(1.3rem, 2.3vw, 1.8rem);
+}
+
+.cliente-panel-dashboard-service-grid small {
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+.cliente-panel-reserva-section {
+  gap: var(--sp-5);
+}
+
+.cliente-panel-reserva-card {
+  grid-template-columns: minmax(0, 1fr) minmax(290px, 360px);
+  gap: var(--sp-4);
+}
+
+.cliente-panel-categoria-titulo,
+.cliente-panel-reserva-block-title {
+  gap: var(--sp-2);
+  padding: var(--sp-4);
+  border-radius: var(--r-lg);
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicios-grid {
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-3);
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicio-card {
+  border-radius: var(--r-lg);
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicio-card.selected {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--belu-pink) 44%, transparent), var(--shadow-sm);
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicio-card img {
+  height: 118px;
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicio-card-body {
+  min-height: 142px;
+  gap: var(--sp-2);
+  padding: var(--sp-3);
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicio-card-body h4 {
+  font-size: 0.98rem;
+  line-height: 1.18;
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicio-card-body p {
+  font-size: 0.8rem;
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicio-card-body > span:not(.cliente-panel-servicio-category) {
+  font-size: 1.05rem;
+}
+
+.cliente-panel-reserva-section .cliente-panel-addons-section,
+.cliente-panel-reserva-section .cliente-panel-info-box,
+.cliente-panel-reserva-section .cliente-panel-libre-box,
+.cliente-panel-reserva-section .cliente-panel-urgencia-toggle {
+  border-radius: var(--r-lg);
+  padding: var(--sp-4);
+}
+
+.cliente-panel-reserva-section .cliente-panel-form-group {
+  margin-bottom: var(--sp-3);
+}
+
+.cliente-panel-reserva-section .cliente-panel-form-group input,
+.cliente-panel-reserva-section .cliente-panel-form-group select,
+.cliente-panel-reserva-section .cliente-panel-form-group textarea {
+  min-height: 42px;
+  border-radius: var(--r-md);
+  font-size: 0.88rem;
+}
+
+.cliente-panel-reserva-section .cliente-panel-form-group small {
+  margin-top: var(--sp-1);
+}
+
+.cliente-panel-reserva-section .cliente-panel-resumen-pago {
+  padding: var(--sp-4);
+  border-radius: var(--r-lg);
+}
+
+.cliente-panel-resumen-empty strong {
+  font-size: 1.2rem;
+}
+
+.cliente-panel-resumen-empty span {
+  font-size: 0.84rem;
+}
+
+@media (max-width: 760px) {
+  .cliente-panel-dashboard-empty h2,
+  .cliente-panel-dashboard-card-head h2 {
+    font-size: clamp(1.7rem, 9vw, 2.35rem);
+  }
+
+  .cliente-panel-dashboard-shortcuts .cliente-panel-card,
+  .cliente-panel-dashboard-service-grid button {
+    min-height: auto;
+  }
+
+  .cliente-panel-reserva-section .cliente-panel-servicio-card img {
+    height: 120px;
+  }
+}
