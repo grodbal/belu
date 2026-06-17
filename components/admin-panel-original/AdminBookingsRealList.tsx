@@ -75,6 +75,14 @@ function formatDate(value: string) {
   }).format(new Date(`${value}T00:00:00`));
 }
 
+function formatRate(value: number) {
+  const normalizedRate = value > 1 ? value : value * 100;
+
+  return new Intl.NumberFormat("es-PE", {
+    maximumFractionDigits: 2,
+  }).format(normalizedRate);
+}
+
 function getStatusLabel(status: Booking["status"]) {
   const labels: Record<Booking["status"], string> = {
     pending: "Pendiente",
@@ -137,18 +145,12 @@ export default async function AdminBookingsRealList() {
 
   if (!bookings || bookings.length === 0) {
     return (
-      <div className="rounded-[2rem] border border-dashed border-[#E60023]/30 bg-white p-8 text-center">
-        <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#E60023]">
-          Sin reservas
-        </p>
-
-        <h3 className="mt-3 text-2xl font-black text-[#1A1A1A]">
-          Aún no hay reservas registradas
-        </h3>
-
-        <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-neutral-500">
-          Cuando una clienta reserve un servicio, la información aparecerá aquí
-          con servicio, fecha, Beluer, estado y pago.
+      <div className="admin-bookings-admin-empty">
+        <span>Reservas</span>
+        <h3>Aun no hay reservas registradas</h3>
+        <p>
+          Cuando una clienta agende un servicio, aparecera aqui para que puedas
+          asignar Beluer y gestionar el estado.
         </p>
       </div>
     );
@@ -248,214 +250,310 @@ export default async function AdminBookingsRealList() {
     (services as Service[]).map((service) => [service.id, service])
   );
   const availableBeluerOptions = (availableBeluers as AssignableBeluer[]) || [];
+  const typedBookings = bookings as Booking[];
+  const bookingSummary = {
+    total: typedBookings.length,
+    pending: typedBookings.filter((booking) => booking.status === "pending")
+      .length,
+    assigned: typedBookings.filter((booking) => booking.status === "assigned")
+      .length,
+    confirmed: typedBookings.filter(
+      (booking) => booking.status === "confirmed"
+    ).length,
+    completed: typedBookings.filter(
+      (booking) => booking.status === "completed"
+    ).length,
+    paymentPending: typedBookings.filter(
+      (booking) => booking.payment_status === "pending"
+    ).length,
+  };
 
   return (
-    <section className="admin-real-panel admin-bookings-real-table rounded-[2rem] bg-white p-6 shadow-sm ring-1 ring-black/5 md:p-8">
-      <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+    <section className="admin-real-panel admin-bookings-admin-page">
+      <div className="admin-bookings-admin-hero">
         <div>
-          <p className="mb-2 text-sm font-bold uppercase tracking-[0.25em] text-[#E60023]">
-            Datos reales
-          </p>
+          <span className="admin-real-eyebrow">Datos reales</span>
 
-          <h2 className="text-2xl font-black text-[#1A1A1A]">
-            Reservas registradas
-          </h2>
+          <h2>Reservas</h2>
 
-          <p className="mt-2 text-sm leading-relaxed text-neutral-500">
+          <p>
             Consulta las reservas registradas, su estado operativo, pago y
-            Beluer asignada. Más adelante se
-            conectarán al pago y al flujo de WhatsApp.
+            Beluer asignada.
           </p>
         </div>
 
-        <div className="rounded-full bg-[#FFD6E2] px-4 py-2 text-sm font-black text-[#E60023]">
-          {bookings.length} reserva{bookings.length === 1 ? "" : "s"}
+        <div className="admin-bookings-admin-count">
+          <strong>{bookingSummary.total}</strong>
+          <span>reserva{bookingSummary.total === 1 ? "" : "s"}</span>
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-[1.5rem] border border-neutral-100">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[1180px] border-collapse text-left text-sm">
-            <thead className="bg-[#F7F3F0] text-xs uppercase tracking-[0.16em] text-neutral-500">
-              <tr>
-                <th className="px-5 py-4 font-black">Reserva</th>
-                <th className="px-5 py-4 font-black">Clienta</th>
-                <th className="px-5 py-4 font-black">Servicio</th>
-                <th className="px-5 py-4 font-black">Beluer</th>
-                <th className="px-5 py-4 font-black">Ubicación</th>
-                <th className="px-5 py-4 font-black">Importes</th>
-                <th className="px-5 py-4 font-black">Estado</th>
-              </tr>
-            </thead>
-
-            <tbody className="divide-y divide-neutral-100">
-              {(bookings as Booking[]).map((booking) => {
-                const client = booking.client_profile_id
-                  ? clientsById.get(booking.client_profile_id)
-                  : null;
-
-                const beluer = booking.beluer_profile_id
-                  ? beluersById.get(booking.beluer_profile_id)
-                  : null;
-
-                const service = servicesById.get(booking.service_id);
-
-                return (
-                  <tr key={booking.id} className="align-top">
-                    <td className="px-5 py-5">
-                      <p className="font-black text-[#1A1A1A]">
-                        {formatDate(booking.scheduled_date)}
-                      </p>
-
-                      <p className="mt-1 text-xs text-neutral-500">
-                        {booking.scheduled_time.slice(0, 5)}
-                      </p>
-
-                      <p className="mt-2 text-xs text-neutral-500">
-                        {booking.booking_mode === "managed"
-                          ? "Modo Gestionado"
-                          : "Modo Libre"}
-                      </p>
-
-                      {booking.is_express ? (
-                        <span className="mt-2 inline-flex rounded-full bg-[#E60023] px-3 py-1 text-xs font-black text-white">
-                          Express
-                        </span>
-                      ) : null}
-                    </td>
-
-                    <td className="px-5 py-5">
-                      <p className="font-black text-[#1A1A1A]">
-                        {client?.full_name || "Clienta sin asignar"}
-                      </p>
-
-                      <p className="mt-1 text-xs text-neutral-500">
-                        {client?.email || "Sin correo"}
-                      </p>
-
-                      <p className="mt-1 text-xs text-neutral-500">
-                        {client?.phone || "Sin teléfono"}
-                      </p>
-                    </td>
-
-                    <td className="px-5 py-5">
-                      <p className="font-black text-[#1A1A1A]">
-                        {service?.name || "Servicio no encontrado"}
-                      </p>
-
-                      <span className="mt-2 inline-flex rounded-full bg-[#FFD6E2] px-3 py-1 text-xs font-black text-[#E60023]">
-                        {service ? getCategoryLabel(service.category) : "—"}
-                      </span>
-                    </td>
-
-                    <td className="px-5 py-5">
-                      <p className="font-black text-[#1A1A1A]">
-                        {beluer?.public_name || "Sin Beluer asignada"}
-                      </p>
-
-                      <AssignBookingBeluerForm
-                        bookingId={booking.id}
-                        currentStatus={booking.status}
-                        currentBeluerProfileId={booking.beluer_profile_id}
-                        availableBeluers={availableBeluerOptions}
-                      />
-                    </td>
-
-                    <td className="px-5 py-5">
-                      <p className="font-black text-[#1A1A1A]">
-                        {booking.district}
-                      </p>
-
-                      <p className="mt-1 max-w-[220px] text-xs leading-relaxed text-neutral-500">
-                        {booking.address}
-                      </p>
-
-                      {booking.notes ? (
-                        <p className="mt-2 max-w-[220px] text-xs leading-relaxed text-neutral-400">
-                          Nota: {booking.notes}
-                        </p>
-                      ) : null}
-                    </td>
-
-                    <td className="px-5 py-5 text-xs text-neutral-500">
-                      <p>
-                        Público:{" "}
-                        <strong className="text-[#1A1A1A]">
-                          {formatCurrency(booking.public_price)}
-                        </strong>
-                      </p>
-
-                      <p className="mt-1">
-                        Base:{" "}
-                        <strong className="text-[#1A1A1A]">
-                          {formatCurrency(booking.base_price)}
-                        </strong>
-                      </p>
-
-                      <p className="mt-1">
-                        Comisión belu:{" "}
-                        <strong className="text-[#1A1A1A]">
-                          {formatCurrency(booking.belu_commission_amount)}
-                        </strong>
-                      </p>
-
-                      <p className="mt-1">
-                        Pago Beluer:{" "}
-                        <strong className="text-[#1A1A1A]">
-                          {formatCurrency(booking.beluer_payment_amount)}
-                        </strong>
-                      </p>
-
-                      {booking.express_fee > 0 ? (
-                        <p className="mt-1">
-                          Express:{" "}
-                          <strong className="text-[#1A1A1A]">
-                            {formatCurrency(booking.express_fee)}
-                          </strong>
-                        </p>
-                      ) : null}
-                    </td>
-
-                    <td className="px-5 py-5">
-  <div className="space-y-3">
-    <div>
-      <span className="inline-flex rounded-full bg-neutral-100 px-3 py-1 text-xs font-black text-neutral-700">
-        {getStatusLabel(booking.status)}
-      </span>
-
-      <span className="mt-2 inline-flex rounded-full bg-[#FFD6E2] px-3 py-1 text-xs font-black text-[#E60023]">
-        Pago: {getPaymentStatusLabel(booking.payment_status)}
-      </span>
-    </div>
-
-    <div>
-      <p className="mb-2 text-[11px] font-black uppercase tracking-[0.16em] text-neutral-400">
-        Cambiar estado
-      </p>
-
-      <UpdateBookingStatusForm
-        bookingId={booking.id}
-        currentStatus={booking.status}
-      />
-      <div>
-  <p className="mb-2 text-[11px] font-black uppercase tracking-[0.16em] text-neutral-400">
-    Cambiar pago
-  </p>
-
-  <UpdateBookingPaymentStatusForm
-    bookingId={booking.id}
-    currentPaymentStatus={booking.payment_status}
-  />
-</div>
-    </div>
-  </div>
-</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+      <div className="admin-bookings-admin-summary">
+        <div>
+          <span>Total reservas</span>
+          <strong>{bookingSummary.total}</strong>
         </div>
+
+        <div>
+          <span>Pendientes</span>
+          <strong>{bookingSummary.pending}</strong>
+        </div>
+
+        <div>
+          <span>Asignadas</span>
+          <strong>{bookingSummary.assigned}</strong>
+        </div>
+
+        <div>
+          <span>Confirmadas</span>
+          <strong>{bookingSummary.confirmed}</strong>
+        </div>
+
+        <div>
+          <span>Completadas</span>
+          <strong>{bookingSummary.completed}</strong>
+        </div>
+
+        <div>
+          <span>Pagos pendientes</span>
+          <strong>{bookingSummary.paymentPending}</strong>
+        </div>
+      </div>
+
+      <div className="admin-bookings-admin-list">
+        {typedBookings.map((booking) => {
+          const client = booking.client_profile_id
+            ? clientsById.get(booking.client_profile_id)
+            : null;
+
+          const beluer = booking.beluer_profile_id
+            ? beluersById.get(booking.beluer_profile_id)
+            : null;
+
+          const service = servicesById.get(booking.service_id);
+          const hasAssignedBeluer = Boolean(booking.beluer_profile_id);
+
+          return (
+            <article key={booking.id} className="admin-booking-admin-card">
+              <div className="admin-booking-admin-card-head">
+                <div>
+                  <div className="admin-booking-badge-row">
+                    <span className={getStatusBadgeClass(booking.status)}>
+                      {getStatusLabel(booking.status)}
+                    </span>
+
+                    <span
+                      className={getPaymentBadgeClass(booking.payment_status)}
+                    >
+                      Pago: {getPaymentStatusLabel(booking.payment_status)}
+                    </span>
+
+                    <span className="admin-booking-meta-pill">
+                      {booking.booking_mode === "managed"
+                        ? "Modo gestionado"
+                        : "Modo libre"}
+                    </span>
+
+                    {booking.is_express ? (
+                      <span className="admin-booking-meta-pill is-express">
+                        Express
+                      </span>
+                    ) : null}
+                  </div>
+
+                  <h3>{service?.name || "Servicio no encontrado"}</h3>
+
+                  <p>
+                    {formatDate(booking.scheduled_date)} -{" "}
+                    {booking.scheduled_time.slice(0, 5)} - {booking.district}
+                  </p>
+                </div>
+
+                <div className="admin-booking-admin-total">
+                  <span>Total publico</span>
+                  <strong>{formatCurrency(booking.public_price)}</strong>
+                </div>
+              </div>
+
+              <div className="admin-booking-admin-grid">
+                <section className="admin-booking-admin-block">
+                  <h4>Clienta</h4>
+
+                  <dl>
+                    <div>
+                      <dt>Nombre</dt>
+                      <dd>{client?.full_name || "Clienta sin asignar"}</dd>
+                    </div>
+
+                    <div>
+                      <dt>Email</dt>
+                      <dd>{client?.email || "Sin correo"}</dd>
+                    </div>
+
+                    <div>
+                      <dt>Telefono</dt>
+                      <dd>{client?.phone || "Sin telefono"}</dd>
+                    </div>
+                  </dl>
+                </section>
+
+                <section className="admin-booking-admin-block">
+                  <h4>Servicio y ubicacion</h4>
+
+                  <dl>
+                    <div>
+                      <dt>Servicio</dt>
+                      <dd>{service?.name || "Servicio no encontrado"}</dd>
+                    </div>
+
+                    <div>
+                      <dt>Categoria</dt>
+                      <dd>
+                        {service ? getCategoryLabel(service.category) : "-"}
+                      </dd>
+                    </div>
+
+                    <div>
+                      <dt>Fecha</dt>
+                      <dd>{formatDate(booking.scheduled_date)}</dd>
+                    </div>
+
+                    <div>
+                      <dt>Hora</dt>
+                      <dd>{booking.scheduled_time.slice(0, 5)}</dd>
+                    </div>
+
+                    <div>
+                      <dt>Distrito</dt>
+                      <dd>{booking.district}</dd>
+                    </div>
+
+                    <div>
+                      <dt>Direccion</dt>
+                      <dd>{booking.address}</dd>
+                    </div>
+
+                    {booking.notes ? (
+                      <div>
+                        <dt>Notas</dt>
+                        <dd>{booking.notes}</dd>
+                      </div>
+                    ) : null}
+                  </dl>
+                </section>
+
+                <section className="admin-booking-admin-block">
+                  <h4>Beluer</h4>
+
+                  <p className="admin-booking-admin-beluer-name">
+                    {beluer?.public_name || "Sin Beluer asignada"}
+                  </p>
+
+                  <p className="admin-booking-admin-muted">
+                    {hasAssignedBeluer
+                      ? "Especialista asignada a esta reserva."
+                      : "Pendiente de asignacion por Admin."}
+                  </p>
+
+                  <AssignBookingBeluerForm
+                    bookingId={booking.id}
+                    currentStatus={booking.status}
+                    currentBeluerProfileId={booking.beluer_profile_id}
+                    availableBeluers={availableBeluerOptions}
+                  />
+                </section>
+
+                <section className="admin-booking-admin-block">
+                  <h4>Importes</h4>
+
+                  <div className="admin-booking-money-grid">
+                    <div>
+                      <span>Publico</span>
+                      <strong>{formatCurrency(booking.public_price)}</strong>
+                    </div>
+
+                    <div>
+                      <span>Base</span>
+                      <strong>{formatCurrency(booking.base_price)}</strong>
+                    </div>
+
+                    <div>
+                      <span>Nivel Beluer</span>
+                      <strong>
+                        {hasAssignedBeluer ? "No disponible" : "Pendiente"}
+                      </strong>
+                    </div>
+
+                    <div>
+                      <span>Comision belu</span>
+                      <strong>
+                        {hasAssignedBeluer
+                          ? formatCurrency(booking.belu_commission_amount)
+                          : "Pendiente"}
+                      </strong>
+                      {hasAssignedBeluer ? (
+                        <small>
+                          Tasa registrada:{" "}
+                          {formatRate(booking.belu_commission_rate)}%
+                        </small>
+                      ) : null}
+                    </div>
+
+                    <div>
+                      <span>Pago Beluer</span>
+                      <strong>
+                        {hasAssignedBeluer
+                          ? formatCurrency(booking.beluer_payment_amount)
+                          : "Pendiente"}
+                      </strong>
+                    </div>
+
+                    {booking.express_fee > 0 ? (
+                      <div>
+                        <span>Express</span>
+                        <strong>{formatCurrency(booking.express_fee)}</strong>
+                      </div>
+                    ) : null}
+                  </div>
+                </section>
+
+                <section className="admin-booking-admin-block admin-booking-admin-control-block">
+                  <h4>Estado reserva</h4>
+
+                  <span className={getStatusBadgeClass(booking.status)}>
+                    {getStatusLabel(booking.status)}
+                  </span>
+
+                  <div className="admin-booking-admin-form-area">
+                    <p>Cambiar estado</p>
+
+                    <UpdateBookingStatusForm
+                      bookingId={booking.id}
+                      currentStatus={booking.status}
+                    />
+                  </div>
+                </section>
+
+                <section className="admin-booking-admin-block admin-booking-admin-control-block">
+                  <h4>Estado pago</h4>
+
+                  <span className={getPaymentBadgeClass(booking.payment_status)}>
+                    {getPaymentStatusLabel(booking.payment_status)}
+                  </span>
+
+                  <div className="admin-booking-admin-form-area">
+                    <p>Cambiar pago</p>
+
+                    <UpdateBookingPaymentStatusForm
+                      bookingId={booking.id}
+                      currentPaymentStatus={booking.payment_status}
+                    />
+                  </div>
+                </section>
+              </div>
+            </article>
+          );
+        })}
       </div>
     </section>
   );
