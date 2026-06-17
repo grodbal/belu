@@ -473,18 +473,27 @@ const hasRealBooking = Boolean(nextBooking);
 )}
 
           {activeSection === "reserva" && (
-            <section className="cliente-panel-section active">
-              <div className="cliente-panel-top-bar">
+            <section className="cliente-panel-section cliente-panel-reserva-section active">
+              <div className="cliente-panel-top-bar cliente-panel-reserva-topbar">
                 <div className="cliente-panel-greeting">
-                  <h1>Agendar nueva cita</h1>
+                  <span className="cliente-panel-dashboard-kicker">
+                    Nueva reserva
+                  </span>
+                  <h1>Agenda tu nueva cita</h1>
+                  <p>
+                    Elige tu servicio, fecha y dirección. belu coordina el
+                    resto.
+                  </p>
                 </div>
 
                 <UserPill clientName={clientName} />
               </div>
 
-              <div className="cliente-panel-card">
+              <div className="cliente-panel-card cliente-panel-reserva-card">
                 <div className="cliente-panel-categoria-titulo">
-                  Pestañas y Cejas
+                  <span>Bloque 1</span>
+                  Lashes
+                  <small>Elige un servicio de pestañas para tu cita.</small>
                 </div>
 
                 <div className="cliente-panel-servicios-grid">
@@ -507,7 +516,11 @@ const hasRealBooking = Boolean(nextBooking);
                   />
                 )}
 
-                <div className="cliente-panel-categoria-titulo">Uñas</div>
+                <div className="cliente-panel-categoria-titulo">
+                  <span>Bloque 1</span>
+                  Nails
+                  <small>Agenda tu servicio de uñas a domicilio.</small>
+                </div>
 
                 <div className="cliente-panel-servicios-grid">
                   {catalogoNails.map((servicio) => (
@@ -529,6 +542,15 @@ const hasRealBooking = Boolean(nextBooking);
                   />
                 )}
 
+                <div className="cliente-panel-reserva-block-title">
+                  <span>Bloque 2</span>
+                  <h2>Detalles de la cita</h2>
+                  <p>
+                    Define cuándo y dónde quieres recibir a tu Beluer. Mantén la
+                    dirección lo más clara posible.
+                  </p>
+                </div>
+
                 <div className="cliente-panel-form-group">
                   <label>Fecha deseada</label>
                   <input
@@ -536,6 +558,7 @@ const hasRealBooking = Boolean(nextBooking);
                     value={fecha}
                     onChange={(event) => setFecha(event.target.value)}
                   />
+                  <small>Elige el día ideal para tu atención.</small>
                 </div>
 
                 <div className="cliente-panel-form-group">
@@ -545,6 +568,7 @@ const hasRealBooking = Boolean(nextBooking);
                     value={hora}
                     onChange={(event) => setHora(event.target.value)}
                   />
+                  <small>Selecciona la hora aproximada de inicio.</small>
                 </div>
 
                 <div className="cliente-panel-form-group">
@@ -561,6 +585,7 @@ const hasRealBooking = Boolean(nextBooking);
     <option value="San Borja">San Borja</option>
     <option value="San Miguel">San Miguel</option>
   </select>
+  <small>Usaremos el distrito para coordinar disponibilidad.</small>
 </div>
 
 <div className="cliente-panel-form-group">
@@ -571,6 +596,7 @@ const hasRealBooking = Boolean(nextBooking);
     onChange={(event) => setDireccionReserva(event.target.value)}
     placeholder="Ej: Av. Santa Cruz 950, dpto 402"
   />
+  <small>Ingresa la dirección donde quieres recibir a tu Beluer.</small>
 </div>
 
                 <label className="cliente-panel-urgencia-toggle">
@@ -660,7 +686,26 @@ const hasRealBooking = Boolean(nextBooking);
     onChange={(event) => setNotasReserva(event.target.value)}
     placeholder="Ej: prefiero diseño francés, color rojo intenso..."
   />
+  <small>Opcional: agrega preferencias o indicaciones de acceso.</small>
 </div>
+
+                <div className="cliente-panel-reserva-block-title cliente-panel-reserva-summary-title">
+                  <span>Bloque 3</span>
+                  <h2>Resumen de reserva</h2>
+                  <p>
+                    Revisa los datos principales antes de continuar con la
+                    confirmación.
+                  </p>
+                </div>
+
+                {serviciosSeleccionados.length === 0 && (
+                  <div className="cliente-panel-resumen-pago cliente-panel-resumen-empty">
+                    <strong>Elige un servicio para ver el resumen de tu reserva.</strong>
+                    <span>
+                      Aquí aparecerán servicio, fecha, hora, distrito y total.
+                    </span>
+                  </div>
+                )}
 
                 {serviciosSeleccionados.length > 0 && (
                   <div className="cliente-panel-resumen-pago">
@@ -672,6 +717,14 @@ const hasRealBooking = Boolean(nextBooking);
                           .join(" + ")}
                       </strong>
                     </div>
+
+                    {serviciosSeleccionados.length > 1 && (
+                      <div className="cliente-panel-reserva-single-note">
+                        Por ahora cada servicio se reserva por separado. Elige
+                        un servicio para continuar y luego podrás reservar el
+                        siguiente.
+                      </div>
+                    )}
 
                     {addonsActivos.length > 0 && (
                       <div className="addons-wrapper">
@@ -721,8 +774,13 @@ const hasRealBooking = Boolean(nextBooking);
                   type="button"
                   onClick={handleConfirmarReserva}
                 >
-                  Reservar servicio ✦
+                  Confirmar reserva ✦
                 </button>
+
+                <p className="cliente-panel-reserva-mvp-note">
+                  En esta etapa, la confirmación y coordinación final se realiza
+                  por WhatsApp belu.
+                </p>
               </div>
             </section>
           )}
@@ -2168,8 +2226,17 @@ function ServiceCard({
     >
       <img src={servicio.foto} alt={servicio.nombre} />
       <div className="cliente-panel-servicio-card-body">
+        <span className="cliente-panel-servicio-category">
+          {servicio.categoria === "lashes" ? "Lashes" : "Nails"}
+        </span>
         <h4>{servicio.nombre}</h4>
+        {servicio.desc ? <p>{servicio.desc}</p> : null}
         <span>S/ {servicio.precio}</span>
+        {selected ? (
+          <small className="cliente-panel-servicio-selected-label">
+            Seleccionado
+          </small>
+        ) : null}
       </div>
     </button>
   );
