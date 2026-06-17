@@ -612,7 +612,7 @@ export default function BeluerPanelOriginalPage({
                   className="beluer-panel-btn-secondary"
                   onClick={() => handleRechazarReserva(reservaDetalle.id)}
                 >
-                  No puedo tomar esta reserva
+                  No puedo
                 </button>
 
                 <button
@@ -651,9 +651,10 @@ function ReservasSection({
   const rechazadas = reservas.filter((reserva) => reserva.estado === "rechazada");
 
   return (
-    <section className="beluer-panel-section active">
-      <div className="beluer-panel-top-bar">
+    <section className="beluer-panel-section beluer-panel-reservas-page active">
+      <div className="beluer-panel-top-bar beluer-panel-reservas-topbar">
         <div className="beluer-panel-greeting">
+          <span className="beluer-panel-reservas-kicker">Panel Beluer</span>
           <h1>Reservas</h1>
           <p>Gestiona tus solicitudes y citas aceptadas.</p>
         </div>
@@ -679,7 +680,14 @@ function ReservasSection({
       </div>
 
       <div className="beluer-panel-reservas-section-block">
-        <h2>Solicitudes pendientes</h2>
+        <div className="beluer-panel-reservas-section-head">
+          <span className="beluer-panel-reservas-kicker">Decisión requerida</span>
+          <h2>Solicitudes asignadas</h2>
+          <p>
+            Revisa cada solicitud antes de aceptarla. Si no puedes tomarla,
+            belu la devolverá a la cola para reasignarla.
+          </p>
+        </div>
 
         {pendientes.length > 0 ? (
           <div className="beluer-panel-reservas-board">
@@ -695,13 +703,18 @@ function ReservasSection({
           </div>
         ) : (
           <div className="beluer-panel-empty-state">
-            No tienes solicitudes pendientes por ahora.
+            <h3>No tienes solicitudes pendientes</h3>
+            <p>Cuando belu te asigne una nueva reserva, aparecerá aquí.</p>
           </div>
         )}
       </div>
 
       <div className="beluer-panel-reservas-section-block">
-        <h2>Reservas aceptadas</h2>
+        <div className="beluer-panel-reservas-section-head">
+          <span className="beluer-panel-reservas-kicker">Agenda</span>
+          <h2>Reservas aceptadas</h2>
+          <p>Las citas confirmadas quedan organizadas para tu jornada.</p>
+        </div>
 
         {aceptadas.length > 0 ? (
           <div className="beluer-panel-reservas-board">
@@ -717,7 +730,8 @@ function ReservasSection({
           </div>
         ) : (
           <div className="beluer-panel-empty-state">
-            Aún no tienes reservas aceptadas.
+            <h3>Aún no tienes citas aceptadas</h3>
+            <p>Las reservas que aceptes aparecerán en tu agenda.</p>
           </div>
         )}
       </div>
@@ -744,13 +758,31 @@ function ReservaBeluerCard({
       </div>
 
       <h3>{reserva.servicio}</h3>
-      <p>{reserva.clienta}</p>
+      <p>Clienta: {reserva.clienta}</p>
 
       <div className="beluer-panel-reserva-full-meta">
-        <span>📍 {reserva.distrito}</span>
-        <span>📅 {reserva.fecha}</span>
-        <span>🕒 {reserva.hora}</span>
+        <span>Distrito: {reserva.distrito}</span>
+        <span>Fecha: {reserva.fecha}</span>
+        <span>Hora: {reserva.hora}</span>
       </div>
+
+      {reserva.direccion ? (
+        <p className="beluer-panel-reserva-address">
+          Dirección: {reserva.direccion}
+        </p>
+      ) : null}
+
+      {reserva.instrucciones ? (
+        <p className="beluer-panel-reserva-notes">
+          Nota: {reserva.instrucciones}
+        </p>
+      ) : null}
+
+      {reserva.estado === "pendiente" ? (
+        <p className="beluer-panel-reserva-reassign-note">
+          Si no puedes tomarla, belu la devolverá a la cola para reasignarla.
+        </p>
+      ) : null}
 
       <div className="beluer-panel-reserva-full-actions">
         <button type="button" onClick={() => onVerDetalle(reserva)}>
@@ -764,7 +796,7 @@ function ReservaBeluerCard({
               className="secondary"
               onClick={() => onRechazar(reserva.id)}
             >
-              No puedo tomar esta reserva
+              No puedo
             </button>
 
             <button
@@ -772,7 +804,7 @@ function ReservaBeluerCard({
               className="primary"
               onClick={() => onAceptar(reserva.id)}
             >
-              Aceptar
+              Aceptar reserva
             </button>
           </>
         )}
