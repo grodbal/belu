@@ -1061,6 +1061,58 @@
   color: var(--r);
 }
 
+.cliente-panel-express-pill {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  border: 1px solid rgba(230, 0, 35, 0.16);
+  border-radius: 999px;
+  background: rgba(230, 0, 35, 0.06);
+  color: var(--r);
+  padding: 0.22rem 0.58rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.cliente-panel-booking-breakdown {
+  display: grid;
+  gap: 0.42rem;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 0.9rem;
+  background: rgba(255, 255, 255, 0.74);
+  padding: 0.85rem;
+  margin: 0.8rem 0;
+}
+
+.cliente-panel-booking-breakdown div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  color: #444;
+}
+
+.cliente-panel-booking-breakdown span {
+  color: #666;
+}
+
+.cliente-panel-booking-breakdown strong {
+  color: var(--negro);
+}
+
+.cliente-panel-booking-breakdown-total {
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  padding-top: 0.55rem;
+  margin-top: 0.1rem;
+}
+
+.cliente-panel-booking-breakdown-total span,
+.cliente-panel-booking-breakdown-total strong {
+  color: var(--r);
+  font-weight: 900;
+}
+
 .cliente-panel-reserva-activa-card {
   background: linear-gradient(135deg, #fff5f7 0%, #ffe5ed 60%, #ffd6e2 100%);
   border: 1px solid rgba(230, 0, 35, 0.15);
@@ -4252,5 +4304,1663 @@
 
   .cliente-panel-dashboard-service-grid button {
     grid-template-columns: 72px minmax(0, 1fr);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   BLOQUE 9 - NUEVA RESERVA CLIENTA BLUEPRINT
+   Solo presentacion: booking-grid, service-card compacta y summary lateral.
+-------------------------------------------------------------------------- */
+
+.cliente-panel-shell:has(.cliente-panel-reserva-section) {
+  background: linear-gradient(135deg, #f7f3f0 0%, #fbfaf8 58%, #fff 100%);
+}
+
+.cliente-panel-shell:has(.cliente-panel-reserva-section) .cliente-panel-main {
+  padding: clamp(1.3rem, 2.4vw, 2.2rem) clamp(1.4rem, 3.2vw, 2.6rem);
+}
+
+.cliente-panel-reserva-section {
+  max-width: 1220px;
+  gap: 1.15rem;
+  margin: 0 auto;
+}
+
+.cliente-panel-reserva-topbar {
+  align-items: center;
+  margin-bottom: 0;
+  border: 1px solid #efeae5;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 6px 24px rgba(26, 26, 26, 0.045);
+  padding: 1rem 1.1rem;
+}
+
+.cliente-panel-reserva-section .cliente-panel-greeting h1 {
+  color: #1a1a1a;
+  font-family: var(--font-serif);
+  font-size: clamp(1.65rem, 2.55vw, 2.5rem);
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1;
+}
+
+.cliente-panel-reserva-section .cliente-panel-greeting p {
+  margin-top: 0.36rem;
+  color: #5c5854;
+  font-size: 0.9rem;
+  font-weight: 560;
+}
+
+.cliente-panel-reserva-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(310px, 1fr);
+  gap: 1.55rem;
+  align-items: start;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+}
+
+.cliente-panel-reserva-card > * {
+  grid-column: auto;
+}
+
+.cliente-panel-booking-left {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 1.35rem;
+}
+
+.cliente-panel-booking-step-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.85rem;
+}
+
+.cliente-panel-booking-step-title {
+  color: #1a1a1a;
+  font-size: 0.82rem;
+  font-weight: 780;
+}
+
+.cliente-panel-booking-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.44rem;
+}
+
+.cliente-panel-booking-chips span {
+  border: 1px solid #dad3cc;
+  border-radius: 999px;
+  background: #fff;
+  color: #5c5854;
+  padding: 0.38rem 0.88rem;
+  font-size: 0.78rem;
+  font-weight: 680;
+}
+
+.cliente-panel-reserva-section .cliente-panel-categoria-titulo {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.8rem;
+  margin: 0 0 -0.68rem;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
+  color: #1a1a1a;
+  font-family: var(--font-sans);
+  font-size: 0.84rem;
+  font-weight: 760;
+  letter-spacing: 0;
+  line-height: 1.2;
+  text-transform: none;
+}
+
+.cliente-panel-reserva-section .cliente-panel-categoria-titulo small {
+  color: #6b6661;
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 520;
+  line-height: 1.35;
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicios-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin: 0;
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicio-card {
+  display: block;
+  min-height: 0;
+  overflow: visible;
+  border: 1px solid #efeae5;
+  border-radius: 13px;
+  background: #fff;
+  box-shadow: none;
+  text-align: left;
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicio-card:hover {
+  transform: translateY(-1px);
+  border-color: #fad3df;
+  background: #fff;
+  box-shadow: 0 4px 16px rgba(230, 0, 35, 0.06);
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicio-card.selected {
+  border: 1.5px solid #e60023;
+  background: #fff;
+  box-shadow: 0 4px 16px rgba(230, 0, 35, 0.1);
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicio-card.selected::after {
+  content: "✓";
+  position: absolute;
+  top: 13px;
+  right: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: #e60023;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicio-card img {
+  display: none;
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicio-card-body {
+  min-height: 138px;
+  justify-content: flex-start;
+  gap: 0.38rem;
+  padding: 1rem;
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicio-card-body h4 {
+  margin: 0;
+  padding-right: 1.4rem;
+  color: #1a1a1a;
+  font-size: 0.95rem;
+  font-weight: 720;
+  letter-spacing: 0;
+  line-height: 1.18;
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicio-card-body p {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  color: #6b6661;
+  font-size: 0.76rem;
+  font-weight: 520;
+  line-height: 1.4;
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicio-category {
+  width: max-content;
+  border-radius: 999px;
+  background: transparent;
+  color: #b6afa8;
+  padding: 0;
+  font: 850 0.62rem / 1 var(--font-mono);
+  letter-spacing: 0.1em;
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicio-card-body > span:not(.cliente-panel-servicio-category) {
+  margin-top: auto;
+  color: #1a1a1a;
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicio-selected-label {
+  display: none;
+}
+
+.cliente-panel-reserva-section .cliente-panel-addons-section,
+.cliente-panel-reserva-section .cliente-panel-info-box,
+.cliente-panel-reserva-section .cliente-panel-libre-box {
+  margin: 0;
+  border: 1px solid #efeae5;
+  border-radius: 13px;
+  background: #fff;
+  box-shadow: none;
+  padding: 1rem;
+}
+
+.cliente-panel-reserva-section .cliente-panel-addons-grid,
+.cliente-panel-reserva-section .cliente-panel-beluer-selection-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+.cliente-panel-reserva-section .cliente-panel-addon-item,
+.cliente-panel-reserva-section .cliente-panel-beluer-mini-card {
+  border-radius: 9px;
+  box-shadow: none;
+  padding: 0.66rem 0.72rem;
+}
+
+.cliente-panel-reserva-section .cliente-panel-beluer-mini-card img {
+  width: 42px;
+  height: 42px;
+}
+
+.cliente-panel-reserva-block-title {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
+  box-shadow: none;
+}
+
+.cliente-panel-reserva-block-title > span {
+  width: max-content;
+  border-radius: 0;
+  background: transparent;
+  color: #1a1a1a;
+  padding: 0;
+  font: 780 0.82rem / 1.2 var(--font-sans);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.cliente-panel-reserva-block-title h2 {
+  margin: 0;
+  color: #1a1a1a;
+  font-family: var(--font-serif);
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1;
+}
+
+.cliente-panel-reserva-block-title p {
+  margin: 0;
+  color: #6b6661;
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  font-weight: 520;
+  line-height: 1.42;
+}
+
+.cliente-panel-booking-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.82rem;
+}
+
+.cliente-panel-booking-form-grid > .cliente-panel-form-group {
+  margin-bottom: 0;
+}
+
+.cliente-panel-booking-form-grid > .cliente-panel-form-group:nth-child(4),
+.cliente-panel-booking-form-grid > .cliente-panel-form-group:last-child,
+.cliente-panel-booking-form-grid > .cliente-panel-info-box,
+.cliente-panel-booking-form-grid > .cliente-panel-libre-box {
+  grid-column: 1 / -1;
+}
+
+.cliente-panel-reserva-section .cliente-panel-form-group label {
+  margin-bottom: 0.38rem;
+  color: #6b6661;
+  font: 680 0.68rem / 1 var(--font-sans);
+  letter-spacing: 0.04em;
+}
+
+.cliente-panel-reserva-section .cliente-panel-form-group input,
+.cliente-panel-reserva-section .cliente-panel-form-group select,
+.cliente-panel-reserva-section .cliente-panel-form-group textarea {
+  min-height: 40px;
+  border: 1px solid #dad3cc;
+  border-radius: 9px;
+  background: #fff;
+  color: #1a1a1a;
+  font-size: 0.84rem;
+  font-weight: 560;
+  padding: 0.62rem 0.8rem;
+}
+
+.cliente-panel-reserva-section .cliente-panel-form-group textarea {
+  min-height: 72px;
+}
+
+.cliente-panel-reserva-section .cliente-panel-form-group small {
+  margin-top: 0.28rem;
+  color: #9a938c;
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+
+.cliente-panel-reserva-section .cliente-panel-urgencia-toggle {
+  align-items: center;
+  min-height: 40px;
+  margin: 0;
+  border: 1px solid #dad3cc;
+  border-radius: 9px;
+  background: #fff;
+  box-shadow: none;
+  padding: 0.58rem 0.72rem;
+}
+
+.cliente-panel-reserva-section .cliente-panel-urgencia-toggle input {
+  width: 16px;
+  height: 16px;
+}
+
+.cliente-panel-reserva-section .cliente-panel-urgencia-toggle span {
+  color: #1a1a1a;
+  font-size: 0.78rem;
+  font-weight: 620;
+  line-height: 1.28;
+}
+
+.cliente-panel-reserva-section .cliente-panel-info-box p,
+.cliente-panel-reserva-section .cliente-panel-libre-box > p {
+  margin-bottom: 0.35rem;
+  color: #1a1a1a;
+  font-size: 0.82rem;
+}
+
+.cliente-panel-reserva-section .cliente-panel-info-box span,
+.cliente-panel-reserva-section .cliente-panel-info-box small,
+.cliente-panel-reserva-section .cliente-panel-libre-box small {
+  color: #6b6661;
+  font-size: 0.74rem;
+}
+
+.cliente-panel-booking-summary {
+  position: sticky;
+  top: 20px;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid #efeae5;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 6px 24px rgba(26, 26, 26, 0.05);
+}
+
+.cliente-panel-reserva-summary-title {
+  position: static;
+  top: auto;
+  border: 0;
+  border-radius: 0;
+  background: linear-gradient(150deg, #ffd6e2, #fff0f4);
+  padding: 1.05rem 1.18rem;
+}
+
+.cliente-panel-reserva-summary-title > span {
+  color: #b07c8c;
+  font: 850 0.64rem / 1 var(--font-mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.cliente-panel-reserva-summary-title h2 {
+  margin-top: 0.3rem;
+  color: #1a1a1a;
+  font-family: var(--font-serif);
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.cliente-panel-reserva-summary-title p {
+  display: none;
+}
+
+.cliente-panel-reserva-section .cliente-panel-resumen-pago {
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: #fff;
+  box-shadow: none;
+  padding: 1.18rem;
+}
+
+.cliente-panel-reserva-section .cliente-panel-resumen-pago .linea,
+.cliente-panel-reserva-section .cliente-panel-resumen-pago .linea-addon {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.82rem;
+  color: #1a1a1a;
+  font-size: 0.84rem;
+}
+
+.cliente-panel-reserva-section .cliente-panel-resumen-pago .linea span,
+.cliente-panel-reserva-section .cliente-panel-resumen-pago .linea-addon span {
+  color: #6b6661;
+  font-weight: 560;
+}
+
+.cliente-panel-reserva-section .cliente-panel-resumen-pago .linea strong,
+.cliente-panel-reserva-section .cliente-panel-resumen-pago .linea-addon strong {
+  max-width: 58%;
+  color: #1a1a1a;
+  font-weight: 720;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.cliente-panel-reserva-section .cliente-panel-resumen-pago .linea.total {
+  margin: 0.2rem 0 0;
+  border-top: 1px solid #f1ede9;
+  padding-top: 0.9rem;
+  color: #1a1a1a;
+}
+
+.cliente-panel-reserva-section .cliente-panel-resumen-pago .linea.total span {
+  color: #1a1a1a;
+  font-size: 0.9rem;
+  font-weight: 720;
+}
+
+.cliente-panel-reserva-section .cliente-panel-resumen-pago .linea.total strong {
+  color: #1a1a1a;
+  font-family: var(--font-serif);
+  font-size: 1.75rem;
+  font-weight: 800;
+}
+
+.cliente-panel-reserva-section .cliente-panel-resumen-pago .addons-wrapper,
+.cliente-panel-reserva-section .cliente-panel-resumen-pago .express {
+  margin: 0.8rem 0;
+  border-block: 1px solid #f1ede9;
+  padding: 0.8rem 0;
+}
+
+.cliente-panel-reserva-section .cliente-panel-resumen-pago .addons-title {
+  margin-bottom: 0.45rem;
+  color: #9a938c;
+  font-size: 0.68rem;
+  font-weight: 760;
+}
+
+.cliente-panel-reserva-section .cliente-panel-resumen-pago small {
+  color: #6b6661;
+  font-size: 0.72rem;
+}
+
+.cliente-panel-reserva-section .cliente-panel-resumen-empty {
+  gap: 0.34rem;
+}
+
+.cliente-panel-reserva-section .cliente-panel-resumen-empty strong {
+  color: #1a1a1a;
+  font-family: var(--font-sans);
+  font-size: 0.92rem;
+  font-weight: 720;
+  letter-spacing: 0;
+  line-height: 1.3;
+}
+
+.cliente-panel-reserva-section .cliente-panel-resumen-empty span {
+  color: #6b6661;
+  font-size: 0.78rem;
+}
+
+.cliente-panel-reserva-section .cliente-panel-full-btn {
+  width: calc(100% - 2.36rem);
+  min-height: 42px;
+  margin: 0 1.18rem 1rem;
+  border-radius: 9px;
+  box-shadow: 0 2px 10px rgba(230, 0, 35, 0.22);
+  font-size: 0.86rem;
+}
+
+.cliente-panel-reserva-mvp-note,
+.cliente-panel-reserva-single-note {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #6b6661;
+  padding: 0;
+  font-size: 0.74rem;
+  font-weight: 520;
+  line-height: 1.45;
+}
+
+.cliente-panel-booking-summary > .cliente-panel-reserva-mvp-note {
+  margin: 0 1.18rem 1.18rem;
+}
+
+@media (max-width: 1120px) {
+  .cliente-panel-reserva-card {
+    grid-template-columns: 1fr;
+  }
+
+  .cliente-panel-booking-summary {
+    position: static;
+  }
+}
+
+@media (max-width: 760px) {
+  .cliente-panel-shell:has(.cliente-panel-reserva-section) .cliente-panel-main {
+    padding: 5rem 1rem 1.25rem;
+  }
+
+  .cliente-panel-reserva-topbar,
+  .cliente-panel-booking-step-head {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .cliente-panel-reserva-section .cliente-panel-servicios-grid,
+  .cliente-panel-booking-form-grid,
+  .cliente-panel-reserva-section .cliente-panel-addons-grid,
+  .cliente-panel-reserva-section .cliente-panel-beluer-selection-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cliente-panel-booking-form-grid > .cliente-panel-form-group,
+  .cliente-panel-booking-form-grid > .cliente-panel-urgencia-toggle {
+    grid-column: 1 / -1;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   BLOQUE 10 - NUEVA RESERVA PULIDO VISUAL
+   Solo refinamiento: miniaturas, hover sutil y add-ons compactos.
+-------------------------------------------------------------------------- */
+
+.cliente-panel-reserva-section .cliente-panel-booking-step-head {
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.cliente-panel-reserva-section .cliente-panel-booking-step-title,
+.cliente-panel-reserva-section .cliente-panel-reserva-block-title > span {
+  color: #2f2621;
+  font-size: 0.82rem;
+  font-weight: 780;
+}
+
+.cliente-panel-reserva-section .cliente-panel-booking-chips span {
+  border-color: #efeae5;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicio-card {
+  display: grid;
+  grid-template-columns: 82px minmax(0, 1fr);
+  align-items: stretch;
+  min-height: 116px;
+  overflow: hidden;
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicio-card:hover {
+  transform: none;
+  border-color: #fad3df;
+  background: #fff8fa;
+  box-shadow: none;
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicio-card.selected {
+  background: #fff6f9;
+  box-shadow: 0 0 0 2px rgba(230, 0, 35, 0.08);
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicio-card.selected::after {
+  top: 10px;
+  right: 10px;
+  width: 18px;
+  height: 18px;
+  font-size: 11px;
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicio-thumb {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  min-height: 100%;
+  overflow: hidden;
+  padding: 0.62rem;
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicio-thumb::before {
+  content: "✦";
+  position: absolute;
+  top: 0.4rem;
+  right: 0.42rem;
+  color: rgba(230, 0, 35, 0.16);
+  font-family: var(--font-serif);
+  font-size: 2.2rem;
+  line-height: 1;
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicio-thumb span {
+  position: relative;
+  color: rgba(138, 37, 64, 0.62);
+  font: 760 0.55rem / 1.15 var(--font-mono);
+  letter-spacing: 0.06em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicio-thumb-lashes {
+  background: linear-gradient(145deg, #ffd6e2, #fff0f4);
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicio-thumb-nails {
+  background: linear-gradient(145deg, #f7f3f0, #ffd6e2);
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicio-card-body {
+  min-height: 0;
+  padding: 0.88rem 2.3rem 0.88rem 0.92rem;
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicio-category {
+  margin-bottom: 0.05rem;
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicio-card-body h4 {
+  padding-right: 0;
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicio-card-body p {
+  -webkit-line-clamp: 2;
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicio-card-body > span:not(.cliente-panel-servicio-category) {
+  margin-top: 0.26rem;
+}
+
+.cliente-panel-reserva-section .cliente-panel-addons-section {
+  padding: 0.82rem;
+}
+
+.cliente-panel-reserva-section .cliente-panel-addons-section > label {
+  margin-bottom: 0.56rem;
+  color: #6b6661;
+  font: 760 0.66rem / 1 var(--font-sans);
+  letter-spacing: 0.06em;
+}
+
+.cliente-panel-reserva-section .cliente-panel-addon-item {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  min-height: 38px;
+  gap: 0.52rem;
+  border-color: #efeae5;
+  background: #fff;
+  padding: 0.5rem 0.58rem;
+}
+
+.cliente-panel-reserva-section .cliente-panel-addon-item:hover,
+.cliente-panel-reserva-section .cliente-panel-addon-item.selected {
+  transform: none;
+  border-color: #fad3df;
+  background: #fff8fa;
+  box-shadow: none;
+}
+
+.cliente-panel-reserva-section .cliente-panel-addon-item .addon-check {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  font-size: 0.65rem;
+}
+
+.cliente-panel-reserva-section .cliente-panel-addon-item .addon-info {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.cliente-panel-reserva-section .cliente-panel-addon-item .addon-info strong {
+  color: #2f2621;
+  font-size: 0.78rem;
+  font-weight: 640;
+  line-height: 1.22;
+}
+
+.cliente-panel-reserva-section .cliente-panel-addon-item .addon-info small {
+  color: #c91938;
+  font-size: 0.74rem;
+  font-weight: 780;
+  white-space: nowrap;
+}
+
+.cliente-panel-reserva-section .cliente-panel-form-group input:hover,
+.cliente-panel-reserva-section .cliente-panel-form-group select:hover,
+.cliente-panel-reserva-section .cliente-panel-form-group textarea:hover,
+.cliente-panel-reserva-section .cliente-panel-urgencia-toggle:hover,
+.cliente-panel-reserva-section .cliente-panel-beluer-mini-card:hover {
+  transform: none;
+  border-color: #fad3df;
+  background: #fffafa;
+  box-shadow: none;
+}
+
+.cliente-panel-reserva-section .cliente-panel-booking-summary {
+  min-width: 330px;
+}
+
+.cliente-panel-reserva-section .cliente-panel-full-btn {
+  border-radius: 9px;
+}
+
+@media (max-width: 760px) {
+  .cliente-panel-reserva-section .cliente-panel-servicio-card {
+    grid-template-columns: 78px minmax(0, 1fr);
+  }
+
+  .cliente-panel-reserva-section .cliente-panel-servicio-thumb {
+    min-height: 112px;
+  }
+
+  .cliente-panel-reserva-section .cliente-panel-addons-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cliente-panel-reserva-section .cliente-panel-booking-summary {
+    min-width: 0;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   BLOQUE 11 - NUEVA RESERVA SERVICIOS ESCALABLES
+   Destacados maximos en cards y resto en lista compacta expandible.
+-------------------------------------------------------------------------- */
+
+.cliente-panel-reserva-section .cliente-panel-servicio-card:hover {
+  transform: none;
+  border-color: rgba(230, 0, 35, 0.18);
+  background: rgba(255, 248, 250, 0.72);
+  box-shadow: none;
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicio-card.selected {
+  background: rgba(255, 246, 249, 0.78);
+  box-shadow: 0 0 0 1px rgba(230, 0, 35, 0.07);
+}
+
+.cliente-panel-reserva-section .cliente-panel-service-more {
+  display: grid;
+  gap: 0.62rem;
+  margin-top: -0.2rem;
+}
+
+.cliente-panel-reserva-section .cliente-panel-service-more > button {
+  width: max-content;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #e60023;
+  padding: 0.18rem 0.1rem;
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  font-weight: 720;
+  cursor: pointer;
+}
+
+.cliente-panel-reserva-section .cliente-panel-service-more > button:hover {
+  color: #c4001d;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.cliente-panel-reserva-section .cliente-panel-service-list {
+  display: grid;
+  max-height: 260px;
+  overflow-y: auto;
+  border: 1px solid #efeae5;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.74);
+}
+
+.cliente-panel-reserva-section .cliente-panel-service-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.82rem;
+  min-height: 52px;
+  border: 0;
+  border-bottom: 1px solid #f1ede9;
+  background: transparent;
+  color: #1a1a1a;
+  padding: 0.66rem 2.2rem 0.66rem 0.78rem;
+  font-family: var(--font-sans);
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.16s ease, color 0.16s ease;
+}
+
+.cliente-panel-reserva-section .cliente-panel-service-row:last-child {
+  border-bottom: 0;
+}
+
+.cliente-panel-reserva-section .cliente-panel-service-row:hover {
+  background: rgba(255, 248, 250, 0.7);
+}
+
+.cliente-panel-reserva-section .cliente-panel-service-row.selected {
+  background: rgba(255, 246, 249, 0.92);
+  box-shadow: inset 3px 0 0 #e60023;
+}
+
+.cliente-panel-reserva-section .cliente-panel-service-row-main {
+  display: grid;
+  gap: 0.16rem;
+  min-width: 0;
+}
+
+.cliente-panel-reserva-section .cliente-panel-service-row-main strong {
+  color: #1a1a1a;
+  font-size: 0.84rem;
+  font-weight: 720;
+  line-height: 1.18;
+}
+
+.cliente-panel-reserva-section .cliente-panel-service-row-main small {
+  display: -webkit-box;
+  overflow: hidden;
+  color: #6b6661;
+  font-size: 0.72rem;
+  font-weight: 500;
+  line-height: 1.28;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+}
+
+.cliente-panel-reserva-section .cliente-panel-service-row-price {
+  color: #1a1a1a;
+  font-size: 0.84rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.cliente-panel-reserva-section .cliente-panel-service-row-check {
+  position: absolute;
+  top: 50%;
+  right: 0.72rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 17px;
+  height: 17px;
+  border-radius: 999px;
+  background: #e60023;
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 900;
+  transform: translateY(-50%);
+}
+
+.cliente-panel-reserva-section .cliente-panel-addon-item:hover,
+.cliente-panel-reserva-section .cliente-panel-addon-item.selected,
+.cliente-panel-reserva-section .cliente-panel-form-group input:hover,
+.cliente-panel-reserva-section .cliente-panel-form-group select:hover,
+.cliente-panel-reserva-section .cliente-panel-form-group textarea:hover,
+.cliente-panel-reserva-section .cliente-panel-urgencia-toggle:hover {
+  transform: none;
+  border-color: rgba(230, 0, 35, 0.16);
+  background: rgba(255, 250, 251, 0.82);
+  box-shadow: none;
+}
+
+@media (max-width: 760px) {
+  .cliente-panel-reserva-section .cliente-panel-service-list {
+    max-height: 320px;
+  }
+
+  .cliente-panel-reserva-section .cliente-panel-service-more > button {
+    width: 100%;
+    text-align: left;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   BLOQUE 12 - NUEVA RESERVA FINAL
+   Jerarquia, selector escalable y tipografia belu solo en Nueva Reserva.
+-------------------------------------------------------------------------- */
+
+.cliente-panel-shell:has(.cliente-panel-reserva-section) {
+  background:
+    radial-gradient(circle at 18% 0%, rgba(255, 214, 226, 0.28), transparent 32%),
+    linear-gradient(180deg, #faf6f1 0%, #f7f3ef 48%, #fffdfb 100%);
+}
+
+.cliente-panel-reserva-section {
+  --belu-ui-font: "Gilroy", "Hanken Grotesk", "Inter", system-ui, sans-serif;
+  font-family: var(--belu-ui-font);
+}
+
+.cliente-panel-reserva-section *,
+.cliente-panel-reserva-section button,
+.cliente-panel-reserva-section input,
+.cliente-panel-reserva-section select,
+.cliente-panel-reserva-section textarea {
+  font-family: var(--belu-ui-font);
+}
+
+.cliente-panel-reserva-topbar {
+  border-color: rgba(218, 211, 204, 0.62);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 10px 30px rgba(47, 38, 33, 0.045);
+}
+
+.cliente-panel-reserva-section .cliente-panel-dashboard-kicker {
+  color: #b44158;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.cliente-panel-reserva-section .cliente-panel-greeting h1 {
+  font-family: var(--belu-ui-font);
+  font-weight: 800;
+  line-height: 1.04;
+}
+
+.cliente-panel-reserva-section .cliente-panel-greeting p {
+  max-width: 620px;
+  color: #6f6861;
+  font-weight: 500;
+}
+
+.cliente-panel-reserva-card {
+  gap: clamp(1rem, 2vw, 1.55rem);
+  background: transparent;
+}
+
+.cliente-panel-booking-left {
+  gap: 1rem;
+}
+
+.cliente-panel-booking-block {
+  display: grid;
+  gap: 1rem;
+  border: 1px solid rgba(218, 211, 204, 0.68);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 8px 24px rgba(47, 38, 33, 0.04);
+  padding: clamp(1rem, 1.7vw, 1.28rem);
+}
+
+.cliente-panel-service-picker {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(255, 252, 250, 0.94));
+}
+
+.cliente-panel-reserva-block-title {
+  gap: 0.42rem;
+}
+
+.cliente-panel-reserva-block-title > span {
+  color: #b44158;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.cliente-panel-reserva-block-title h2,
+.cliente-panel-reserva-summary-title h2 {
+  color: #221b17;
+  font-family: var(--belu-ui-font);
+  font-size: clamp(1.1rem, 1.55vw, 1.36rem);
+  font-weight: 800;
+  line-height: 1.12;
+}
+
+.cliente-panel-reserva-block-title p {
+  max-width: 620px;
+  color: #746d66;
+  font-size: 0.84rem;
+  font-weight: 500;
+  line-height: 1.48;
+}
+
+.cliente-panel-service-tabs,
+.cliente-panel-service-view-toggle {
+  display: inline-flex;
+  width: max-content;
+  max-width: 100%;
+  gap: 0.25rem;
+  border: 1px solid #eee5df;
+  border-radius: 10px;
+  background: #faf6f1;
+  padding: 0.22rem;
+}
+
+.cliente-panel-service-tabs button,
+.cliente-panel-service-view-toggle button {
+  min-height: 34px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #6f6861;
+  padding: 0.45rem 0.78rem;
+  font-size: 0.78rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.cliente-panel-service-tabs button.active,
+.cliente-panel-service-view-toggle button.active {
+  background: #fff;
+  color: #d80022;
+  box-shadow: 0 2px 8px rgba(47, 38, 33, 0.07);
+}
+
+.cliente-panel-service-tools {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
+.cliente-panel-service-search {
+  display: grid;
+  width: min(280px, 100%);
+  gap: 0.36rem;
+}
+
+.cliente-panel-service-search span,
+.cliente-panel-reserva-section .cliente-panel-form-group label {
+  color: #7c746d;
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.075em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.cliente-panel-service-search input {
+  width: 100%;
+  min-height: 38px;
+  border: 1px solid #e5dcd5;
+  border-radius: 9px;
+  background: #fff;
+  color: #221b17;
+  padding: 0.58rem 0.78rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  outline: none;
+}
+
+.cliente-panel-service-search input:focus {
+  border-color: rgba(230, 0, 35, 0.34);
+  box-shadow: 0 0 0 3px rgba(230, 0, 35, 0.08);
+}
+
+.cliente-panel-reserva-section .cliente-panel-categoria-titulo {
+  margin: 0;
+  border-top: 1px solid #f0e8e2;
+  padding-top: 0.85rem;
+  font-size: 0.92rem;
+  font-weight: 800;
+}
+
+.cliente-panel-reserva-section .cliente-panel-categoria-titulo small {
+  color: #746d66;
+  font-size: 0.76rem;
+  font-weight: 500;
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicios-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.72rem;
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicio-card {
+  grid-template-columns: 78px minmax(0, 1fr);
+  min-height: 112px;
+  border: 1px solid #ece4de;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: none;
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicio-card:hover {
+  border-color: rgba(230, 0, 35, 0.22);
+  background: #fffafa;
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicio-card.selected {
+  border-color: rgba(230, 0, 35, 0.52);
+  background: #fff7f9;
+  box-shadow: inset 0 0 0 1px rgba(230, 0, 35, 0.1);
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicio-card.selected::after {
+  top: 9px;
+  right: 9px;
+  width: 18px;
+  height: 18px;
+  background: #e60023;
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicio-card img {
+  display: block;
+  width: 78px;
+  height: 100%;
+  min-height: 112px;
+  object-fit: cover;
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicio-thumb {
+  display: none;
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicio-card-body {
+  gap: 0.28rem;
+  min-height: 0;
+  padding: 0.82rem 2rem 0.82rem 0.86rem;
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicio-category {
+  color: #b44158;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicio-card-body h4 {
+  color: #221b17;
+  font-size: 0.88rem;
+  font-weight: 800;
+  line-height: 1.16;
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicio-card-body p {
+  color: #746d66;
+  font-size: 0.72rem;
+  line-height: 1.34;
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicio-card-body > span:not(.cliente-panel-servicio-category) {
+  color: #e60023;
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.cliente-panel-reserva-section .cliente-panel-service-list {
+  max-height: 292px;
+  overflow-y: auto;
+  border: 1px solid #ece4de;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.cliente-panel-reserva-section .cliente-panel-service-row {
+  min-height: 58px;
+  padding: 0.7rem 2.2rem 0.7rem 0.82rem;
+}
+
+.cliente-panel-reserva-section .cliente-panel-service-row-main strong {
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+.cliente-panel-reserva-section .cliente-panel-service-row-main small {
+  color: #746d66;
+  font-size: 0.72rem;
+}
+
+.cliente-panel-reserva-section .cliente-panel-service-row-price {
+  display: grid;
+  justify-items: end;
+  gap: 0.12rem;
+  color: #e60023;
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
+.cliente-panel-reserva-section .cliente-panel-service-row-duration {
+  color: #8a827a;
+  font-size: 0.66rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.cliente-panel-service-empty {
+  border: 1px dashed #eaded6;
+  border-radius: 10px;
+  background: #fffaf8;
+  color: #746d66;
+  padding: 0.82rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.cliente-panel-reserva-section .cliente-panel-addons-section {
+  border-color: #efe7e1;
+  background: #fffdfa;
+  padding: 0.82rem;
+}
+
+.cliente-panel-reserva-section .cliente-panel-addons-section > label {
+  color: #7c746d;
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.075em;
+  text-transform: uppercase;
+}
+
+.cliente-panel-details-block {
+  gap: 1.05rem;
+}
+
+.cliente-panel-booking-form-grid {
+  gap: 0.86rem 0.9rem;
+}
+
+.cliente-panel-booking-form-grid > .cliente-panel-form-group:nth-child(3) {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.cliente-panel-booking-form-grid > .cliente-panel-form-group:nth-child(6) {
+  grid-column: 2;
+  grid-row: 2;
+}
+
+.cliente-panel-booking-form-grid > .cliente-panel-form-group:nth-child(7) {
+  grid-column: 2;
+  grid-row: 2;
+}
+
+.cliente-panel-booking-form-grid > .cliente-panel-form-group:nth-child(4) {
+  grid-column: 1 / -1;
+  grid-row: 3;
+}
+
+.cliente-panel-booking-form-grid > .cliente-panel-urgencia-toggle {
+  grid-column: 1 / -1;
+  grid-row: 4;
+}
+
+.cliente-panel-booking-form-grid > .cliente-panel-urgencia-auto-note {
+  grid-column: 1 / -1;
+  grid-row: 5;
+}
+
+.cliente-panel-booking-form-grid > .cliente-panel-info-box,
+.cliente-panel-booking-form-grid > .cliente-panel-libre-box,
+.cliente-panel-booking-form-grid > .cliente-panel-form-group:last-child {
+  grid-column: 1 / -1;
+}
+
+.cliente-panel-reserva-section .cliente-panel-form-group input,
+.cliente-panel-reserva-section .cliente-panel-form-group select,
+.cliente-panel-reserva-section .cliente-panel-form-group textarea {
+  min-height: 42px;
+  border-color: #e5dcd5;
+  border-radius: 9px;
+  background: #fff;
+  color: #221b17;
+  font-size: 0.84rem;
+  font-weight: 600;
+}
+
+.cliente-panel-reserva-section .cliente-panel-form-group textarea {
+  min-height: 84px;
+  resize: vertical;
+}
+
+.cliente-panel-reserva-section .cliente-panel-form-group small {
+  margin-top: 0.34rem;
+  color: #8c847c;
+  font-size: 0.7rem;
+  line-height: 1.35;
+}
+
+.cliente-panel-reserva-section .cliente-panel-urgencia-toggle {
+  min-height: 42px;
+  border-color: #eaded6;
+  background: #fffaf8;
+  padding: 0.62rem 0.74rem;
+}
+
+.cliente-panel-reserva-section .cliente-panel-urgencia-toggle span {
+  color: #483f39;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.cliente-panel-reserva-section .cliente-panel-urgencia-auto-note {
+  margin-top: -0.56rem;
+  color: #b44158;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.cliente-panel-reserva-section .cliente-panel-info-box {
+  border-color: #eaded6;
+  background: #fffaf8;
+  padding: 0.82rem 0.9rem;
+}
+
+.cliente-panel-reserva-section .cliente-panel-info-box p,
+.cliente-panel-reserva-section .cliente-panel-libre-box > p {
+  color: #221b17;
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+.cliente-panel-booking-summary {
+  border-color: rgba(218, 211, 204, 0.7);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 12px 30px rgba(47, 38, 33, 0.06);
+}
+
+.cliente-panel-reserva-summary-title {
+  background: linear-gradient(180deg, #ffe7ee 0%, #fff4f7 100%);
+  padding: 1rem 1.08rem;
+}
+
+.cliente-panel-reserva-summary-title > span {
+  color: #b44158;
+  font-family: var(--belu-ui-font);
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.cliente-panel-reserva-summary-title h2 {
+  margin-top: 0.24rem;
+}
+
+.cliente-panel-reserva-section .cliente-panel-resumen-pago {
+  padding: 1.05rem 1.08rem;
+}
+
+.cliente-panel-reserva-section .cliente-panel-resumen-pago .linea,
+.cliente-panel-reserva-section .cliente-panel-resumen-pago .linea-addon {
+  border-bottom: 1px solid #f2ebe6;
+  margin-bottom: 0;
+  padding: 0.7rem 0;
+}
+
+.cliente-panel-reserva-section .cliente-panel-resumen-pago .linea:first-child {
+  padding-top: 0;
+}
+
+.cliente-panel-reserva-section .cliente-panel-resumen-pago .linea span,
+.cliente-panel-reserva-section .cliente-panel-resumen-pago .linea-addon span {
+  color: #746d66;
+  font-weight: 650;
+}
+
+.cliente-panel-reserva-section .cliente-panel-resumen-pago .linea strong,
+.cliente-panel-reserva-section .cliente-panel-resumen-pago .linea-addon strong {
+  font-weight: 800;
+}
+
+.cliente-panel-reserva-section .cliente-panel-resumen-pago .linea.total {
+  align-items: baseline;
+  border-bottom: 0;
+  border-top: 0;
+  margin-top: 0.2rem;
+  padding-top: 0.84rem;
+}
+
+.cliente-panel-reserva-section .cliente-panel-resumen-pago .linea.total strong {
+  color: #e60023;
+  font-family: var(--belu-ui-font);
+  font-size: 1.55rem;
+  font-weight: 900;
+}
+
+.cliente-panel-reserva-section .cliente-panel-full-btn {
+  min-height: 44px;
+  border-radius: 8px;
+  font-size: 0.86rem;
+  font-weight: 900;
+  letter-spacing: 0.01em;
+}
+
+.cliente-panel-booking-summary > .cliente-panel-reserva-mvp-note {
+  color: #8a827a;
+  font-size: 0.72rem;
+}
+
+@media (max-width: 760px) {
+  .cliente-panel-service-tools,
+  .cliente-panel-reserva-section .cliente-panel-categoria-titulo {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .cliente-panel-service-tabs,
+  .cliente-panel-service-view-toggle,
+  .cliente-panel-service-search {
+    width: 100%;
+  }
+
+  .cliente-panel-service-tabs button,
+  .cliente-panel-service-view-toggle button {
+    flex: 1;
+  }
+
+  .cliente-panel-reserva-section .cliente-panel-servicios-grid,
+  .cliente-panel-booking-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cliente-panel-booking-form-grid > .cliente-panel-form-group:nth-child(3),
+  .cliente-panel-booking-form-grid > .cliente-panel-form-group:nth-child(4),
+  .cliente-panel-booking-form-grid > .cliente-panel-form-group:nth-child(6),
+  .cliente-panel-booking-form-grid > .cliente-panel-form-group:nth-child(7),
+  .cliente-panel-booking-form-grid > .cliente-panel-urgencia-auto-note,
+  .cliente-panel-booking-form-grid > .cliente-panel-urgencia-toggle {
+    grid-column: 1 / -1;
+    grid-row: auto;
+  }
+
+  .cliente-panel-reserva-section .cliente-panel-service-list {
+    max-height: 330px;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   BLOQUE 13 - NUEVA RESERVA SIN CARD MAESTRA
+   Apertura visual y hover plano solo dentro de Nueva Reserva.
+-------------------------------------------------------------------------- */
+
+.cliente-panel-shell:has(.cliente-panel-reserva-section) {
+  background:
+    linear-gradient(180deg, #fbf8f4 0%, #f8f3ee 42%, #fffdfb 100%);
+}
+
+.cliente-panel-shell:has(.cliente-panel-reserva-section) .cliente-panel-main {
+  background: transparent;
+}
+
+.cliente-panel-reserva-section {
+  gap: 1.2rem;
+}
+
+.cliente-panel-reserva-card,
+.cliente-panel-reserva-card:hover {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+  transform: none;
+}
+
+.cliente-panel-reserva-topbar {
+  border-color: rgba(218, 211, 204, 0.48);
+  background: rgba(255, 255, 255, 0.5);
+  box-shadow: none;
+}
+
+.cliente-panel-booking-block {
+  border-color: rgba(218, 211, 204, 0.58);
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: none;
+}
+
+.cliente-panel-service-picker {
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.cliente-panel-details-block {
+  background: rgba(255, 253, 250, 0.82);
+}
+
+.cliente-panel-booking-summary {
+  border-color: rgba(218, 211, 204, 0.58);
+  background: #fff;
+  box-shadow: none;
+}
+
+.cliente-panel-reserva-summary-title {
+  border-bottom: 1px solid rgba(238, 229, 223, 0.9);
+  background: #fff1f5;
+}
+
+.cliente-panel-service-tabs button.active,
+.cliente-panel-service-view-toggle button.active,
+.cliente-panel-reserva-section .cliente-panel-servicio-card.selected,
+.cliente-panel-reserva-section .cliente-panel-service-row.selected,
+.cliente-panel-reserva-section .cliente-panel-addon-item.selected,
+.cliente-panel-reserva-section .cliente-panel-beluer-mini-card.selected {
+  box-shadow: none;
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicio-card,
+.cliente-panel-reserva-section .cliente-panel-addon-item,
+.cliente-panel-reserva-section .cliente-panel-beluer-mini-card,
+.cliente-panel-reserva-section .cliente-panel-service-row,
+.cliente-panel-reserva-section .cliente-panel-form-group input,
+.cliente-panel-reserva-section .cliente-panel-form-group select,
+.cliente-panel-reserva-section .cliente-panel-form-group textarea,
+.cliente-panel-reserva-section .cliente-panel-urgencia-toggle,
+.cliente-panel-service-tabs button,
+.cliente-panel-service-view-toggle button {
+  transition:
+    border-color 0.16s ease,
+    background-color 0.16s ease,
+    color 0.16s ease;
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicio-card:hover,
+.cliente-panel-reserva-section .cliente-panel-addon-item:hover,
+.cliente-panel-reserva-section .cliente-panel-beluer-mini-card:hover,
+.cliente-panel-reserva-section .cliente-panel-service-row:hover,
+.cliente-panel-reserva-section .cliente-panel-form-group input:hover,
+.cliente-panel-reserva-section .cliente-panel-form-group select:hover,
+.cliente-panel-reserva-section .cliente-panel-form-group textarea:hover,
+.cliente-panel-reserva-section .cliente-panel-urgencia-toggle:hover,
+.cliente-panel-reserva-section .cliente-panel-full-btn:hover,
+.cliente-panel-service-tabs button:hover,
+.cliente-panel-service-view-toggle button:hover {
+  background-color: rgba(255, 248, 250, 0.5);
+  border-color: rgba(230, 0, 35, 0.2);
+  box-shadow: none;
+  transform: none;
+}
+
+.cliente-panel-reserva-section .cliente-panel-full-btn {
+  box-shadow: none;
+}
+
+.cliente-panel-reserva-section .cliente-panel-full-btn:hover {
+  background: #c4001d;
+}
+
+.cliente-panel-service-search input:focus,
+.cliente-panel-reserva-section .cliente-panel-form-group input:focus,
+.cliente-panel-reserva-section .cliente-panel-form-group select:focus,
+.cliente-panel-reserva-section .cliente-panel-form-group textarea:focus {
+  border-color: rgba(230, 0, 35, 0.34);
+  box-shadow: none;
+}
+
+/* --------------------------------------------------------------------------
+   BLOQUE 14 - CLIENTA SIN ESPACIADO Y HORA 12H
+   Normaliza letter-spacing en app/cliente y pule controles de Nueva Reserva.
+-------------------------------------------------------------------------- */
+
+.cliente-panel-original,
+.cliente-panel-original *,
+.cliente-panel-shell,
+.cliente-panel-shell *,
+.cliente-panel-shell.cliente-panel-shell.cliente-panel-shell *,
+.cliente-panel-shell.cliente-panel-shell.cliente-panel-shell button,
+.cliente-panel-shell.cliente-panel-shell.cliente-panel-shell input,
+.cliente-panel-shell.cliente-panel-shell.cliente-panel-shell select,
+.cliente-panel-shell.cliente-panel-shell.cliente-panel-shell textarea {
+  letter-spacing: normal !important;
+}
+
+.cliente-panel-time-picker {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 92px;
+  gap: 0.5rem;
+}
+
+.cliente-panel-time-picker select {
+  width: 100%;
+}
+
+.cliente-panel-reserva-section .cliente-panel-reserva-card,
+.cliente-panel-reserva-section .cliente-panel-reserva-card:hover,
+.cliente-panel-reserva-section .cliente-panel-booking-block,
+.cliente-panel-reserva-section .cliente-panel-booking-block:hover,
+.cliente-panel-reserva-section .cliente-panel-booking-summary,
+.cliente-panel-reserva-section .cliente-panel-booking-summary:hover,
+.cliente-panel-reserva-section .cliente-panel-servicio-card:hover,
+.cliente-panel-reserva-section .cliente-panel-addon-item:hover,
+.cliente-panel-reserva-section .cliente-panel-beluer-mini-card:hover,
+.cliente-panel-reserva-section .cliente-panel-service-row:hover,
+.cliente-panel-reserva-section .cliente-panel-form-group input:hover,
+.cliente-panel-reserva-section .cliente-panel-form-group select:hover,
+.cliente-panel-reserva-section .cliente-panel-form-group textarea:hover,
+.cliente-panel-reserva-section .cliente-panel-urgencia-toggle:hover,
+.cliente-panel-reserva-section .cliente-panel-full-btn:hover {
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicio-card:hover,
+.cliente-panel-reserva-section .cliente-panel-addon-item:hover,
+.cliente-panel-reserva-section .cliente-panel-beluer-mini-card:hover,
+.cliente-panel-reserva-section .cliente-panel-service-row:hover,
+.cliente-panel-reserva-section .cliente-panel-form-group input:hover,
+.cliente-panel-reserva-section .cliente-panel-form-group select:hover,
+.cliente-panel-reserva-section .cliente-panel-form-group textarea:hover,
+.cliente-panel-reserva-section .cliente-panel-urgencia-toggle:hover {
+  background: rgba(255, 250, 251, 0.42) !important;
+  border-color: rgba(230, 0, 35, 0.18) !important;
+}
+
+@media (max-width: 760px) {
+  .cliente-panel-time-picker {
+    grid-template-columns: minmax(0, 1fr) 82px;
   }
 }

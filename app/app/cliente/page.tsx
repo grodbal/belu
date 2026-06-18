@@ -23,6 +23,9 @@ type ClientBooking = {
   status: string;
   payment_status: string;
   public_price: number;
+  logistic_fee: number;
+  is_express: boolean;
+  express_fee: number;
   district: string;
   address: string;
   services: {
@@ -203,6 +206,9 @@ export default async function ClientePanelPage() {
         status,
         payment_status,
         public_price,
+        logistic_fee,
+        is_express,
+        express_fee,
         district,
         address,
         services (

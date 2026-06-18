@@ -9,16 +9,6 @@ type CreateBookingState = {
   message: string;
 };
 
-const allowedDistricts = [
-  "Miraflores",
-  "San Isidro",
-  "Surco",
-  "La Molina",
-  "Barranco",
-  "San Borja",
-  "San Miguel",
-];
-
 const serviceNameAliases: Record<string, string> = {
   "Mega Volumen 5D": "Mega Volumen 5D",
   "Mega Volume 5D": "Mega Volumen 5D",
@@ -54,7 +44,7 @@ export async function createBookingAction(
   const scheduledDate = String(formData.get("scheduledDate") || "");
   const scheduledTime = String(formData.get("scheduledTime") || "");
   const address = String(formData.get("address") || "").trim();
-  const district = String(formData.get("district") || "");
+  const district = String(formData.get("district") || "").trim();
   const notes = String(formData.get("notes") || "").trim();
   const isExpress = String(formData.get("isExpress") || "") === "true";
 
@@ -70,8 +60,11 @@ export async function createBookingAction(
     return { success: false, message: "Ingresa la dirección del servicio." };
   }
 
-  if (!allowedDistricts.includes(district)) {
-    return { success: false, message: "Selecciona un distrito válido." };
+  if (!district) {
+    return {
+      success: false,
+      message: "Escribe el distrito donde recibirás el servicio.",
+    };
   }
 
   const authClient = await createClient();

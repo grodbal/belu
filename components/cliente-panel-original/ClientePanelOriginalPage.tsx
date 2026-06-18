@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createBookingAction } from "@/app/actions/client/createBooking";
 import { cancelBookingAction } from "@/app/actions/client/cancelBooking";
 import { updateClientProfileAction } from "@/app/actions/client/updateClientProfile";
@@ -17,6 +17,7 @@ import type {
   PanelSection,
   PaymentMethod,
   Service,
+  ServiceCategory,
 } from "./clientePanelTypes";
 
 type ClientProfile = {
@@ -34,6 +35,9 @@ type ClientBooking = {
   status: string;
   payment_status: string;
   public_price: number;
+  logistic_fee: number | null;
+  is_express: boolean | null;
+  express_fee: number | null;
   district: string;
   address: string;
   services: {
@@ -75,7 +79,101 @@ function formatDisplayDate(value?: string | null) {
 function formatDisplayTime(value?: string | null) {
   if (!value) return "Hora por definir";
 
-  return value.slice(0, 5);
+  const [rawHour = "0", rawMinute = "00"] = value.split(":");
+  const hour24 = Number(rawHour);
+  const minute = rawMinute.padStart(2, "0").slice(0, 2);
+
+  if (Number.isNaN(hour24)) return value;
+
+  const meridiem = hour24 >= 12 ? "pm" : "am";
+  const hour12 = hour24 % 12 || 12;
+
+  return `${hour12}:${minute} ${meridiem}`;
+}
+
+function formatSoles(value: number) {
+  const amount = Number(value || 0);
+  const displayValue = Number.isInteger(amount)
+    ? amount.toFixed(0)
+    : amount.toFixed(2);
+
+  return `S/ ${displayValue}`;
+}
+
+function getClientBookingTotal(booking: ClientBooking) {
+  const serviceAmount = Number(booking.public_price || 0);
+  const logisticFee = Number(booking.logistic_fee || 0);
+  const expressFee = booking.is_express ? Number(booking.express_fee || 0) : 0;
+
+  return {
+    serviceAmount,
+    logisticFee,
+    expressFee,
+    total: serviceAmount + logisticFee + expressFee,
+  };
+}
+
+function getTimePickerParts(value: string) {
+  const [rawHour = "14", rawMinute = "30"] = value.split(":");
+  const hour24 = Number(rawHour);
+  const minute = rawMinute.padStart(2, "0").slice(0, 2);
+  const safeHour = Number.isNaN(hour24) ? 14 : hour24;
+  const meridiem = safeHour >= 12 ? "PM" : "AM";
+  const hour12 = safeHour % 12 || 12;
+
+  return {
+    time12: `${hour12}:${minute}`,
+    meridiem,
+  };
+}
+
+function toTwentyFourHourTime(time12: string, meridiem: string) {
+  const [rawHour = "12", rawMinute = "00"] = time12.split(":");
+  const parsedHour = Number(rawHour);
+  const hour12 = Number.isNaN(parsedHour) ? 12 : parsedHour;
+  const minute = rawMinute.padStart(2, "0").slice(0, 2);
+  let hour24 = hour12 % 12;
+
+  if (meridiem === "PM") hour24 += 12;
+
+  return `${String(hour24).padStart(2, "0")}:${minute}`;
+}
+
+function isWithinNextTwoHours(dateValue: string, timeValue: string) {
+  if (!dateValue || !timeValue) return false;
+
+  const [year, month, day] = dateValue.split("-").map(Number);
+  const [hour, minute] = timeValue.split(":").map(Number);
+
+  if ([year, month, day, hour, minute].some((value) => Number.isNaN(value))) {
+    return false;
+  }
+
+  const selectedDate = new Date(year, month - 1, day, hour, minute);
+  const now = new Date();
+  const twoHoursFromNow = new Date(now.getTime() + 2 * 60 * 60 * 1000);
+
+  return selectedDate >= now && selectedDate <= twoHoursFromNow;
+}
+
+function getDateTimeFromBookingParts(dateValue: string, timeValue: string) {
+  if (!dateValue || !timeValue) return null;
+
+  const [year, month, day] = dateValue.split("-").map(Number);
+  const [hour, minute] = timeValue.split(":").map(Number);
+
+  if ([year, month, day, hour, minute].some((value) => Number.isNaN(value))) {
+    return null;
+  }
+
+  return new Date(year, month - 1, day, hour, minute);
+}
+
+function isPastTimeForSelectedDate(dateValue: string, timeValue: string) {
+  const selectedDate = getDateTimeFromBookingParts(dateValue, timeValue);
+  if (!selectedDate) return false;
+
+  return selectedDate <= new Date();
 }
 
 function getLimaGreeting() {
@@ -162,6 +260,11 @@ export default function ClientePanelOriginalPage({
 }: ClientePanelOriginalPageProps) {
   const [activeSection, setActiveSection] = useState<PanelSection>("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [activeServiceCategory, setActiveServiceCategory] =
+    useState<ServiceCategory>("lashes");
+  const [serviceView, setServiceView] =
+    useState<"featured" | "complete">("featured");
+  const [serviceSearch, setServiceSearch] = useState("");
 
   const [servicioLashes, setServicioLashes] = useState<Service | null>(null);
   const [servicioNails, setServicioNails] = useState<Service | null>(null);
@@ -194,6 +297,73 @@ const catalogoLashes = realServices.filter(
 const catalogoNails = realServices.filter(
   (servicio) => servicio.categoria === "nails"
 );
+const distritoSugerencias = [
+  "Miraflores",
+  "San Isidro",
+  "Surco",
+  "La Molina",
+  "Barranco",
+  "San Borja",
+  "San Miguel",
+];
+const horaOpciones12 = [
+  "12:00",
+  "12:30",
+  "1:00",
+  "1:30",
+  "2:00",
+  "2:30",
+  "3:00",
+  "3:30",
+  "4:00",
+  "4:30",
+  "5:00",
+  "5:30",
+  "6:00",
+  "6:30",
+  "7:00",
+  "7:30",
+  "8:00",
+  "8:30",
+  "9:00",
+  "9:30",
+  "10:00",
+  "10:30",
+  "11:00",
+  "11:30",
+];
+const meridiemOptions = ["AM", "PM"];
+const horaPicker = getTimePickerParts(hora);
+const getHoraOptionValue = (timeOption: string, meridiem: string) =>
+  toTwentyFourHourTime(timeOption, meridiem);
+const horaOpciones24 = meridiemOptions
+  .flatMap((meridiem) =>
+    horaOpciones12.map((timeOption) => getHoraOptionValue(timeOption, meridiem))
+  )
+  .sort();
+const nextAvailableTime = horaOpciones24.find(
+  (timeOption) => !isPastTimeForSelectedDate(fecha, timeOption)
+);
+const hasAvailableTimesForSelectedDate = Boolean(nextAvailableTime);
+const selectedTimeHasPassed = Boolean(
+  fecha && hora && isPastTimeForSelectedDate(fecha, hora)
+);
+const selectedDateIsToday = fecha === getTodayLocalDate();
+const noAvailableTimesToday =
+  selectedDateIsToday && !hasAvailableTimesForSelectedDate;
+const getHoraOptionDisabled = (timeOption: string, meridiem: string) =>
+  isPastTimeForSelectedDate(fecha, getHoraOptionValue(timeOption, meridiem));
+const getMeridiemDisabled = (meridiem: string) =>
+  horaOpciones12.every((timeOption) =>
+    getHoraOptionDisabled(timeOption, meridiem)
+  );
+const horaHelpText = noAvailableTimesToday
+  ? "Ya no hay horarios disponibles para hoy. Elige otra fecha."
+  : selectedTimeHasPassed
+    ? "Esa hora ya paso. Elige un horario disponible."
+    : selectedDateIsToday
+      ? "Solo mostramos horarios disponibles desde ahora."
+      : "Elige la hora en formato 12 horas.";
 
   const goToSection = (section: PanelSection) => {
     setActiveSection(section);
@@ -217,6 +387,27 @@ const normalizarTexto = (texto: string) =>
     .replace(/[\u0300-\u036f]/g, "")
     .trim();
 
+const activeCatalog =
+  activeServiceCategory === "lashes" ? catalogoLashes : catalogoNails;
+const activeSelectedService =
+  activeServiceCategory === "lashes" ? servicioLashes : servicioNails;
+const activeCategoryLabel =
+  activeServiceCategory === "lashes" ? "Lashes" : "Nails";
+const activeCategoryDescription =
+  activeServiceCategory === "lashes"
+    ? "Extensiones, lifting y servicios para pestañas."
+    : "Manicure, gel y servicios de uñas a domicilio.";
+const normalizedServiceSearch = normalizarTexto(serviceSearch);
+const activeFilteredServices = normalizedServiceSearch
+  ? activeCatalog.filter((servicio) =>
+      normalizarTexto(`${servicio.nombre} ${servicio.desc}`).includes(
+        normalizedServiceSearch
+      )
+    )
+  : activeCatalog;
+const activeFeaturedServices = activeFilteredServices.slice(0, 4);
+const urgenciaAutomatica = isWithinNextTwoHours(fecha, hora);
+
 const beluersDisponibles = useMemo(() => {
   if (serviciosSeleccionados.length === 0) return realBeluers;
 
@@ -238,6 +429,16 @@ const beluersDisponibles = useMemo(() => {
     );
   });
 }, [serviciosSeleccionados, realBeluers]);
+
+useEffect(() => {
+  if (selectedTimeHasPassed && nextAvailableTime && nextAvailableTime !== hora) {
+    setHora(nextAvailableTime);
+  }
+}, [selectedTimeHasPassed, nextAvailableTime, hora]);
+
+useEffect(() => {
+  setUrgencia(urgenciaAutomatica);
+}, [urgenciaAutomatica]);
 
   const totalServicios = serviciosSeleccionados.reduce(
     (acc, servicio) => acc + servicio.precio,
@@ -292,13 +493,18 @@ const handleConfirmarReserva = () => {
     return;
   }
 
+  if (isPastTimeForSelectedDate(fecha, hora)) {
+    alert("Elige una hora disponible posterior a la hora actual.");
+    return;
+  }
+
   if (!direccionReserva.trim()) {
     alert("Ingresa la dirección donde se realizará el servicio.");
     return;
   }
 
-  if (!distritoReserva) {
-    alert("Selecciona el distrito.");
+  if (!distritoReserva.trim()) {
+    alert("Escribe el distrito donde recibirás el servicio.");
     return;
   }
 
@@ -330,7 +536,7 @@ formData.append("selectedBeluerName", beluerSeleccionada);
   formData.append("scheduledDate", fecha);
   formData.append("scheduledTime", hora);
   formData.append("address", direccionReserva.trim());
-  formData.append("district", distritoReserva);
+  formData.append("district", distritoReserva.trim());
   formData.append("notes", notasReserva.trim());
   formData.append("isExpress", urgencia ? "true" : "false");
 
@@ -488,103 +694,229 @@ const hasRealBooking = Boolean(nextBooking);
                 <UserPill clientName={clientName} />
               </div>
 
-              <div className="cliente-panel-card cliente-panel-reserva-card">
-                <div className="cliente-panel-categoria-titulo">
-                  <span>Bloque 1</span>
-                  Lashes
-                  <small>Elige un servicio de pestañas para tu cita.</small>
-                </div>
+              <div className="cliente-panel-reserva-card">
+                <div className="cliente-panel-booking-left">
+                  <div className="cliente-panel-booking-block cliente-panel-service-picker">
+                    <div className="cliente-panel-reserva-block-title">
+                      <span>1 · Elige tu servicio</span>
+                      <h2>Servicio para tu cita</h2>
+                      <p>
+                        Explora por categoría, revisa destacados o usa la lista
+                        completa para encontrar opciones rápido.
+                      </p>
+                    </div>
 
-                <div className="cliente-panel-servicios-grid">
-                  {catalogoLashes.map((servicio) => (
-                    <ServiceCard
-                      key={servicio.nombre}
-                      servicio={servicio}
-                      selected={servicioLashes?.nombre === servicio.nombre}
-                      onClick={() => handleServicioClick(servicio)}
-                    />
-                  ))}
-                </div>
+                    <div
+                      className="cliente-panel-service-tabs"
+                      aria-label="Categoría de servicio"
+                    >
+                      <button
+                        type="button"
+                        className={
+                          activeServiceCategory === "lashes" ? "active" : ""
+                        }
+                        onClick={() => setActiveServiceCategory("lashes")}
+                      >
+                        Lashes
+                      </button>
+                      <button
+                        type="button"
+                        className={
+                          activeServiceCategory === "nails" ? "active" : ""
+                        }
+                        onClick={() => setActiveServiceCategory("nails")}
+                      >
+                        Nails
+                      </button>
+                    </div>
 
-                {servicioLashes && (
-                  <AddonsSection
-                    label="Servicios adicionales (100% para tu Beluer)"
-                    addons={addonsLashes}
-                    selectedAddons={addonsSeleccionados}
-                    onToggle={toggleAddon}
-                  />
-                )}
+                    <div className="cliente-panel-service-tools">
+                      <div
+                        className="cliente-panel-service-view-toggle"
+                        aria-label="Vista de servicios"
+                      >
+                        <button
+                          type="button"
+                          className={serviceView === "featured" ? "active" : ""}
+                          onClick={() => setServiceView("featured")}
+                        >
+                          Destacados
+                        </button>
+                        <button
+                          type="button"
+                          className={serviceView === "complete" ? "active" : ""}
+                          onClick={() => setServiceView("complete")}
+                        >
+                          Lista completa
+                        </button>
+                      </div>
 
-                <div className="cliente-panel-categoria-titulo">
-                  <span>Bloque 1</span>
-                  Nails
-                  <small>Agenda tu servicio de uñas a domicilio.</small>
-                </div>
+                      <label className="cliente-panel-service-search">
+                        <span>Buscar servicio</span>
+                        <input
+                          type="search"
+                          value={serviceSearch}
+                          onChange={(event) =>
+                            setServiceSearch(event.target.value)
+                          }
+                          placeholder="Buscar servicio..."
+                        />
+                      </label>
+                    </div>
 
-                <div className="cliente-panel-servicios-grid">
-                  {catalogoNails.map((servicio) => (
-                    <ServiceCard
-                      key={servicio.nombre}
-                      servicio={servicio}
-                      selected={servicioNails?.nombre === servicio.nombre}
-                      onClick={() => handleServicioClick(servicio)}
-                    />
-                  ))}
-                </div>
+                    <div className="cliente-panel-categoria-titulo">
+                      {activeCategoryLabel}
+                      <small>{activeCategoryDescription}</small>
+                    </div>
 
-                {servicioNails && (
-                  <AddonsSection
-                    label="Servicios adicionales de uñas (100% para tu Beluer)"
-                    addons={addonsNails}
-                    selectedAddons={addonsSeleccionados}
-                    onToggle={toggleAddon}
-                  />
-                )}
+                    {serviceView === "featured" ? (
+                      <div className="cliente-panel-servicios-grid">
+                        {activeFeaturedServices.map((servicio) => (
+                          <ServiceCard
+                            key={servicio.nombre}
+                            servicio={servicio}
+                            selected={
+                              activeSelectedService?.nombre === servicio.nombre
+                            }
+                            onClick={() => handleServicioClick(servicio)}
+                          />
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="cliente-panel-service-list">
+                        {activeFilteredServices.map((servicio) => (
+                          <ServiceCompactRow
+                            key={servicio.nombre}
+                            servicio={servicio}
+                            selected={
+                              activeSelectedService?.nombre === servicio.nombre
+                            }
+                            onClick={() => handleServicioClick(servicio)}
+                          />
+                        ))}
+                      </div>
+                    )}
 
-                <div className="cliente-panel-reserva-block-title">
-                  <span>Bloque 2</span>
-                  <h2>Detalles de la cita</h2>
-                  <p>
-                    Define cuándo y dónde quieres recibir a tu Beluer. Mantén la
-                    dirección lo más clara posible.
-                  </p>
-                </div>
+                    {activeFilteredServices.length === 0 && (
+                      <div className="cliente-panel-service-empty">
+                        No encontramos servicios con ese nombre.
+                      </div>
+                    )}
 
+                    {activeServiceCategory === "lashes" && servicioLashes && (
+                      <AddonsSection
+                        label="Servicios adicionales (100% para tu Beluer)"
+                        addons={addonsLashes}
+                        selectedAddons={addonsSeleccionados}
+                        onToggle={toggleAddon}
+                      />
+                    )}
+
+                    {activeServiceCategory === "nails" && servicioNails && (
+                      <AddonsSection
+                        label="Servicios adicionales de uñas (100% para tu Beluer)"
+                        addons={addonsNails}
+                        selectedAddons={addonsSeleccionados}
+                        onToggle={toggleAddon}
+                      />
+                    )}
+                  </div>
+
+                  <div className="cliente-panel-booking-block cliente-panel-details-block">
+                    <div className="cliente-panel-reserva-block-title">
+                      <span>2 · Fecha, lugar y detalles</span>
+                      <h2>Detalles de tu cita</h2>
+                      <p>
+                        Define cuándo y dónde quieres recibir a tu Beluer.
+                        Mantén la dirección lo más clara posible.
+                      </p>
+                    </div>
+
+                    <div className="cliente-panel-booking-form-grid">
                 <div className="cliente-panel-form-group">
                   <label>Fecha deseada</label>
                   <input
                     type="date"
                     value={fecha}
+                    min={getTodayLocalDate()}
                     onChange={(event) => setFecha(event.target.value)}
                   />
                   <small>Elige el día ideal para tu atención.</small>
                 </div>
 
                 <div className="cliente-panel-form-group">
-                  <label>Hora exacta</label>
-                  <input
-                    type="time"
-                    value={hora}
-                    onChange={(event) => setHora(event.target.value)}
-                  />
-                  <small>Selecciona la hora aproximada de inicio.</small>
+                  <label>Hora</label>
+                  <div className="cliente-panel-time-picker">
+                    <select
+                      value={horaPicker.time12}
+                      onChange={(event) => {
+                        const nextTime = toTwentyFourHourTime(
+                          event.target.value,
+                          horaPicker.meridiem
+                        );
+
+                        if (!isPastTimeForSelectedDate(fecha, nextTime)) {
+                          setHora(nextTime);
+                        }
+                      }}
+                      aria-label="Hora"
+                    >
+                      {horaOpciones12.map((timeOption) => (
+                        <option
+                          key={timeOption}
+                          value={timeOption}
+                          disabled={getHoraOptionDisabled(
+                            timeOption,
+                            horaPicker.meridiem
+                          )}
+                        >
+                          {timeOption}
+                        </option>
+                      ))}
+                    </select>
+                    <select
+                      value={horaPicker.meridiem}
+                      onChange={(event) => {
+                        const nextTime = toTwentyFourHourTime(
+                          horaPicker.time12,
+                          event.target.value
+                        );
+
+                        if (!isPastTimeForSelectedDate(fecha, nextTime)) {
+                          setHora(nextTime);
+                        }
+                      }}
+                      aria-label="AM o PM"
+                    >
+                      {meridiemOptions.map((meridiem) => (
+                        <option
+                          key={meridiem}
+                          value={meridiem}
+                          disabled={getMeridiemDisabled(meridiem)}
+                        >
+                          {meridiem}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <small>{horaHelpText}</small>
                 </div>
 
                 <div className="cliente-panel-form-group">
   <label>Distrito</label>
-  <select
+  <input
+    type="text"
+    list="cliente-panel-distritos"
     value={distritoReserva}
     onChange={(event) => setDistritoReserva(event.target.value)}
-  >
-    <option value="Miraflores">Miraflores</option>
-    <option value="San Isidro">San Isidro</option>
-    <option value="Surco">Surco</option>
-    <option value="La Molina">La Molina</option>
-    <option value="Barranco">Barranco</option>
-    <option value="San Borja">San Borja</option>
-    <option value="San Miguel">San Miguel</option>
-  </select>
-  <small>Usaremos el distrito para coordinar disponibilidad.</small>
+    placeholder="Ej: Miraflores, Magdalena, Jesús María..."
+  />
+  <datalist id="cliente-panel-distritos">
+    {distritoSugerencias.map((distrito) => (
+      <option key={distrito} value={distrito} />
+    ))}
+  </datalist>
+  <small>Escribe tu distrito. belu validará cobertura antes de confirmar.</small>
 </div>
 
 <div className="cliente-panel-form-group">
@@ -608,6 +940,12 @@ const hasRealBooking = Boolean(nextBooking);
                     ⚡ Necesito este servicio con urgencia (máx. 2 horas)
                   </span>
                 </label>
+                {urgenciaAutomatica && (
+                  <small className="cliente-panel-urgencia-auto-note">
+                    Se marcó como urgente porque tu cita está dentro de las
+                    próximas 2 horas.
+                  </small>
+                )}
 
                 <div className="cliente-panel-form-group">
                   <label>Modo de asignación</label>
@@ -687,9 +1025,13 @@ const hasRealBooking = Boolean(nextBooking);
   />
   <small>Opcional: agrega preferencias o indicaciones de acceso.</small>
 </div>
+                    </div>
+                </div>
+                </div>
 
+                <aside className="cliente-panel-booking-summary">
                 <div className="cliente-panel-reserva-block-title cliente-panel-reserva-summary-title">
-                  <span>Bloque 3</span>
+                  <span>Resumen de reserva</span>
                   <h2>Resumen de reserva</h2>
                   <p>
                     Revisa los datos principales antes de continuar con la
@@ -709,7 +1051,7 @@ const hasRealBooking = Boolean(nextBooking);
                 {serviciosSeleccionados.length > 0 && (
                   <div className="cliente-panel-resumen-pago">
                     <div className="linea">
-                      <span>💰 Servicios seleccionados</span>
+                      <span>Servicio</span>
                       <strong>
                         {serviciosSeleccionados
                           .map((servicio) => servicio.nombre)
@@ -725,10 +1067,32 @@ const hasRealBooking = Boolean(nextBooking);
                       </div>
                     )}
 
+                    <div className="linea">
+                      <span>Fecha</span>
+                      <strong>{formatDisplayDate(fecha)}</strong>
+                    </div>
+
+                    <div className="linea">
+                      <span>Hora</span>
+                      <strong>{formatDisplayTime(hora)}</strong>
+                    </div>
+
+                    <div className="linea">
+                      <span>Distrito</span>
+                      <strong>{distritoReserva}</strong>
+                    </div>
+
+                    <div className="linea">
+                      <span>Dirección</span>
+                      <strong>
+                        {direccionReserva.trim() || "Pendiente de completar"}
+                      </strong>
+                    </div>
+
                     {addonsActivos.length > 0 && (
                       <div className="addons-wrapper">
                         <div className="addons-title">
-                          ✨ Servicios adicionales
+                          Servicios adicionales
                         </div>
                         {addonsActivos.map((addon) => (
                           <div className="linea-addon" key={addon.nombre}>
@@ -740,24 +1104,20 @@ const hasRealBooking = Boolean(nextBooking);
                     )}
 
                     <div className="linea">
-                      <span>🚗 Cargo logístico único:</span>
+                      <span>Cargo logístico</span>
                       <strong>S/ {cargoLogistico}</strong>
                     </div>
 
                     <div className="linea total">
-                      <span>Subtotal</span>
-                      <strong>S/ {subtotal}</strong>
+                      <span>Total</span>
+                      <strong>S/ {urgencia ? total : subtotal}</strong>
                     </div>
 
                     {urgencia && (
                       <div className="express">
                         <div className="linea">
-                          <span>⚡ Belu Express (recargo):</span>
+                          <span>Belu Express</span>
                           <strong>+ S/ {recargoExpress}</strong>
-                        </div>
-                        <div className="linea total">
-                          <span>Total a pagar</span>
-                          <strong>S/ {total}</strong>
                         </div>
                         <small>
                           Te confirmamos una beluer en máximo 30 minutos o te
@@ -773,13 +1133,14 @@ const hasRealBooking = Boolean(nextBooking);
                   type="button"
                   onClick={handleConfirmarReserva}
                 >
-                  Confirmar reserva ✦
+                  Confirmar reserva
                 </button>
 
                 <p className="cliente-panel-reserva-mvp-note">
                   En esta etapa, la confirmación y coordinación final se realiza
                   por WhatsApp belu.
                 </p>
+                </aside>
               </div>
             </section>
           )}
@@ -1057,9 +1418,9 @@ activeSection !== "perfil" && (
       <div className="cliente-panel-form-group">
         <label>Nueva hora</label>
         <input
-          type="time"
-          value={nuevaHora}
-          onChange={(event) => setNuevaHora(event.target.value)}
+          type="text"
+          value={formatDisplayTime(nuevaHora)}
+          readOnly
           disabled
         />
       </div>
@@ -1323,6 +1684,12 @@ function DashboardSection({
                   {reservationStatusLabels[reservationStatus] ||
                     reservationStatus}
                 </span>
+
+                {nextBooking?.is_express ? (
+                  <span className="belu-badge cliente-panel-express-pill">
+                    Belu Express
+                  </span>
+                ) : null}
               </div>
 
               <div className="cliente-panel-dashboard-appointment-details">
@@ -1355,7 +1722,11 @@ function DashboardSection({
 
                 <div>
                   <span>Total</span>
-                  <strong>S/ {nextBooking?.public_price ?? total}</strong>
+                  <strong>
+                    {formatSoles(
+                      nextBooking ? getClientBookingTotal(nextBooking).total : total
+                    )}
+                  </strong>
                 </div>
 
                 {addonsActivos.length > 0 && (
@@ -1486,6 +1857,9 @@ function HistorialSection({
     refunded: "Reembolsado",
     partially_refunded: "Reembolso parcial",
   };
+  const selectedBookingTotal = selectedBooking
+    ? getClientBookingTotal(selectedBooking)
+    : null;
   
   return (
     <section className="cliente-panel-section active">
@@ -1505,7 +1879,10 @@ function HistorialSection({
           </div>
         )}
 
-        {bookingHistory.map((item) => (
+        {bookingHistory.map((item) => {
+          const itemTotal = getClientBookingTotal(item);
+
+          return (
           <article className="cliente-panel-historial-card" key={item.id}>
             <div className="cliente-panel-historial-img">
               <img
@@ -1529,12 +1906,17 @@ function HistorialSection({
                   </p>
                 </div>
 
-                <strong>S/ {item.public_price}</strong>
+                <strong>{formatSoles(itemTotal.total)}</strong>
               </div>
 
               <div className="cliente-panel-historial-meta">
                 <span>{formatDisplayDate(item.scheduled_date)}</span>
                 <span>{formatDisplayTime(item.scheduled_time)}</span>
+                {item.is_express ? (
+                  <span className="cliente-panel-express-pill">
+                    Belu Express
+                  </span>
+                ) : null}
                 <span>
                   💳{" "}
                   {paymentStatusLabels[item.payment_status] ||
@@ -1569,7 +1951,8 @@ function HistorialSection({
               </div>
             </div>
           </article>
-        ))}
+          );
+        })}
       </div>
 
       {selectedBooking && (
@@ -1613,9 +1996,40 @@ function HistorialSection({
                 {paymentStatusLabels[selectedBooking.payment_status] ||
                   selectedBooking.payment_status}
               </p>
-              <p>
-                <strong>Precio:</strong> S/ {selectedBooking.public_price}
-              </p>
+              {selectedBookingTotal ? (
+                <div className="cliente-panel-booking-breakdown">
+                  <div>
+                    <span>Servicio</span>
+                    <strong>
+                      {formatSoles(selectedBookingTotal.serviceAmount)}
+                    </strong>
+                  </div>
+
+                  {selectedBookingTotal.logisticFee > 0 ? (
+                    <div>
+                      <span>Cargo logistico</span>
+                      <strong>
+                        {formatSoles(selectedBookingTotal.logisticFee)}
+                      </strong>
+                    </div>
+                  ) : null}
+
+                  {selectedBooking.is_express ||
+                  selectedBookingTotal.expressFee > 0 ? (
+                    <div>
+                      <span>Belu Express</span>
+                      <strong>
+                        {formatSoles(selectedBookingTotal.expressFee)}
+                      </strong>
+                    </div>
+                  ) : null}
+
+                  <div className="cliente-panel-booking-breakdown-total">
+                    <span>Total</span>
+                    <strong>{formatSoles(selectedBookingTotal.total)}</strong>
+                  </div>
+                </div>
+              ) : null}
               <p>
                 <strong>Distrito:</strong> {selectedBooking.district}
               </p>
@@ -1652,7 +2066,7 @@ function PagosSection({
     partially_refunded: "Reembolso parcial",
   };
   const totalRegistrado = bookingHistory.reduce(
-    (acc, booking) => acc + Number(booking.public_price || 0),
+    (acc, booking) => acc + getClientBookingTotal(booking).total,
     0
   );
   const ultimoEstadoPago = bookingHistory[0]?.payment_status
@@ -1676,7 +2090,7 @@ function PagosSection({
       <div className="cliente-panel-pagos-summary">
         <div>
   <span>Total registrado</span>
-          <strong>S/ {totalRegistrado}</strong>
+          <strong>{formatSoles(totalRegistrado)}</strong>
 </div>
 
         <div>
@@ -1696,7 +2110,10 @@ function PagosSection({
             <p>Aún no tienes pagos registrados.</p>
           </div>
         ) : (
-          bookingHistory.map((booking) => (
+          bookingHistory.map((booking) => {
+            const bookingTotal = getClientBookingTotal(booking);
+
+            return (
           <article className="cliente-panel-pago-card" key={booking.id}>
             <div className="cliente-panel-pago-main">
               <div>
@@ -1717,13 +2134,18 @@ function PagosSection({
                   {paymentStatusLabels[booking.payment_status] ||
                     booking.payment_status}
                 </span>
-                <strong>S/ {booking.public_price}</strong>
+                <strong>{formatSoles(bookingTotal.total)}</strong>
               </div>
             </div>
 
             <div className="cliente-panel-pago-meta">
               <span>Fecha: {formatDisplayDate(booking.scheduled_date)}</span>
               <span>Hora: {formatDisplayTime(booking.scheduled_time)}</span>
+              {booking.is_express ? (
+                <span className="cliente-panel-express-pill">
+                  Belu Express
+                </span>
+              ) : null}
               <span>
                 Pago:{" "}
                 {paymentStatusLabels[booking.payment_status] ||
@@ -1749,7 +2171,8 @@ function PagosSection({
               </button>
             </div>
           </article>
-          ))
+            );
+          })
         )}
       </div>
     </section>
@@ -2217,6 +2640,12 @@ function ServiceCard({
       onClick={onClick}
     >
       <img src={servicio.foto} alt={servicio.nombre} />
+      <div
+        className={`cliente-panel-servicio-thumb cliente-panel-servicio-thumb-${servicio.categoria}`}
+        aria-hidden="true"
+      >
+        <span>foto servicio</span>
+      </div>
       <div className="cliente-panel-servicio-card-body">
         <span className="cliente-panel-servicio-category">
           {servicio.categoria === "lashes" ? "Lashes" : "Nails"}
@@ -2232,6 +2661,60 @@ function ServiceCard({
       </div>
     </button>
   );
+}
+
+function ServiceCompactRow({
+  servicio,
+  selected,
+  onClick,
+}: {
+  servicio: Service;
+  selected: boolean;
+  onClick: () => void;
+}) {
+  const duration = getServiceDuration(servicio);
+
+  return (
+    <button
+      className={`cliente-panel-service-row ${selected ? "selected" : ""}`}
+      type="button"
+      onClick={onClick}
+    >
+      <span className="cliente-panel-service-row-main">
+        <strong>{servicio.nombre}</strong>
+        {servicio.desc ? <small>{servicio.desc}</small> : null}
+      </span>
+      <span className="cliente-panel-service-row-price">
+        {duration ? (
+          <small className="cliente-panel-service-row-duration">
+            {duration}
+          </small>
+        ) : null}
+        S/ {servicio.precio}
+      </span>
+      {selected ? (
+        <span className="cliente-panel-service-row-check">✓</span>
+      ) : null}
+    </button>
+  );
+}
+
+function getServiceDuration(servicio: Service) {
+  const serviceWithDuration = servicio as Service & {
+    duration_minutes?: number | null;
+    duracionMinutos?: number | null;
+    duracion?: string | null;
+    duration?: string | null;
+  };
+
+  const minutes =
+    serviceWithDuration.duration_minutes ?? serviceWithDuration.duracionMinutos;
+
+  if (typeof minutes === "number" && minutes > 0) return `${minutes} min`;
+  if (serviceWithDuration.duracion) return serviceWithDuration.duracion;
+  if (serviceWithDuration.duration) return serviceWithDuration.duration;
+
+  return "";
 }
 
 function AddonsSection({
