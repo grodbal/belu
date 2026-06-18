@@ -131,12 +131,26 @@ public_price
 logistic_fee
 base_price
 duration_minutes
+image_url
+is_featured
 status
 created_at
 updated_at
 ```
 
 La app usa `status = active` para mostrar servicios disponibles.
+`image_url` apunta a una imagen publica del bucket `service-images`.
+`is_featured` queda reservado para destacar servicios en Admin/Cliente.
+
+Para actualizar un entorno existente manualmente:
+
+```sql
+alter table public.services
+add column if not exists image_url text;
+
+alter table public.services
+add column if not exists is_featured boolean not null default false;
+```
 
 ### Reservas
 

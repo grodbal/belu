@@ -146,6 +146,8 @@ create table if not exists public.services (
   logistic_fee numeric(10,2) not null default 10,
   base_price numeric(10,2) not null,
   duration_minutes integer not null default 90,
+  image_url text,
+  is_featured boolean not null default false,
   status service_status not null default 'active',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
