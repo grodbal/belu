@@ -5964,3 +5964,271 @@
     grid-template-columns: minmax(0, 1fr) 82px;
   }
 }
+
+/* --------------------------------------------------------------------------
+   BLOQUE 15 - NUEVA RESERVA SERVICIOS VISUALES
+   Cards compactas con imagen y modal de detalle sin cambiar reserva.
+-------------------------------------------------------------------------- */
+
+.cliente-panel-reserva-section .cliente-panel-service-visual-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.72rem;
+  max-height: 430px;
+  overflow-y: auto;
+  padding-right: 0.18rem;
+}
+
+.cliente-panel-reserva-section .cliente-panel-service-compact-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  gap: 0.76rem;
+  min-height: 128px;
+  border: 1px solid #ece4de;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.86);
+  color: #1a1a1a;
+  padding: 0.48rem 2rem 0.48rem 0.48rem;
+  font-family: var(--belu-ui-font, var(--font-sans));
+  text-align: left;
+  cursor: pointer;
+  overflow: hidden;
+  transition:
+    border-color 0.16s ease,
+    background-color 0.16s ease;
+}
+
+.cliente-panel-reserva-section .cliente-panel-service-compact-card:hover {
+  border-color: rgba(230, 0, 35, 0.2);
+  background: rgba(255, 248, 250, 0.72);
+}
+
+.cliente-panel-reserva-section .cliente-panel-service-compact-card.selected {
+  border-color: rgba(230, 0, 35, 0.52);
+  background: rgba(255, 246, 249, 0.9);
+  box-shadow: inset 0 0 0 1px rgba(230, 0, 35, 0.08);
+}
+
+.cliente-panel-reserva-section .cliente-panel-service-compact-image {
+  width: 92px;
+  height: 100%;
+  min-height: 112px;
+  border-radius: 10px;
+  object-fit: cover;
+  background: #fff1f5;
+}
+
+.cliente-panel-reserva-section .cliente-panel-service-compact-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.26rem;
+  min-width: 0;
+  padding: 0.22rem 0;
+}
+
+.cliente-panel-reserva-section .cliente-panel-service-compact-body strong {
+  color: #221b17;
+  font-size: 0.9rem;
+  font-weight: 820;
+  line-height: 1.14;
+}
+
+.cliente-panel-reserva-section .cliente-panel-service-compact-body small {
+  display: -webkit-box;
+  overflow: hidden;
+  color: #746d66;
+  font-size: 0.72rem;
+  font-weight: 500;
+  line-height: 1.32;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.cliente-panel-reserva-section .cliente-panel-service-compact-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-top: auto;
+}
+
+.cliente-panel-reserva-section .cliente-panel-service-compact-meta b {
+  color: #e60023;
+  font-size: 0.92rem;
+  font-weight: 860;
+}
+
+.cliente-panel-reserva-section .cliente-panel-service-compact-meta em {
+  color: #8a827a;
+  font-size: 0.68rem;
+  font-style: normal;
+  font-weight: 720;
+  white-space: nowrap;
+}
+
+.cliente-panel-shell .cliente-panel-service-detail-modal {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(260px, 0.95fr) minmax(280px, 1fr);
+  gap: 1.25rem;
+  width: min(860px, 100%);
+  max-height: 90vh;
+  overflow-y: auto;
+  border: 1px solid rgba(255, 214, 226, 0.72);
+  border-radius: 24px;
+  background: #fff;
+  color: #1a1a1a;
+  padding: 1rem;
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.22);
+}
+
+.cliente-panel-shell .cliente-panel-service-detail-gallery {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.cliente-panel-shell .cliente-panel-service-detail-gallery img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: 18px;
+  object-fit: cover;
+  background: #fff1f5;
+}
+
+.cliente-panel-shell .cliente-panel-service-detail-thumbs {
+  display: flex;
+  gap: 0.38rem;
+}
+
+.cliente-panel-shell .cliente-panel-service-detail-thumbs span {
+  width: 34px;
+  height: 5px;
+  border-radius: 999px;
+  background: #f1dce3;
+}
+
+.cliente-panel-shell .cliente-panel-service-detail-thumbs span.active {
+  background: #e60023;
+}
+
+.cliente-panel-shell .cliente-panel-service-detail-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 0.5rem 0.25rem 0.35rem;
+}
+
+.cliente-panel-shell .cliente-panel-service-detail-content h2 {
+  margin: 0;
+  color: #1a1a1a;
+  font-size: clamp(1.42rem, 2.3vw, 2rem);
+  font-weight: 900;
+  line-height: 1.05;
+}
+
+.cliente-panel-shell .cliente-panel-service-detail-content p {
+  margin: 0;
+  color: #665f59;
+  font-size: 0.94rem;
+  line-height: 1.55;
+}
+
+.cliente-panel-shell .cliente-panel-service-detail-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
+.cliente-panel-shell .cliente-panel-service-detail-facts span {
+  display: grid;
+  gap: 0.28rem;
+  border: 1px solid #f0e4df;
+  border-radius: 14px;
+  background: #fffaf8;
+  color: #8a827a;
+  padding: 0.8rem;
+  font-size: 0.74rem;
+  font-weight: 760;
+}
+
+.cliente-panel-shell .cliente-panel-service-detail-facts strong {
+  color: #1a1a1a;
+  font-size: 1rem;
+  font-weight: 880;
+}
+
+.cliente-panel-shell .cliente-panel-service-detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-top: 0.25rem;
+}
+
+.cliente-panel-shell .cliente-panel-service-detail-actions .cliente-panel-full-btn {
+  width: auto;
+  min-width: 190px;
+}
+
+.cliente-panel-shell .cliente-panel-service-detail-secondary {
+  border: 1px solid #eaded8;
+  border-radius: 999px;
+  background: #fff;
+  color: #1a1a1a;
+  padding: 0.82rem 1.1rem;
+  font-family: var(--belu-ui-font, var(--font-sans));
+  font-size: 0.86rem;
+  font-weight: 820;
+  cursor: pointer;
+}
+
+.cliente-panel-shell .cliente-panel-service-detail-selected {
+  width: fit-content;
+  border-radius: 999px;
+  background: #fff1f5;
+  color: #e60023;
+  padding: 0.42rem 0.68rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+@media (max-width: 900px) {
+  .cliente-panel-reserva-section .cliente-panel-service-visual-list {
+    grid-template-columns: 1fr;
+    max-height: 520px;
+  }
+
+  .cliente-panel-shell .cliente-panel-service-detail-modal {
+    grid-template-columns: 1fr;
+    width: min(560px, 100%);
+    padding: 0.82rem;
+  }
+}
+
+@media (max-width: 560px) {
+  .cliente-panel-reserva-section .cliente-panel-service-compact-card {
+    grid-template-columns: 88px minmax(0, 1fr);
+    min-height: 118px;
+    padding-right: 1.8rem;
+  }
+
+  .cliente-panel-reserva-section .cliente-panel-service-compact-image {
+    width: 88px;
+    min-height: 104px;
+  }
+
+  .cliente-panel-shell .cliente-panel-service-detail-modal {
+    max-height: 92vh;
+    border-radius: 20px;
+  }
+
+  .cliente-panel-shell .cliente-panel-service-detail-facts {
+    grid-template-columns: 1fr;
+  }
+
+  .cliente-panel-shell .cliente-panel-service-detail-actions,
+  .cliente-panel-shell .cliente-panel-service-detail-actions .cliente-panel-full-btn,
+  .cliente-panel-shell .cliente-panel-service-detail-secondary {
+    width: 100%;
+  }
+}

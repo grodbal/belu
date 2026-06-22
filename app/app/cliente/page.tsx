@@ -51,6 +51,8 @@ type ServiceRow = {
   category: Service["categoria"];
   description: string | null;
   public_price: number;
+  image_url: string | null;
+  is_featured: boolean | null;
 };
 
 type BeluerProfileRow = {
@@ -125,10 +127,13 @@ export default async function ClientePanelPage() {
 
     const { data: servicesData } = await supabase
       .from("services")
-      .select("id, name, category, description, public_price")
+      .select(
+        "id, name, category, description, public_price, image_url, is_featured"
+      )
       .eq("status", "active")
       .in("category", ["lashes", "nails"])
       .order("category", { ascending: true })
+      .order("is_featured", { ascending: false })
       .order("public_price", { ascending: true });
 
     realServices = ((servicesData as ServiceRow[] | null) || []).map(
@@ -137,11 +142,15 @@ export default async function ClientePanelPage() {
         nombre: service.name,
         precio: Number(service.public_price),
         desc: service.description || "",
-        foto: crearPlaceholder(
-          service.name,
-          service.category === "nails" ? "D81B60" : "AD1457"
-        ),
+        foto:
+          service.image_url ||
+          crearPlaceholder(
+            service.name,
+            service.category === "nails" ? "D81B60" : "AD1457"
+          ),
         categoria: service.category,
+        image_url: service.image_url,
+        is_featured: service.is_featured,
       })
     );
 

@@ -100,6 +100,22 @@ function formatSoles(value: number) {
   return `S/ ${displayValue}`;
 }
 
+function sortServicesForReservation(services: Service[]) {
+  return [...services].sort((first, second) => {
+    const featuredDifference =
+      Number(Boolean(second.is_featured)) - Number(Boolean(first.is_featured));
+
+    if (featuredDifference !== 0) return featuredDifference;
+
+    const priceDifference =
+      Number(first.precio || 0) - Number(second.precio || 0);
+
+    if (priceDifference !== 0) return priceDifference;
+
+    return first.nombre.localeCompare(second.nombre, "es");
+  });
+}
+
 function getClientBookingTotal(booking: ClientBooking) {
   const serviceAmount = Number(booking.public_price || 0);
   const logisticFee = Number(booking.logistic_fee || 0);
@@ -265,6 +281,7 @@ export default function ClientePanelOriginalPage({
   const [serviceView, setServiceView] =
     useState<"featured" | "complete">("featured");
   const [serviceSearch, setServiceSearch] = useState("");
+  const [serviceDetail, setServiceDetail] = useState<Service | null>(null);
 
   const [servicioLashes, setServicioLashes] = useState<Service | null>(null);
   const [servicioNails, setServicioNails] = useState<Service | null>(null);
@@ -291,11 +308,11 @@ const [modalGestion, setModalGestion] =
 const [nuevaFecha, setNuevaFecha] = useState(fecha);
 const [nuevaHora, setNuevaHora] = useState(hora);
 const [nuevaBeluer, setNuevaBeluer] = useState("");
-const catalogoLashes = realServices.filter(
-  (servicio) => servicio.categoria === "lashes"
+const catalogoLashes = sortServicesForReservation(
+  realServices.filter((servicio) => servicio.categoria === "lashes")
 );
-const catalogoNails = realServices.filter(
-  (servicio) => servicio.categoria === "nails"
+const catalogoNails = sortServicesForReservation(
+  realServices.filter((servicio) => servicio.categoria === "nails")
 );
 const distritoSugerencias = [
   "Miraflores",
@@ -460,18 +477,19 @@ useEffect(() => {
 
   const handleServicioClick = (servicio: Service) => {
     if (servicio.categoria === "lashes") {
-      setServicioLashes((current) =>
-        current?.nombre === servicio.nombre ? null : servicio
-      );
+      setServicioLashes(servicio);
     }
 
     if (servicio.categoria === "nails") {
-      setServicioNails((current) =>
-        current?.nombre === servicio.nombre ? null : servicio
-      );
+      setServicioNails(servicio);
     }
 
     setBeluerSeleccionada("");
+  };
+
+  const handleChooseServiceFromDetail = (servicio: Service) => {
+    handleServicioClick(servicio);
+    setServiceDetail(null);
   };
 
 const handleConfirmarReserva = () => {
@@ -778,20 +796,20 @@ const hasRealBooking = Boolean(nextBooking);
                             selected={
                               activeSelectedService?.nombre === servicio.nombre
                             }
-                            onClick={() => handleServicioClick(servicio)}
+                            onClick={() => setServiceDetail(servicio)}
                           />
                         ))}
                       </div>
                     ) : (
-                      <div className="cliente-panel-service-list">
+                      <div className="cliente-panel-service-visual-list">
                         {activeFilteredServices.map((servicio) => (
-                          <ServiceCompactRow
+                          <ServiceCompactCard
                             key={servicio.nombre}
                             servicio={servicio}
                             selected={
                               activeSelectedService?.nombre === servicio.nombre
                             }
-                            onClick={() => handleServicioClick(servicio)}
+                            onClick={() => setServiceDetail(servicio)}
                           />
                         ))}
                       </div>
@@ -1221,6 +1239,14 @@ activeSection !== "perfil" && (
           type="button"
           onClick={() => setSidebarOpen(false)}
           aria-label="Cerrar menú"
+        />
+      )}
+      {serviceDetail && (
+        <ServiceDetailModal
+          servicio={serviceDetail}
+          selected={activeSelectedService?.nombre === serviceDetail.nombre}
+          onChoose={() => handleChooseServiceFromDetail(serviceDetail)}
+          onClose={() => setServiceDetail(null)}
         />
       )}
       {pagoOpen && (
@@ -2663,7 +2689,7 @@ function ServiceCard({
   );
 }
 
-function ServiceCompactRow({
+function ServiceCompactCard({
   servicio,
   selected,
   onClick,
@@ -2676,29 +2702,118 @@ function ServiceCompactRow({
 
   return (
     <button
-      className={`cliente-panel-service-row ${selected ? "selected" : ""}`}
+      className={`cliente-panel-service-compact-card ${selected ? "selected" : ""}`}
       type="button"
       onClick={onClick}
     >
-      <span className="cliente-panel-service-row-main">
+      <img
+        className="cliente-panel-service-compact-image"
+        src={servicio.foto}
+        alt={servicio.nombre}
+      />
+
+      <span className="cliente-panel-service-compact-body">
+        <span className="cliente-panel-servicio-category">
+          {servicio.categoria === "lashes" ? "Lashes" : "Nails"}
+        </span>
         <strong>{servicio.nombre}</strong>
         {servicio.desc ? <small>{servicio.desc}</small> : null}
+        <span className="cliente-panel-service-compact-meta">
+          <b>S/ {servicio.precio}</b>
+          {duration ? <em>{duration}</em> : null}
+        </span>
       </span>
-      <span className="cliente-panel-service-row-price">
-        {duration ? (
-          <small className="cliente-panel-service-row-duration">
-            {duration}
-          </small>
-        ) : null}
-        S/ {servicio.precio}
-      </span>
-      {selected ? (
-        <span className="cliente-panel-service-row-check">✓</span>
-      ) : null}
+
+      {selected ? <span className="cliente-panel-service-row-check">OK</span> : null}
     </button>
   );
 }
 
+function ServiceDetailModal({
+  servicio,
+  selected,
+  onChoose,
+  onClose,
+}: {
+  servicio: Service;
+  selected: boolean;
+  onChoose: () => void;
+  onClose: () => void;
+}) {
+  const duration = getServiceDuration(servicio);
+
+  return (
+    <div className="cliente-panel-modal-overlay">
+      <div
+        className="cliente-panel-service-detail-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="cliente-panel-service-detail-title"
+      >
+        <button
+          className="cliente-panel-modal-close cliente-panel-service-detail-close"
+          type="button"
+          onClick={onClose}
+          aria-label="Cerrar detalle del servicio"
+        >
+          x
+        </button>
+
+        <div className="cliente-panel-service-detail-gallery">
+          <img src={servicio.foto} alt={servicio.nombre} />
+          <div className="cliente-panel-service-detail-thumbs" aria-hidden="true">
+            <span className="active" />
+          </div>
+        </div>
+
+        <div className="cliente-panel-service-detail-content">
+          <span className="cliente-panel-servicio-category">
+            {servicio.categoria === "lashes" ? "Lashes" : "Nails"}
+          </span>
+          <h2 id="cliente-panel-service-detail-title">{servicio.nombre}</h2>
+          <p>
+            {servicio.desc ||
+              "Servicio belu realizado por una especialista verificada."}
+          </p>
+
+          <div className="cliente-panel-service-detail-facts">
+            <span>
+              Precio
+              <strong>S/ {servicio.precio}</strong>
+            </span>
+            <span>
+              Duracion
+              <strong>{duration || "Por confirmar"}</strong>
+            </span>
+          </div>
+
+          <div className="cliente-panel-service-detail-actions">
+            <button
+              className="cliente-panel-btn-r cliente-panel-full-btn"
+              type="button"
+              onClick={onChoose}
+            >
+              Elegir este servicio
+            </button>
+            <button
+              className="cliente-panel-service-detail-secondary"
+              type="button"
+              onClick={onClose}
+            >
+              Cerrar
+            </button>
+          </div>
+
+          {selected ? (
+            <small className="cliente-panel-service-detail-selected">
+              Este servicio ya esta seleccionado en tu reserva.
+            </small>
+          ) : null}
+        </div>
+      </div>
+    </div>
+  );
+}
 function getServiceDuration(servicio: Service) {
   const serviceWithDuration = servicio as Service & {
     duration_minutes?: number | null;

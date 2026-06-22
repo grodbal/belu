@@ -26,6 +26,8 @@ export type Service = {
   desc: string;
   foto: string;
   categoria: ServiceCategory;
+  image_url?: string | null;
+  is_featured?: boolean | null;
 };
 
 export type Addon = {
