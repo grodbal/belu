@@ -1,7 +1,16 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import CreateServiceForm from "@/components/admin-panel-original/CreateServiceForm";
 import EditServiceForm from "@/components/admin-panel-original/EditServiceForm";
+import ServiceImageGalleryManager from "@/components/admin-panel-original/ServiceImageGalleryManager";
 import UpdateServiceStatusForm from "@/components/admin-panel-original/UpdateServiceStatusForm";
+
+type ServiceGalleryImage = {
+  id: string;
+  service_id: string;
+  image_url: string;
+  sort_order: number;
+  created_at: string;
+};
 
 type Service = {
   id: string;
@@ -16,6 +25,7 @@ type Service = {
   is_featured: boolean;
   status: "active" | "inactive";
   created_at: string;
+  gallery_images: ServiceGalleryImage[];
 };
 
 function formatCurrency(value: number) {
@@ -78,7 +88,42 @@ export default async function AdminServicesRealList() {
     );
   }
 
-  const servicesList = (services as Service[] | null) || [];
+  const baseServices = (services as Omit<Service, "gallery_images">[] | null) || [];
+  const serviceIds = baseServices.map((service) => service.id);
+  let galleryImages: ServiceGalleryImage[] = [];
+
+  if (serviceIds.length > 0) {
+    const { data: galleryData, error: galleryError } = await supabase
+      .from("service_images")
+      .select("id, service_id, image_url, sort_order, created_at")
+      .in("service_id", serviceIds)
+      .order("sort_order", { ascending: true })
+      .order("created_at", { ascending: true });
+
+    if (galleryError) {
+      return (
+        <div className="rounded-[2rem] bg-[#FFD6E2] p-6 text-[#E60023]">
+          <h3 className="text-lg font-black">Error al cargar galeria</h3>
+          <p className="mt-2 text-sm font-bold">{galleryError.message}</p>
+        </div>
+      );
+    }
+
+    galleryImages = (galleryData as ServiceGalleryImage[] | null) || [];
+  }
+
+  const galleryImagesByService = new Map<string, ServiceGalleryImage[]>();
+
+  for (const image of galleryImages) {
+    const currentImages = galleryImagesByService.get(image.service_id) || [];
+    currentImages.push(image);
+    galleryImagesByService.set(image.service_id, currentImages);
+  }
+
+  const servicesList: Service[] = baseServices.map((service) => ({
+    ...service,
+    gallery_images: galleryImagesByService.get(service.id) || [],
+  }));
 
   return (
     <section className="admin-real-panel rounded-[2rem] bg-white p-6 shadow-sm ring-1 ring-black/5 md:p-8">
@@ -256,6 +301,11 @@ export default async function AdminServicesRealList() {
                             publicPrice={service.public_price}
                             logisticFee={service.logistic_fee}
                             durationMinutes={service.duration_minutes}
+                          />
+
+                          <ServiceImageGalleryManager
+                            serviceId={service.id}
+                            images={service.gallery_images}
                           />
                         </div>
                       </td>
