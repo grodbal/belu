@@ -141,6 +141,21 @@ updated_at
 La app usa `status = active` para mostrar servicios disponibles.
 `image_url` apunta a una imagen publica del bucket `service-images`.
 `is_featured` queda reservado para destacar servicios en Admin/Cliente.
+`services.image_url` sigue siendo la foto principal del servicio.
+
+`service_images` guarda fotos adicionales para una galeria futura de servicio:
+
+```txt
+id
+service_id
+image_url
+sort_order
+created_at
+```
+
+La galeria debe leer `service_images` ordenando por `sort_order`, mientras
+mantiene `services.image_url` como imagen principal. El limite de hasta 5 fotos
+por servicio es una regla de aplicacion, no una restriccion SQL.
 
 Para actualizar un entorno existente manualmente:
 
@@ -150,7 +165,24 @@ add column if not exists image_url text;
 
 alter table public.services
 add column if not exists is_featured boolean not null default false;
+
+create table if not exists public.service_images (
+  id uuid primary key default gen_random_uuid(),
+  service_id uuid not null references public.services(id) on delete cascade,
+  image_url text not null,
+  sort_order integer not null default 0,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists service_images_service_id_idx
+  on public.service_images(service_id);
+
+create index if not exists service_images_sort_order_idx
+  on public.service_images(service_id, sort_order);
 ```
+
+Este SQL queda documentado para revision manual; no se aplica automaticamente
+en Supabase remoto.
 
 ### Reservas
 

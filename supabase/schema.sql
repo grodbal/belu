@@ -155,6 +155,14 @@ create table if not exists public.services (
   constraint services_public_price_check check (public_price >= logistic_fee)
 );
 
+create table if not exists public.service_images (
+  id uuid primary key default gen_random_uuid(),
+  service_id uuid not null references public.services(id) on delete cascade,
+  image_url text not null,
+  sort_order integer not null default 0,
+  created_at timestamptz not null default now()
+);
+
 create table if not exists public.beluer_service_skills (
   id uuid primary key default gen_random_uuid(),
   beluer_profile_id uuid not null references public.beluer_profiles(id) on delete cascade,
@@ -268,6 +276,12 @@ create index if not exists idx_beluer_profiles_available on public.beluer_profil
 
 create index if not exists idx_services_category on public.services(category);
 create index if not exists idx_services_status on public.services(status);
+
+create index if not exists service_images_service_id_idx
+  on public.service_images(service_id);
+
+create index if not exists service_images_sort_order_idx
+  on public.service_images(service_id, sort_order);
 
 create index if not exists idx_beluer_service_skills_beluer on public.beluer_service_skills(beluer_profile_id);
 create index if not exists idx_beluer_service_skills_service on public.beluer_service_skills(service_id);
