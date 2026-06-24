@@ -301,6 +301,7 @@ export default async function AdminServicesRealList() {
                             publicPrice={service.public_price}
                             logisticFee={service.logistic_fee}
                             durationMinutes={service.duration_minutes}
+                            imageUrl={service.image_url}
                           />
 
                           <ServiceImageGalleryManager

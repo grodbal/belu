@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { updateServiceAction } from "@/app/actions/admin/updateService";
+import { updateServiceMainImageAction } from "@/app/actions/admin/updateServiceMainImage";
 
 const initialState = {
   success: false,
@@ -16,6 +17,7 @@ type EditServiceFormProps = {
   publicPrice: number;
   logisticFee: number;
   durationMinutes: number;
+  imageUrl: string | null;
 };
 
 export default function EditServiceForm({
@@ -26,9 +28,14 @@ export default function EditServiceForm({
   publicPrice,
   logisticFee,
   durationMinutes,
+  imageUrl,
 }: EditServiceFormProps) {
   const [state, formAction, isPending] = useActionState(
     updateServiceAction,
+    initialState
+  );
+  const [imageState, imageFormAction, imagePending] = useActionState(
+    updateServiceMainImageAction,
     initialState
   );
 
@@ -131,6 +138,60 @@ export default function EditServiceForm({
           {isPending ? "Guardando..." : "Guardar cambios"}
         </button>
       </form>
+
+      <div className="mt-5 border-t border-neutral-100 pt-4">
+        <div className="mb-3">
+          <p className="text-xs font-black uppercase tracking-[0.16em] text-[#E60023]">
+            Foto principal
+          </p>
+          <p className="mt-1 text-xs text-neutral-500">
+            Esta foto aparece como miniatura principal del servicio. La galeria
+            sigue siendo solo para fotos adicionales.
+          </p>
+        </div>
+
+        {imageUrl ? (
+          <img
+            src={imageUrl}
+            alt={name}
+            className="mb-3 h-28 w-full rounded-2xl object-cover ring-1 ring-black/5"
+          />
+        ) : (
+          <div className="mb-3 flex h-24 items-center justify-center rounded-2xl bg-[#FFF7F9] text-xs font-black text-[#E60023] ring-1 ring-[#FFD6E2]">
+            Sin foto principal
+          </div>
+        )}
+
+        <form action={imageFormAction} className="grid gap-3">
+          <input type="hidden" name="serviceId" value={serviceId} />
+
+          <input
+            name="image"
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            className="rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs file:mr-2 file:rounded-full file:border-0 file:bg-[#FFD6E2] file:px-3 file:py-1 file:text-[10px] file:font-black file:text-[#E60023]"
+            required
+          />
+
+          {imageState.message ? (
+            <p
+              className={`text-xs font-bold ${
+                imageState.success ? "text-green-700" : "text-[#E60023]"
+              }`}
+            >
+              {imageState.message}
+            </p>
+          ) : null}
+
+          <button
+            type="submit"
+            disabled={imagePending}
+            className="h-10 rounded-full bg-[#E60023] px-4 text-xs font-black text-white transition hover:bg-[#C4001D] disabled:opacity-60"
+          >
+            {imagePending ? "Actualizando..." : "Actualizar foto principal"}
+          </button>
+        </form>
+      </div>
     </details>
   );
 }
