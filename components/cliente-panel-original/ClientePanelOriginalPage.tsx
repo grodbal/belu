@@ -2741,6 +2741,26 @@ function ServiceDetailModal({
   onClose: () => void;
 }) {
   const duration = getServiceDuration(servicio);
+  const galleryImages = getServiceGalleryImages(servicio);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const activeImage = galleryImages[activeImageIndex] || galleryImages[0];
+  const hasMultipleImages = galleryImages.length > 1;
+
+  useEffect(() => {
+    setActiveImageIndex(0);
+  }, [servicio.id, servicio.nombre]);
+
+  const goToPreviousImage = () => {
+    setActiveImageIndex((currentIndex) =>
+      currentIndex === 0 ? galleryImages.length - 1 : currentIndex - 1
+    );
+  };
+
+  const goToNextImage = () => {
+    setActiveImageIndex((currentIndex) =>
+      currentIndex === galleryImages.length - 1 ? 0 : currentIndex + 1
+    );
+  };
 
   return (
     <div className="cliente-panel-modal-overlay">
@@ -2760,10 +2780,44 @@ function ServiceDetailModal({
         </button>
 
         <div className="cliente-panel-service-detail-gallery">
-          <img src={servicio.foto} alt={servicio.nombre} />
-          <div className="cliente-panel-service-detail-thumbs" aria-hidden="true">
-            <span className="active" />
+          <div className="cliente-panel-service-detail-main-image">
+            <img src={activeImage.url} alt={servicio.nombre} />
+
+            {hasMultipleImages ? (
+              <div className="cliente-panel-service-detail-nav">
+                <button
+                  type="button"
+                  onClick={goToPreviousImage}
+                  aria-label="Ver foto anterior"
+                >
+                  Anterior
+                </button>
+                <button
+                  type="button"
+                  onClick={goToNextImage}
+                  aria-label="Ver foto siguiente"
+                >
+                  Siguiente
+                </button>
+              </div>
+            ) : null}
           </div>
+
+          {hasMultipleImages ? (
+            <div className="cliente-panel-service-detail-thumbs">
+              {galleryImages.map((image, index) => (
+                <button
+                  key={image.key}
+                  type="button"
+                  className={index === activeImageIndex ? "active" : ""}
+                  onClick={() => setActiveImageIndex(index)}
+                  aria-label={`Ver foto ${index + 1} de ${servicio.nombre}`}
+                >
+                  <img src={image.url} alt="" aria-hidden="true" />
+                </button>
+              ))}
+            </div>
+          ) : null}
         </div>
 
         <div className="cliente-panel-service-detail-content">
@@ -2814,6 +2868,44 @@ function ServiceDetailModal({
     </div>
   );
 }
+
+function getServiceGalleryImages(servicio: Service) {
+  const images: { key: string; url: string }[] = [];
+  const usedUrls = new Set<string>();
+
+  const addImage = (key: string, url?: string | null) => {
+    if (!url || usedUrls.has(url)) return;
+
+    images.push({ key, url });
+    usedUrls.add(url);
+  };
+
+  addImage("principal", servicio.image_url);
+
+  const sortedGalleryImages = [...(servicio.gallery_images || [])].sort(
+    (first, second) => {
+      const orderDifference =
+        Number(first.sort_order || 0) - Number(second.sort_order || 0);
+
+      if (orderDifference !== 0) return orderDifference;
+
+      return String(first.created_at || "").localeCompare(
+        String(second.created_at || "")
+      );
+    }
+  );
+
+  for (const image of sortedGalleryImages) {
+    addImage(image.id, image.image_url);
+  }
+
+  if (images.length === 0) {
+    addImage("placeholder", servicio.foto);
+  }
+
+  return images;
+}
+
 function getServiceDuration(servicio: Service) {
   const serviceWithDuration = servicio as Service & {
     duration_minutes?: number | null;

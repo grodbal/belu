@@ -28,6 +28,12 @@ export type Service = {
   categoria: ServiceCategory;
   image_url?: string | null;
   is_featured?: boolean | null;
+  gallery_images?: {
+    id: string;
+    image_url: string;
+    sort_order: number;
+    created_at?: string;
+  }[];
 };
 
 export type Addon = {

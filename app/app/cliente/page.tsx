@@ -53,6 +53,12 @@ type ServiceRow = {
   public_price: number;
   image_url: string | null;
   is_featured: boolean | null;
+  service_images: {
+    id: string;
+    image_url: string;
+    sort_order: number;
+    created_at: string;
+  }[] | null;
 };
 
 type BeluerProfileRow = {
@@ -128,7 +134,21 @@ export default async function ClientePanelPage() {
     const { data: servicesData } = await supabase
       .from("services")
       .select(
-        "id, name, category, description, public_price, image_url, is_featured"
+        `
+        id,
+        name,
+        category,
+        description,
+        public_price,
+        image_url,
+        is_featured,
+        service_images (
+          id,
+          image_url,
+          sort_order,
+          created_at
+        )
+      `
       )
       .eq("status", "active")
       .in("category", ["lashes", "nails"])
@@ -137,21 +157,37 @@ export default async function ClientePanelPage() {
       .order("public_price", { ascending: true });
 
     realServices = ((servicesData as ServiceRow[] | null) || []).map(
-      (service): Service => ({
-        id: service.id,
-        nombre: service.name,
-        precio: Number(service.public_price),
-        desc: service.description || "",
-        foto:
-          service.image_url ||
-          crearPlaceholder(
-            service.name,
-            service.category === "nails" ? "D81B60" : "AD1457"
-          ),
-        categoria: service.category,
-        image_url: service.image_url,
-        is_featured: service.is_featured,
-      })
+      (service): Service => {
+        const galleryImages = [...(service.service_images || [])].sort(
+          (first, second) => {
+            const orderDifference =
+              Number(first.sort_order || 0) - Number(second.sort_order || 0);
+
+            if (orderDifference !== 0) return orderDifference;
+
+            return String(first.created_at || "").localeCompare(
+              String(second.created_at || "")
+            );
+          }
+        );
+
+        return {
+          id: service.id,
+          nombre: service.name,
+          precio: Number(service.public_price),
+          desc: service.description || "",
+          foto:
+            service.image_url ||
+            crearPlaceholder(
+              service.name,
+              service.category === "nails" ? "D81B60" : "AD1457"
+            ),
+          categoria: service.category,
+          image_url: service.image_url,
+          is_featured: service.is_featured,
+          gallery_images: galleryImages,
+        };
+      }
     );
 
     const { data: beluersData } = await supabase
