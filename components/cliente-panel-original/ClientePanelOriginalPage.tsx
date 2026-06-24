@@ -58,6 +58,7 @@ type ClientePanelOriginalPageProps = {
 };
 
 type ServiceCatalogFilter = "all" | "featured" | "lashes" | "nails";
+type ServiceCatalogSection = "featured" | "lashes" | "nails";
 
 function getTodayLocalDate() {
   const today = new Date();
@@ -282,6 +283,19 @@ export default function ClientePanelOriginalPage({
     useState<ServiceCategory>("lashes");
   const [serviceCatalogFilter, setServiceCatalogFilter] =
     useState<ServiceCatalogFilter>("all");
+  const [openServiceSections, setOpenServiceSections] = useState<
+    Record<ServiceCatalogSection, boolean>
+  >(() => {
+    const hasFeaturedServices = realServices.some((servicio) =>
+      Boolean(servicio.is_featured)
+    );
+
+    return {
+      featured: hasFeaturedServices,
+      lashes: !hasFeaturedServices,
+      nails: false,
+    };
+  });
   const [serviceSearch, setServiceSearch] = useState("");
   const [serviceDetail, setServiceDetail] = useState<Service | null>(null);
 
@@ -422,6 +436,47 @@ const filteredCatalogServices = catalogServices.filter((servicio) => {
 });
 const getSelectedServiceForCategory = (category: ServiceCategory) =>
   category === "lashes" ? servicioLashes : servicioNails;
+const allCatalogSections: {
+  id: ServiceCatalogSection;
+  title: string;
+  services: Service[];
+}[] = [
+  {
+    id: "featured",
+    title: "Destacados ✦",
+    services: filteredCatalogServices.filter((servicio) =>
+      Boolean(servicio.is_featured)
+    ),
+  },
+  {
+    id: "lashes",
+    title: "Lashes",
+    services: filteredCatalogServices.filter(
+      (servicio) => servicio.categoria === "lashes"
+    ),
+  },
+  {
+    id: "nails",
+    title: "Nails",
+    services: filteredCatalogServices.filter(
+      (servicio) => servicio.categoria === "nails"
+    ),
+  },
+];
+const catalogSections = allCatalogSections.filter((section) => {
+  if (section.services.length === 0) return false;
+  if (serviceCatalogFilter === "featured") return section.id === "featured";
+  if (serviceCatalogFilter === "lashes") return section.id === "lashes";
+  if (serviceCatalogFilter === "nails") return section.id === "nails";
+
+  return true;
+});
+const toggleServiceSection = (section: ServiceCatalogSection) => {
+  setOpenServiceSections((currentSections) => ({
+    ...currentSections,
+    [section]: !currentSections[section],
+  }));
+};
 const urgenciaAutomatica = isWithinNextTwoHours(fecha, hora);
 
 const beluersDisponibles = useMemo(() => {
@@ -761,7 +816,13 @@ const hasRealBooking = Boolean(nextBooking);
                         <button
                           type="button"
                           className={serviceCatalogFilter === "featured" ? "active" : ""}
-                          onClick={() => setServiceCatalogFilter("featured")}
+                          onClick={() => {
+                            setServiceCatalogFilter("featured");
+                            setOpenServiceSections((currentSections) => ({
+                              ...currentSections,
+                              featured: true,
+                            }));
+                          }}
                         >
                           Destacados
                         </button>
@@ -771,6 +832,10 @@ const hasRealBooking = Boolean(nextBooking);
                           onClick={() => {
                             setServiceCatalogFilter("lashes");
                             setActiveServiceCategory("lashes");
+                            setOpenServiceSections((currentSections) => ({
+                              ...currentSections,
+                              lashes: true,
+                            }));
                           }}
                         >
                           Lashes
@@ -781,6 +846,10 @@ const hasRealBooking = Boolean(nextBooking);
                           onClick={() => {
                             setServiceCatalogFilter("nails");
                             setActiveServiceCategory("nails");
+                            setOpenServiceSections((currentSections) => ({
+                              ...currentSections,
+                              nails: true,
+                            }));
                           }}
                         >
                           Nails
@@ -788,21 +857,53 @@ const hasRealBooking = Boolean(nextBooking);
                       </div>
                     </div>
 
-                    <div className="cliente-panel-service-visual-list cliente-panel-service-catalog-list">
-                      {filteredCatalogServices.map((servicio) => (
-                        <ServiceCompactCard
-                          key={servicio.id || servicio.nombre}
-                          servicio={servicio}
-                          selected={
-                            getSelectedServiceForCategory(servicio.categoria)
-                              ?.nombre === servicio.nombre
-                          }
-                          onClick={() => setServiceDetail(servicio)}
-                        />
-                      ))}
+                    <div className="cliente-panel-service-accordion-list">
+                      {catalogSections.map((section) => {
+                        const sectionOpen = openServiceSections[section.id];
+
+                        return (
+                          <section
+                            className="cliente-panel-service-accordion"
+                            key={section.id}
+                          >
+                            <button
+                              type="button"
+                              className="cliente-panel-service-accordion-head"
+                              onClick={() => toggleServiceSection(section.id)}
+                              aria-expanded={sectionOpen}
+                            >
+                              <span>
+                                <strong>{section.title}</strong>
+                                <small>
+                                  {section.services.length} servicio
+                                  {section.services.length === 1 ? "" : "s"}
+                                </small>
+                              </span>
+                              <i aria-hidden="true">{sectionOpen ? "⌃" : "⌄"}</i>
+                            </button>
+
+                            {sectionOpen ? (
+                              <div className="cliente-panel-service-accordion-body">
+                                {section.services.map((servicio) => (
+                                  <ServiceCompactCard
+                                    key={`${section.id}-${servicio.id || servicio.nombre}`}
+                                    servicio={servicio}
+                                    selected={
+                                      getSelectedServiceForCategory(
+                                        servicio.categoria
+                                      )?.nombre === servicio.nombre
+                                    }
+                                    onClick={() => setServiceDetail(servicio)}
+                                  />
+                                ))}
+                              </div>
+                            ) : null}
+                          </section>
+                        );
+                      })}
                     </div>
 
-                    {filteredCatalogServices.length === 0 && (
+                    {catalogSections.length === 0 && (
                       <div className="cliente-panel-service-empty">
                         No encontramos servicios con ese filtro.
                       </div>
@@ -2657,11 +2758,21 @@ function ServiceCompactCard({
       type="button"
       onClick={onClick}
     >
-      <img
-        className="cliente-panel-service-compact-image"
-        src={servicio.foto}
-        alt={servicio.nombre}
-      />
+      {servicio.image_url ? (
+        <img
+          className="cliente-panel-service-compact-image"
+          src={servicio.foto}
+          alt={servicio.nombre}
+        />
+      ) : (
+        <span
+          className="cliente-panel-service-compact-placeholder"
+          aria-hidden="true"
+        >
+          <b>{servicio.nombre.slice(0, 1).toUpperCase()}</b>
+          <small>✦</small>
+        </span>
+      )}
 
       <span className="cliente-panel-service-compact-body">
         <span className="cliente-panel-service-compact-kickers">
@@ -2681,7 +2792,7 @@ function ServiceCompactCard({
           {duration ? <em>{duration}</em> : null}
         </span>
         <span className="cliente-panel-service-compact-cta">
-          {selected ? "Seleccionado" : "Ver detalle"}
+          {selected ? "Seleccionado" : "Ver"}
         </span>
       </span>
 

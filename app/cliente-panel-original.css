@@ -7036,3 +7036,228 @@
     min-height: 92px;
   }
 }
+
+/* --------------------------------------------------------------------------
+   BLOQUE 19 - SELECTOR MOBILE-FIRST POR ACORDEONES
+   Secciones compactas para explorar muchos servicios sin scroll atrapado.
+-------------------------------------------------------------------------- */
+
+.cliente-panel-reserva-section .cliente-panel-catalog-head {
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 0.52rem;
+  padding-top: 0.72rem;
+}
+
+.cliente-panel-reserva-section .cliente-panel-catalog-head h3 {
+  font-size: 0.98rem;
+}
+
+.cliente-panel-reserva-section .cliente-panel-catalog-head p {
+  font-size: 0.76rem;
+}
+
+.cliente-panel-reserva-section .cliente-panel-catalog-tools {
+  grid-template-columns: 1fr;
+  gap: 0.58rem;
+}
+
+.cliente-panel-reserva-section .cliente-panel-catalog-chips {
+  margin-inline: -0.08rem;
+  padding: 0.02rem 0.08rem 0.2rem;
+}
+
+.cliente-panel-reserva-section .cliente-panel-catalog-chips button {
+  min-height: 34px;
+  padding: 0 0.68rem;
+  font-size: 0.7rem;
+}
+
+.cliente-panel-service-accordion-list {
+  display: grid;
+  gap: 0.58rem;
+}
+
+.cliente-panel-service-accordion {
+  overflow: hidden;
+  border: 1px solid #ece4de;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.cliente-panel-service-accordion-head {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.72rem;
+  border: 0;
+  background: transparent;
+  color: #1a1a1a;
+  cursor: pointer;
+  padding: 0.72rem 0.78rem;
+  font-family: var(--belu-ui-font, var(--font-sans));
+  text-align: left;
+}
+
+.cliente-panel-service-accordion-head span {
+  display: grid;
+  min-width: 0;
+  gap: 0.12rem;
+}
+
+.cliente-panel-service-accordion-head strong {
+  color: #221b17;
+  font-size: 0.86rem;
+  font-weight: 920;
+  line-height: 1.15;
+}
+
+.cliente-panel-service-accordion-head small {
+  color: #8a827a;
+  font-size: 0.68rem;
+  font-weight: 760;
+}
+
+.cliente-panel-service-accordion-head i {
+  display: grid;
+  width: 1.55rem;
+  height: 1.55rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 999px;
+  background: #fff1f5;
+  color: #e60023;
+  font-size: 0.82rem;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.cliente-panel-service-accordion-body {
+  display: grid;
+  gap: 0.44rem;
+  border-top: 1px solid #f2ebe6;
+  padding: 0.5rem;
+}
+
+.cliente-panel-reserva-section .cliente-panel-service-accordion-body .cliente-panel-service-compact-card {
+  grid-template-columns: 68px minmax(0, 1fr);
+  gap: 0.58rem;
+  min-height: 84px;
+  border-color: rgba(234, 222, 214, 0.9);
+  border-radius: 12px;
+  background: #fff;
+  padding: 0.4rem 0.48rem 0.4rem 0.4rem;
+}
+
+.cliente-panel-reserva-section .cliente-panel-service-accordion-body .cliente-panel-service-compact-card.selected {
+  border-color: #e60023;
+  background: #fff7f9;
+}
+
+.cliente-panel-reserva-section .cliente-panel-service-accordion-body .cliente-panel-service-compact-image,
+.cliente-panel-service-compact-placeholder {
+  width: 68px;
+  height: 68px;
+  min-height: 68px;
+  border-radius: 10px;
+}
+
+.cliente-panel-service-compact-placeholder {
+  display: grid;
+  place-items: center;
+  background: #fff1f5;
+  color: #e60023;
+  box-shadow: inset 0 0 0 1px rgba(230, 0, 35, 0.12);
+}
+
+.cliente-panel-service-compact-placeholder b {
+  font-size: 1rem;
+  font-weight: 920;
+  line-height: 1;
+}
+
+.cliente-panel-service-compact-placeholder small {
+  margin-top: -0.7rem;
+  color: rgba(230, 0, 35, 0.62);
+  font-size: 0.62rem;
+  line-height: 1;
+}
+
+.cliente-panel-reserva-section .cliente-panel-service-accordion-body .cliente-panel-service-compact-body {
+  gap: 0.22rem;
+  padding: 0.04rem 0;
+}
+
+.cliente-panel-reserva-section .cliente-panel-service-accordion-body .cliente-panel-service-compact-kickers {
+  gap: 0.25rem;
+}
+
+.cliente-panel-reserva-section .cliente-panel-service-accordion-body .cliente-panel-servicio-category,
+.cliente-panel-reserva-section .cliente-panel-service-accordion-body .cliente-panel-service-featured-mini {
+  padding: 0.2rem 0.42rem;
+  font-size: 0.56rem;
+}
+
+.cliente-panel-reserva-section .cliente-panel-service-accordion-body .cliente-panel-service-compact-body strong {
+  font-size: 0.84rem;
+  line-height: 1.12;
+}
+
+.cliente-panel-reserva-section .cliente-panel-service-accordion-body .cliente-panel-service-compact-body small {
+  font-size: 0.68rem;
+  line-height: 1.25;
+  -webkit-line-clamp: 1;
+}
+
+.cliente-panel-reserva-section .cliente-panel-service-accordion-body .cliente-panel-service-compact-meta {
+  gap: 0.45rem;
+}
+
+.cliente-panel-reserva-section .cliente-panel-service-accordion-body .cliente-panel-service-compact-meta b {
+  font-size: 0.9rem;
+}
+
+.cliente-panel-reserva-section .cliente-panel-service-accordion-body .cliente-panel-service-compact-meta em {
+  font-size: 0.64rem;
+}
+
+.cliente-panel-reserva-section .cliente-panel-service-accordion-body .cliente-panel-service-compact-cta {
+  padding: 0.34rem 0.54rem;
+  font-size: 0.66rem !important;
+}
+
+.cliente-panel-reserva-section .cliente-panel-service-accordion-body .cliente-panel-service-row-check {
+  top: 0.45rem;
+  right: 0.45rem;
+  width: 1.08rem;
+  height: 1.08rem;
+  font-size: 0.58rem;
+}
+
+@media (min-width: 760px) {
+  .cliente-panel-reserva-section .cliente-panel-catalog-head {
+    align-items: flex-end;
+    flex-direction: row;
+  }
+
+  .cliente-panel-reserva-section .cliente-panel-catalog-tools {
+    grid-template-columns: minmax(220px, 1fr) auto;
+  }
+
+  .cliente-panel-reserva-section .cliente-panel-service-accordion-body .cliente-panel-service-compact-card {
+    grid-template-columns: 76px minmax(0, 1fr);
+    min-height: 94px;
+  }
+
+  .cliente-panel-reserva-section .cliente-panel-service-accordion-body .cliente-panel-service-compact-image,
+  .cliente-panel-service-compact-placeholder {
+    width: 76px;
+    height: 76px;
+    min-height: 76px;
+  }
+
+  .cliente-panel-reserva-section .cliente-panel-service-accordion-body .cliente-panel-service-compact-body small {
+    -webkit-line-clamp: 2;
+  }
+}
