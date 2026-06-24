@@ -6687,3 +6687,204 @@
     aspect-ratio: 1;
   }
 }
+
+/* --------------------------------------------------------------------------
+   BLOQUE 17 - NUEVA RESERVA CATALOGO COMPACTO
+   Revierte cards poster a cards horizontales escaneables.
+-------------------------------------------------------------------------- */
+
+.cliente-panel-reserva-section .cliente-panel-servicios-grid,
+.cliente-panel-reserva-section .cliente-panel-service-visual-list {
+  grid-template-columns: repeat(2, minmax(280px, 1fr));
+  gap: 0.72rem;
+  align-items: stretch;
+}
+
+.cliente-panel-reserva-section .cliente-panel-service-visual-list {
+  max-height: 430px;
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicio-card,
+.cliente-panel-reserva-section .cliente-panel-service-compact-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  gap: 0.72rem;
+  min-height: 124px;
+  border: 1px solid #ece4de;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.95);
+  color: #1a1a1a;
+  padding: 0.52rem 0.72rem 0.52rem 0.52rem;
+  overflow: hidden;
+  text-align: left;
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicio-card:hover,
+.cliente-panel-reserva-section .cliente-panel-service-compact-card:hover {
+  border-color: rgba(230, 0, 35, 0.26);
+  background: #fff;
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicio-card.selected,
+.cliente-panel-reserva-section .cliente-panel-service-compact-card.selected {
+  border-color: #e60023;
+  background: #fff7f9;
+  box-shadow: inset 0 0 0 1px rgba(230, 0, 35, 0.12) !important;
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicio-card > img,
+.cliente-panel-reserva-section .cliente-panel-service-compact-image {
+  width: 112px;
+  height: 100%;
+  min-height: 108px;
+  display: block;
+  border-radius: 12px;
+  object-fit: cover;
+  background: #fff1f5;
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicio-featured-badge {
+  top: 0.78rem;
+  left: 0.78rem;
+  max-width: 92px;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  background: rgba(26, 26, 26, 0.68);
+  padding: 0.28rem 0.44rem;
+  font-size: 0.58rem;
+  line-height: 1.1;
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicio-card.selected::after {
+  top: 0.72rem;
+  right: 0.72rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  font-size: 0.68rem;
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicio-card-body,
+.cliente-panel-reserva-section .cliente-panel-service-compact-body {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+  gap: 0.3rem;
+  justify-content: flex-start;
+  padding: 0.18rem 0;
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicio-card-body h4,
+.cliente-panel-reserva-section .cliente-panel-service-compact-body strong {
+  margin: 0;
+  color: #221b17;
+  font-size: 0.92rem;
+  font-weight: 900;
+  line-height: 1.14;
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicio-card-body p,
+.cliente-panel-reserva-section .cliente-panel-service-compact-body small {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  color: #746d66;
+  font-size: 0.72rem;
+  line-height: 1.32;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicio-category,
+.cliente-panel-reserva-section .cliente-panel-service-featured-mini {
+  padding: 0.24rem 0.48rem;
+  font-size: 0.6rem;
+  line-height: 1;
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicio-card-meta,
+.cliente-panel-reserva-section .cliente-panel-service-compact-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-top: auto;
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicio-card-meta b,
+.cliente-panel-reserva-section .cliente-panel-service-compact-meta b {
+  color: #e60023;
+  font-size: 0.98rem;
+  font-weight: 920;
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicio-card-meta em,
+.cliente-panel-reserva-section .cliente-panel-service-compact-meta em {
+  color: #8a827a;
+  font-size: 0.68rem;
+  font-style: normal;
+  font-weight: 780;
+  white-space: nowrap;
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicio-card-cta,
+.cliente-panel-reserva-section .cliente-panel-service-compact-cta {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #e60023;
+  color: #fff !important;
+  padding: 0.38rem 0.68rem;
+  font-size: 0.7rem !important;
+  font-weight: 900 !important;
+  line-height: 1;
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicio-card.selected .cliente-panel-servicio-card-cta,
+.cliente-panel-reserva-section .cliente-panel-service-compact-card.selected .cliente-panel-service-compact-cta {
+  background: #ffd6e2;
+  color: #e60023 !important;
+}
+
+.cliente-panel-reserva-section .cliente-panel-servicio-selected-label {
+  display: none;
+}
+
+.cliente-panel-reserva-section .cliente-panel-service-row-check {
+  top: 0.7rem;
+  right: 0.7rem;
+  width: 1.22rem;
+  height: 1.22rem;
+  font-size: 0.65rem;
+}
+
+@media (max-width: 1180px) {
+  .cliente-panel-reserva-section .cliente-panel-servicios-grid,
+  .cliente-panel-reserva-section .cliente-panel-service-visual-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .cliente-panel-reserva-section .cliente-panel-servicio-card,
+  .cliente-panel-reserva-section .cliente-panel-service-compact-card {
+    grid-template-columns: 92px minmax(0, 1fr);
+    gap: 0.62rem;
+    min-height: 112px;
+    padding: 0.48rem 0.58rem 0.48rem 0.48rem;
+  }
+
+  .cliente-panel-reserva-section .cliente-panel-servicio-card > img,
+  .cliente-panel-reserva-section .cliente-panel-service-compact-image {
+    width: 92px;
+    min-height: 96px;
+  }
+
+  .cliente-panel-reserva-section .cliente-panel-servicio-featured-badge {
+    max-width: 76px;
+    padding: 0.24rem 0.36rem;
+    font-size: 0.54rem;
+  }
+}
