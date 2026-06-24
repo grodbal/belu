@@ -3807,6 +3807,42 @@
   box-shadow: 0 0 0 3px rgba(230, 0, 35, 0.1);
 }
 
+.admin-service-panel-form .admin-service-featured-control {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  border: 1px solid rgba(230, 0, 35, 0.12);
+  border-radius: 1rem;
+  background: rgba(255, 214, 226, 0.22);
+  padding: 0.8rem;
+}
+
+.admin-service-featured-control input {
+  width: 1.05rem;
+  min-height: 1.05rem;
+  flex: 0 0 auto;
+  margin-top: 0.1rem;
+  accent-color: var(--r);
+}
+
+.admin-service-featured-control span {
+  display: grid;
+  gap: 0.18rem;
+}
+
+.admin-service-featured-control strong {
+  color: #1a1a1a;
+  font-size: 0.82rem;
+  font-weight: 950;
+}
+
+.admin-service-featured-control small {
+  color: rgba(26, 26, 26, 0.56);
+  font-size: 0.74rem;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
 .admin-service-main-preview,
 .admin-service-main-empty {
   min-height: 170px;

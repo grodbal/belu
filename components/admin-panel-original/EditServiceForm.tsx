@@ -16,6 +16,7 @@ type EditServiceFormProps = {
   publicPrice: number;
   logisticFee: number;
   durationMinutes: number;
+  isFeatured: boolean;
 };
 
 export default function EditServiceForm({
@@ -26,6 +27,7 @@ export default function EditServiceForm({
   publicPrice,
   logisticFee,
   durationMinutes,
+  isFeatured,
 }: EditServiceFormProps) {
   const [state, formAction, isPending] = useActionState(
     updateServiceAction,
@@ -89,6 +91,19 @@ export default function EditServiceForm({
       <label>
         Descripcion
         <textarea name="description" defaultValue={description} />
+      </label>
+
+      <label className="admin-service-featured-control">
+        <input
+          type="checkbox"
+          name="isFeatured"
+          value="true"
+          defaultChecked={isFeatured}
+        />
+        <span>
+          <strong>Servicio destacado ✦</strong>
+          <small>Los destacados aparecen primero en Nueva Reserva.</small>
+        </span>
       </label>
 
       {state.message ? (

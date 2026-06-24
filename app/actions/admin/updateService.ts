@@ -11,6 +11,12 @@ type UpdateServiceState = {
 
 const allowedCategories = ["lashes", "nails"];
 
+function getBooleanFromFormData(value: FormDataEntryValue | null) {
+  if (typeof value !== "string") return false;
+
+  return ["on", "true", "1", "yes"].includes(value.toLowerCase());
+}
+
 export async function updateServiceAction(
   previousState: UpdateServiceState,
   formData: FormData
@@ -25,6 +31,7 @@ export async function updateServiceAction(
   const publicPriceRaw = String(formData.get("publicPrice") || "");
   const logisticFeeRaw = String(formData.get("logisticFee") || "10");
   const durationMinutesRaw = String(formData.get("durationMinutes") || "90");
+  const isFeatured = getBooleanFromFormData(formData.get("isFeatured"));
 
   if (!serviceId) {
     return {
@@ -90,6 +97,7 @@ export async function updateServiceAction(
       public_price: publicPrice,
       logistic_fee: logisticFee,
       duration_minutes: durationMinutes,
+      is_featured: isFeatured,
       updated_at: new Date().toISOString(),
     })
     .eq("id", serviceId);

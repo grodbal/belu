@@ -95,7 +95,7 @@ export default function AdminServiceCard({ service }: AdminServiceCardProps) {
             <span className={service.status === "active" ? "active" : "inactive"}>
               {service.status === "active" ? "Activo" : "Inactivo"}
             </span>
-            {service.is_featured ? <span className="featured">Destacado *</span> : null}
+            {service.is_featured ? <span className="featured">Destacado ✦</span> : null}
             <span>{service.duration_minutes} min</span>
           </div>
 
@@ -161,6 +161,7 @@ export default function AdminServiceCard({ service }: AdminServiceCardProps) {
               publicPrice={service.public_price}
               logisticFee={service.logistic_fee}
               durationMinutes={service.duration_minutes}
+              isFeatured={service.is_featured}
             />
           ) : null}
 
