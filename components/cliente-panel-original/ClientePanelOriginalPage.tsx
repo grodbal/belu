@@ -57,6 +57,8 @@ type ClientePanelOriginalPageProps = {
   realServices: Service[];
 };
 
+type ServiceCatalogFilter = "all" | "featured" | "lashes" | "nails";
+
 function getTodayLocalDate() {
   const today = new Date();
   const year = today.getFullYear();
@@ -278,8 +280,8 @@ export default function ClientePanelOriginalPage({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeServiceCategory, setActiveServiceCategory] =
     useState<ServiceCategory>("lashes");
-  const [serviceView, setServiceView] =
-    useState<"featured" | "complete">("featured");
+  const [serviceCatalogFilter, setServiceCatalogFilter] =
+    useState<ServiceCatalogFilter>("all");
   const [serviceSearch, setServiceSearch] = useState("");
   const [serviceDetail, setServiceDetail] = useState<Service | null>(null);
 
@@ -308,12 +310,6 @@ const [modalGestion, setModalGestion] =
 const [nuevaFecha, setNuevaFecha] = useState(fecha);
 const [nuevaHora, setNuevaHora] = useState(hora);
 const [nuevaBeluer, setNuevaBeluer] = useState("");
-const catalogoLashes = sortServicesForReservation(
-  realServices.filter((servicio) => servicio.categoria === "lashes")
-);
-const catalogoNails = sortServicesForReservation(
-  realServices.filter((servicio) => servicio.categoria === "nails")
-);
 const distritoSugerencias = [
   "Miraflores",
   "San Isidro",
@@ -404,25 +400,28 @@ const normalizarTexto = (texto: string) =>
     .replace(/[\u0300-\u036f]/g, "")
     .trim();
 
-const activeCatalog =
-  activeServiceCategory === "lashes" ? catalogoLashes : catalogoNails;
-const activeSelectedService =
-  activeServiceCategory === "lashes" ? servicioLashes : servicioNails;
-const activeCategoryLabel =
-  activeServiceCategory === "lashes" ? "Lashes" : "Nails";
-const activeCategoryDescription =
-  activeServiceCategory === "lashes"
-    ? "Extensiones, lifting y servicios para pestañas."
-    : "Manicure, gel y servicios de uñas a domicilio.";
 const normalizedServiceSearch = normalizarTexto(serviceSearch);
-const activeFilteredServices = normalizedServiceSearch
-  ? activeCatalog.filter((servicio) =>
-      normalizarTexto(`${servicio.nombre} ${servicio.desc}`).includes(
-        normalizedServiceSearch
-      )
-    )
-  : activeCatalog;
-const activeFeaturedServices = activeFilteredServices.slice(0, 4);
+const catalogServices = sortServicesForReservation(realServices);
+const filteredCatalogServices = catalogServices.filter((servicio) => {
+  if (serviceCatalogFilter === "featured" && !servicio.is_featured) {
+    return false;
+  }
+
+  if (
+    (serviceCatalogFilter === "lashes" || serviceCatalogFilter === "nails") &&
+    servicio.categoria !== serviceCatalogFilter
+  ) {
+    return false;
+  }
+
+  if (!normalizedServiceSearch) return true;
+
+  return normalizarTexto(
+    `${servicio.nombre} ${servicio.desc} ${servicio.categoria}`
+  ).includes(normalizedServiceSearch);
+});
+const getSelectedServiceForCategory = (category: ServiceCategory) =>
+  category === "lashes" ? servicioLashes : servicioNails;
 const urgenciaAutomatica = isWithinNextTwoHours(fecha, hora);
 
 const beluersDisponibles = useMemo(() => {
@@ -476,6 +475,8 @@ useEffect(() => {
   };
 
   const handleServicioClick = (servicio: Service) => {
+    setActiveServiceCategory(servicio.categoria);
+
     if (servicio.categoria === "lashes") {
       setServicioLashes(servicio);
     }
@@ -724,52 +725,17 @@ const hasRealBooking = Boolean(nextBooking);
                       </p>
                     </div>
 
-                    <div
-                      className="cliente-panel-service-tabs"
-                      aria-label="Categoría de servicio"
-                    >
-                      <button
-                        type="button"
-                        className={
-                          activeServiceCategory === "lashes" ? "active" : ""
-                        }
-                        onClick={() => setActiveServiceCategory("lashes")}
-                      >
-                        Lashes
-                      </button>
-                      <button
-                        type="button"
-                        className={
-                          activeServiceCategory === "nails" ? "active" : ""
-                        }
-                        onClick={() => setActiveServiceCategory("nails")}
-                      >
-                        Nails
-                      </button>
-                    </div>
-
-                    <div className="cliente-panel-service-tools">
-                      <div
-                        className="cliente-panel-service-view-toggle"
-                        aria-label="Vista de servicios"
-                      >
-                        <button
-                          type="button"
-                          className={serviceView === "featured" ? "active" : ""}
-                          onClick={() => setServiceView("featured")}
-                        >
-                          Destacados
-                        </button>
-                        <button
-                          type="button"
-                          className={serviceView === "complete" ? "active" : ""}
-                          onClick={() => setServiceView("complete")}
-                        >
-                          Lista completa
-                        </button>
+                    <div className="cliente-panel-catalog-head">
+                      <div>
+                        <h3>Elige tu servicio</h3>
+                        <p>Busca por categoria, precio o tipo de resultado.</p>
                       </div>
 
-                      <label className="cliente-panel-service-search">
+                      <span>{filteredCatalogServices.length} opciones</span>
+                    </div>
+
+                    <div className="cliente-panel-catalog-tools">
+                      <label className="cliente-panel-service-search cliente-panel-catalog-search">
                         <span>Buscar servicio</span>
                         <input
                           type="search"
@@ -777,47 +743,68 @@ const hasRealBooking = Boolean(nextBooking);
                           onChange={(event) =>
                             setServiceSearch(event.target.value)
                           }
-                          placeholder="Buscar servicio..."
+                          placeholder="Buscar por nombre, resultado o categoria..."
                         />
                       </label>
+
+                      <div
+                        className="cliente-panel-catalog-chips"
+                        aria-label="Filtros de servicios"
+                      >
+                        <button
+                          type="button"
+                          className={serviceCatalogFilter === "all" ? "active" : ""}
+                          onClick={() => setServiceCatalogFilter("all")}
+                        >
+                          Todos
+                        </button>
+                        <button
+                          type="button"
+                          className={serviceCatalogFilter === "featured" ? "active" : ""}
+                          onClick={() => setServiceCatalogFilter("featured")}
+                        >
+                          Destacados
+                        </button>
+                        <button
+                          type="button"
+                          className={serviceCatalogFilter === "lashes" ? "active" : ""}
+                          onClick={() => {
+                            setServiceCatalogFilter("lashes");
+                            setActiveServiceCategory("lashes");
+                          }}
+                        >
+                          Lashes
+                        </button>
+                        <button
+                          type="button"
+                          className={serviceCatalogFilter === "nails" ? "active" : ""}
+                          onClick={() => {
+                            setServiceCatalogFilter("nails");
+                            setActiveServiceCategory("nails");
+                          }}
+                        >
+                          Nails
+                        </button>
+                      </div>
                     </div>
 
-                    <div className="cliente-panel-categoria-titulo">
-                      {activeCategoryLabel}
-                      <small>{activeCategoryDescription}</small>
+                    <div className="cliente-panel-service-visual-list cliente-panel-service-catalog-list">
+                      {filteredCatalogServices.map((servicio) => (
+                        <ServiceCompactCard
+                          key={servicio.id || servicio.nombre}
+                          servicio={servicio}
+                          selected={
+                            getSelectedServiceForCategory(servicio.categoria)
+                              ?.nombre === servicio.nombre
+                          }
+                          onClick={() => setServiceDetail(servicio)}
+                        />
+                      ))}
                     </div>
 
-                    {serviceView === "featured" ? (
-                      <div className="cliente-panel-servicios-grid">
-                        {activeFeaturedServices.map((servicio) => (
-                          <ServiceCard
-                            key={servicio.nombre}
-                            servicio={servicio}
-                            selected={
-                              activeSelectedService?.nombre === servicio.nombre
-                            }
-                            onClick={() => setServiceDetail(servicio)}
-                          />
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="cliente-panel-service-visual-list">
-                        {activeFilteredServices.map((servicio) => (
-                          <ServiceCompactCard
-                            key={servicio.nombre}
-                            servicio={servicio}
-                            selected={
-                              activeSelectedService?.nombre === servicio.nombre
-                            }
-                            onClick={() => setServiceDetail(servicio)}
-                          />
-                        ))}
-                      </div>
-                    )}
-
-                    {activeFilteredServices.length === 0 && (
+                    {filteredCatalogServices.length === 0 && (
                       <div className="cliente-panel-service-empty">
-                        No encontramos servicios con ese nombre.
+                        No encontramos servicios con ese filtro.
                       </div>
                     )}
 
@@ -1244,7 +1231,10 @@ activeSection !== "perfil" && (
       {serviceDetail && (
         <ServiceDetailModal
           servicio={serviceDetail}
-          selected={activeSelectedService?.nombre === serviceDetail.nombre}
+          selected={
+            getSelectedServiceForCategory(serviceDetail.categoria)?.nombre ===
+            serviceDetail.nombre
+          }
           onChoose={() => handleChooseServiceFromDetail(serviceDetail)}
           onClose={() => setServiceDetail(null)}
         />
@@ -2647,56 +2637,6 @@ function DashboardCard({
         {button}
       </button>
     </div>
-  );
-}
-
-function ServiceCard({
-  servicio,
-  selected,
-  onClick,
-}: {
-  servicio: Service;
-  selected: boolean;
-  onClick: () => void;
-}) {
-  const duration = getServiceDuration(servicio);
-
-  return (
-    <button
-      className={`cliente-panel-servicio-card ${selected ? "selected" : ""}`}
-      type="button"
-      onClick={onClick}
-    >
-      <span className="cliente-panel-servicio-featured-badge">
-        Destacado ✦
-      </span>
-      <img src={servicio.foto} alt={servicio.nombre} />
-      <div
-        className={`cliente-panel-servicio-thumb cliente-panel-servicio-thumb-${servicio.categoria}`}
-        aria-hidden="true"
-      >
-        <span>foto servicio</span>
-      </div>
-      <div className="cliente-panel-servicio-card-body">
-        <span className="cliente-panel-servicio-category">
-          {servicio.categoria === "lashes" ? "Lashes" : "Nails"}
-        </span>
-        <h4>{servicio.nombre}</h4>
-        {servicio.desc ? <p>{servicio.desc}</p> : null}
-        <span className="cliente-panel-servicio-card-meta">
-          <b>S/ {servicio.precio}</b>
-          {duration ? <em>{duration}</em> : null}
-        </span>
-        <span className="cliente-panel-servicio-card-cta">
-          {selected ? "Seleccionado" : "Ver detalle"}
-        </span>
-        {selected ? (
-          <small className="cliente-panel-servicio-selected-label">
-            Seleccionado
-          </small>
-        ) : null}
-      </div>
-    </button>
   );
 }
 

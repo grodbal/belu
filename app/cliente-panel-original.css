@@ -6888,3 +6888,151 @@
     font-size: 0.54rem;
   }
 }
+
+/* --------------------------------------------------------------------------
+   BLOQUE 18 - CATALOGO ESCALABLE NUEVA RESERVA
+   Toolbar compacta y lista horizontal para +50 servicios.
+-------------------------------------------------------------------------- */
+
+.cliente-panel-reserva-section .cliente-panel-reserva-block-title {
+  gap: 0.28rem;
+}
+
+.cliente-panel-catalog-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.9rem;
+  border-top: 1px solid rgba(234, 222, 214, 0.78);
+  padding-top: 0.85rem;
+}
+
+.cliente-panel-catalog-head h3 {
+  margin: 0;
+  color: #1a1a1a;
+  font-size: 1.02rem;
+  font-weight: 900;
+  line-height: 1.15;
+}
+
+.cliente-panel-catalog-head p {
+  margin: 0.2rem 0 0;
+  color: #746d66;
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.cliente-panel-catalog-head > span {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: #fff1f5;
+  color: #b44158;
+  padding: 0.38rem 0.62rem;
+  font-size: 0.7rem;
+  font-weight: 900;
+}
+
+.cliente-panel-catalog-tools {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) auto;
+  gap: 0.72rem;
+  align-items: end;
+}
+
+.cliente-panel-reserva-section .cliente-panel-catalog-search {
+  margin: 0;
+}
+
+.cliente-panel-catalog-chips {
+  display: flex;
+  max-width: 100%;
+  gap: 0.42rem;
+  overflow-x: auto;
+  padding-bottom: 0.08rem;
+  scrollbar-width: thin;
+}
+
+.cliente-panel-catalog-chips button {
+  min-height: 38px;
+  flex: 0 0 auto;
+  border: 1px solid #eaded6;
+  border-radius: 999px;
+  background: #fff;
+  color: #3b332d;
+  cursor: pointer;
+  padding: 0 0.78rem;
+  font-family: var(--belu-ui-font, var(--font-sans));
+  font-size: 0.74rem;
+  font-weight: 850;
+}
+
+.cliente-panel-catalog-chips button:hover,
+.cliente-panel-catalog-chips button.active {
+  border-color: rgba(230, 0, 35, 0.34);
+  background: #fff1f5;
+  color: #e60023;
+}
+
+.cliente-panel-reserva-section .cliente-panel-service-catalog-list {
+  grid-template-columns: 1fr;
+  gap: 0.62rem;
+  max-height: 520px;
+  overflow-y: auto;
+  padding-right: 0.24rem;
+}
+
+.cliente-panel-reserva-section .cliente-panel-service-catalog-list .cliente-panel-service-compact-card {
+  grid-template-columns: 104px minmax(0, 1fr);
+  min-height: 118px;
+  border-radius: 14px;
+  padding: 0.48rem 0.62rem 0.48rem 0.48rem;
+}
+
+.cliente-panel-reserva-section .cliente-panel-service-catalog-list .cliente-panel-service-compact-image {
+  width: 104px;
+  min-height: 102px;
+  border-radius: 10px;
+}
+
+.cliente-panel-reserva-section .cliente-panel-service-catalog-list .cliente-panel-service-compact-body {
+  gap: 0.28rem;
+}
+
+.cliente-panel-reserva-section .cliente-panel-service-catalog-list .cliente-panel-service-compact-body strong {
+  font-size: 0.92rem;
+}
+
+.cliente-panel-reserva-section .cliente-panel-service-catalog-list .cliente-panel-service-compact-cta {
+  margin-top: 0.08rem;
+}
+
+@media (max-width: 900px) {
+  .cliente-panel-catalog-tools {
+    grid-template-columns: 1fr;
+  }
+
+  .cliente-panel-catalog-chips {
+    width: 100%;
+  }
+}
+
+@media (max-width: 560px) {
+  .cliente-panel-catalog-head {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .cliente-panel-reserva-section .cliente-panel-service-catalog-list {
+    max-height: 460px;
+  }
+
+  .cliente-panel-reserva-section .cliente-panel-service-catalog-list .cliente-panel-service-compact-card {
+    grid-template-columns: 88px minmax(0, 1fr);
+    min-height: 108px;
+  }
+
+  .cliente-panel-reserva-section .cliente-panel-service-catalog-list .cliente-panel-service-compact-image {
+    width: 88px;
+    min-height: 92px;
+  }
+}
