@@ -1068,7 +1068,7 @@ const hasRealBooking = Boolean(nextBooking);
 
                 {serviciosSeleccionados.length > 0 && (
                   <div className="cliente-panel-resumen-pago">
-                    <div className="linea">
+                    <div className="linea cliente-panel-summary-service-line">
                       <span>Servicio</span>
                       <strong>
                         {serviciosSeleccionados
@@ -1085,22 +1085,22 @@ const hasRealBooking = Boolean(nextBooking);
                       </div>
                     )}
 
-                    <div className="linea">
+                    <div className="linea cliente-panel-summary-date-line">
                       <span>Fecha</span>
                       <strong>{formatDisplayDate(fecha)}</strong>
                     </div>
 
-                    <div className="linea">
+                    <div className="linea cliente-panel-summary-date-line">
                       <span>Hora</span>
                       <strong>{formatDisplayTime(hora)}</strong>
                     </div>
 
-                    <div className="linea">
+                    <div className="linea cliente-panel-summary-location-line">
                       <span>Distrito</span>
                       <strong>{distritoReserva}</strong>
                     </div>
 
-                    <div className="linea">
+                    <div className="linea cliente-panel-summary-address-line">
                       <span>Dirección</span>
                       <strong>
                         {direccionReserva.trim() || "Pendiente de completar"}
@@ -1121,7 +1121,7 @@ const hasRealBooking = Boolean(nextBooking);
                       </div>
                     )}
 
-                    <div className="linea">
+                    <div className="linea cliente-panel-summary-logistic-line">
                       <span>Cargo logístico</span>
                       <strong>S/ {cargoLogistico}</strong>
                     </div>
@@ -1133,7 +1133,7 @@ const hasRealBooking = Boolean(nextBooking);
 
                     {urgencia && (
                       <div className="express">
-                        <div className="linea">
+                        <div className="linea cliente-panel-summary-express-line">
                           <span>Belu Express</span>
                           <strong>+ S/ {recargoExpress}</strong>
                         </div>
@@ -2659,12 +2659,17 @@ function ServiceCard({
   selected: boolean;
   onClick: () => void;
 }) {
+  const duration = getServiceDuration(servicio);
+
   return (
     <button
       className={`cliente-panel-servicio-card ${selected ? "selected" : ""}`}
       type="button"
       onClick={onClick}
     >
+      <span className="cliente-panel-servicio-featured-badge">
+        Destacado ✦
+      </span>
       <img src={servicio.foto} alt={servicio.nombre} />
       <div
         className={`cliente-panel-servicio-thumb cliente-panel-servicio-thumb-${servicio.categoria}`}
@@ -2678,7 +2683,13 @@ function ServiceCard({
         </span>
         <h4>{servicio.nombre}</h4>
         {servicio.desc ? <p>{servicio.desc}</p> : null}
-        <span>S/ {servicio.precio}</span>
+        <span className="cliente-panel-servicio-card-meta">
+          <b>S/ {servicio.precio}</b>
+          {duration ? <em>{duration}</em> : null}
+        </span>
+        <span className="cliente-panel-servicio-card-cta">
+          {selected ? "Seleccionado" : "Ver detalle"}
+        </span>
         {selected ? (
           <small className="cliente-panel-servicio-selected-label">
             Seleccionado
@@ -2713,8 +2724,15 @@ function ServiceCompactCard({
       />
 
       <span className="cliente-panel-service-compact-body">
-        <span className="cliente-panel-servicio-category">
-          {servicio.categoria === "lashes" ? "Lashes" : "Nails"}
+        <span className="cliente-panel-service-compact-kickers">
+          <span className="cliente-panel-servicio-category">
+            {servicio.categoria === "lashes" ? "Lashes" : "Nails"}
+          </span>
+          {servicio.is_featured ? (
+            <span className="cliente-panel-service-featured-mini">
+              Destacado ✦
+            </span>
+          ) : null}
         </span>
         <strong>{servicio.nombre}</strong>
         {servicio.desc ? <small>{servicio.desc}</small> : null}
@@ -2722,9 +2740,14 @@ function ServiceCompactCard({
           <b>S/ {servicio.precio}</b>
           {duration ? <em>{duration}</em> : null}
         </span>
+        <span className="cliente-panel-service-compact-cta">
+          {selected ? "Seleccionado" : "Ver detalle"}
+        </span>
       </span>
 
-      {selected ? <span className="cliente-panel-service-row-check">OK</span> : null}
+      {selected ? (
+        <span className="cliente-panel-service-row-check">✓</span>
+      ) : null}
     </button>
   );
 }
@@ -2821,8 +2844,15 @@ function ServiceDetailModal({
         </div>
 
         <div className="cliente-panel-service-detail-content">
-          <span className="cliente-panel-servicio-category">
-            {servicio.categoria === "lashes" ? "Lashes" : "Nails"}
+          <span className="cliente-panel-service-detail-kickers">
+            <span className="cliente-panel-servicio-category">
+              {servicio.categoria === "lashes" ? "Lashes" : "Nails"}
+            </span>
+            {servicio.is_featured ? (
+              <span className="cliente-panel-service-featured-mini">
+                Destacado ✦
+              </span>
+            ) : null}
           </span>
           <h2 id="cliente-panel-service-detail-title">{servicio.nombre}</h2>
           <p>
