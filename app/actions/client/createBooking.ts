@@ -175,11 +175,6 @@ if (serviceError || !service) {
 
   const expressFee = isExpress ? 20 : 0;
 
-  const commissionRate = 13;
-  const basePrice = Number(service.base_price);
-  const beluCommissionAmount = basePrice * (commissionRate / 100);
-  const beluerPaymentAmount = basePrice - beluCommissionAmount + expressFee;
-
   const { error: bookingError } = await supabase.from("bookings").insert({
     client_profile_id: profile.id,
     beluer_profile_id: beluerProfileId,
@@ -196,9 +191,6 @@ if (serviceError || !service) {
     public_price: service.public_price,
     logistic_fee: service.logistic_fee,
     base_price: service.base_price,
-    belu_commission_rate: commissionRate,
-    belu_commission_amount: beluCommissionAmount,
-    beluer_payment_amount: beluerPaymentAmount,
     payment_status: "paid",
   });
 
