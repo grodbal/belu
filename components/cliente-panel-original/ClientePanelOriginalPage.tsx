@@ -816,11 +816,11 @@ const selectedBookingService = serviciosSeleccionados[0] || null;
                 <div className="cliente-panel-booking-left">
                   <div className="cliente-panel-booking-block cliente-panel-selected-service-block">
                     <div className="cliente-panel-reserva-block-title">
-                      <span>1 Â· Servicio</span>
+                      <span>1 · Servicio</span>
                       <h2>Servicio para tu cita</h2>
                       <p>
-                        Elige con calma desde Servicios y vuelve aqui para
-                        completar fecha, direccion y pago.
+                        Elige con calma desde Servicios y vuelve aquí para
+                        completar fecha, dirección y pago.
                       </p>
                     </div>
 
@@ -841,7 +841,7 @@ const selectedBookingService = serviciosSeleccionados[0] || null;
                                 .slice(0, 1)
                                 .toUpperCase()}
                             </b>
-                            <small>âœ¦</small>
+                            <small>✦</small>
                           </span>
                         )}
 
@@ -861,7 +861,7 @@ const selectedBookingService = serviciosSeleccionados[0] || null;
                             </strong>
                             <span>
                               {getServiceDuration(serviciosSeleccionados[0]) ||
-                                "Duracion por confirmar"}
+                                "Duración por confirmar"}
                             </span>
                           </div>
                         </div>
@@ -880,7 +880,7 @@ const selectedBookingService = serviciosSeleccionados[0] || null;
                         <h3>Elige primero el servicio que quieres reservar</h3>
                         <p>
                           Explora lashes y nails, mira fotos reales y vuelve
-                          aqui para agendar.
+                          aquí para agendar.
                         </p>
                         <button
                           type="button"
@@ -1849,8 +1849,8 @@ function ClientAppHeader({
     <header className="cliente-panel-app-header">
       <div>
         <span>Hola, {clientFirstName}</span>
-        <h1>Luce increible, cuando quieras ✦</h1>
-        <p>{district ? `Atencion en ${district}` : "Lashes y nails a domicilio"}</p>
+        <h1>Luce increíble, cuando quieras ✦</h1>
+        <p>{district ? `Atención en ${district}` : "Lashes y nails a domicilio"}</p>
       </div>
 
       <div className="cliente-panel-app-header-avatar" aria-label={clientName}>
@@ -1953,7 +1953,7 @@ function DashboardSection({
       <div className="cliente-panel-app-home-hero">
         <div>
           <span>belu en Lima ✦</span>
-          <h1>Que quieres reservar hoy?</h1>
+          <h1>¿Qué quieres reservar hoy?</h1>
           <p>Lashes y nails a domicilio con especialistas verificadas.</p>
         </div>
 
@@ -1974,11 +1974,11 @@ function DashboardSection({
       <div className="cliente-panel-app-quick-grid">
         <button type="button" onClick={() => goToSection("servicios")}>
           <span>Lashes</span>
-          <strong>Pestanas</strong>
+          <strong>Pestañas</strong>
         </button>
         <button type="button" onClick={() => goToSection("servicios")}>
           <span>Nails</span>
-          <strong>Unas</strong>
+          <strong>Uñas</strong>
         </button>
         <button type="button" onClick={() => goToSection("historial")}>
           <span>Historial</span>
@@ -3202,7 +3202,7 @@ function ServiceDetailModal({
               <strong>S/ {servicio.precio}</strong>
             </span>
             <span>
-              Duracion
+              Duración
               <strong>{duration || "Por confirmar"}</strong>
             </span>
           </div>
@@ -3341,7 +3341,7 @@ function ServiciosSection({
     {
       id: "lashes",
       title: "Lashes",
-      eyebrow: "Pestanas",
+      eyebrow: "Pestañas",
       services: filteredServices.filter(
         (servicio) => servicio.categoria === "lashes"
       ),
@@ -3519,7 +3519,7 @@ function ServiceCatalogCard({
 
         <div className="cliente-panel-services-card-meta">
           <strong>{formatSoles(servicio.precio)}</strong>
-          <span>{duration || "Duracion por confirmar"}</span>
+          <span>{duration || "Duración por confirmar"}</span>
         </div>
 
         <button type="button" onClick={onViewDetail}>
