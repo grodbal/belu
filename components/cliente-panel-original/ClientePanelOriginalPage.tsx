@@ -306,6 +306,8 @@ export default function ClientePanelOriginalPage({
     useState<ServiceCategory>("lashes");
   const [serviceCatalogFilter, setServiceCatalogFilter] =
     useState<ServiceCatalogFilter>("all");
+  const [servicesInitialFilter, setServicesInitialFilter] =
+    useState<ServiceCatalogFilter>("all");
   const [openServiceSections, setOpenServiceSections] = useState<
     Record<ServiceCatalogSection, boolean>
   >(() => {
@@ -417,6 +419,12 @@ const horaHelpText = noAvailableTimesToday
 
   const goToSection = (section: PanelSection) => {
     setActiveSection(section);
+    setSidebarOpen(false);
+  };
+
+  const goToServices = (filter: ServiceCatalogFilter = "all") => {
+    setServicesInitialFilter(filter);
+    setActiveSection("servicios");
     setSidebarOpen(false);
   };
 
@@ -776,6 +784,7 @@ const selectedBookingService = serviciosSeleccionados[0] || null;
           {activeSection === "dashboard" && (
 <DashboardSection
   goToSection={goToSection}
+  goToServices={goToServices}
   reservaConfirmada={reservaConfirmada || hasRealBooking}
   serviciosSeleccionados={serviciosSeleccionados}
   addonsActivos={addonsActivos}
@@ -816,7 +825,7 @@ const selectedBookingService = serviciosSeleccionados[0] || null;
                 <div className="cliente-panel-booking-left">
                   <div className="cliente-panel-booking-block cliente-panel-selected-service-block">
                     <div className="cliente-panel-reserva-block-title">
-                      <span>1 Â· Servicio</span>
+                      <span>1 · Servicio</span>
                       <h2>Servicio para tu cita</h2>
                       <p>
                         Elige con calma desde Servicios y vuelve aqui para
@@ -841,7 +850,7 @@ const selectedBookingService = serviciosSeleccionados[0] || null;
                                 .slice(0, 1)
                                 .toUpperCase()}
                             </b>
-                            <small>âœ¦</small>
+                            <small>✦</small>
                           </span>
                         )}
 
@@ -861,7 +870,7 @@ const selectedBookingService = serviciosSeleccionados[0] || null;
                             </strong>
                             <span>
                               {getServiceDuration(serviciosSeleccionados[0]) ||
-                                "Duracion por confirmar"}
+                                "Duración por confirmar"}
                             </span>
                           </div>
                         </div>
@@ -1399,6 +1408,7 @@ const selectedBookingService = serviciosSeleccionados[0] || null;
               selectedService={serviciosSeleccionados[0] || null}
               onSelectServiceForBooking={selectServiceForBooking}
               clientName={clientName}
+              initialFilter={servicesInitialFilter}
             />
           )}
 
@@ -1849,8 +1859,8 @@ function ClientAppHeader({
     <header className="cliente-panel-app-header">
       <div>
         <span>Hola, {clientFirstName}</span>
-        <h1>Luce increible, cuando quieras ✦</h1>
-        <p>{district ? `Atencion en ${district}` : "Lashes y nails a domicilio"}</p>
+        <h1>Luce increíble, cuando quieras ✦</h1>
+        <p>{district ? `Atención en ${district}` : "Lashes y nails a domicilio"}</p>
       </div>
 
       <div className="cliente-panel-app-header-avatar" aria-label={clientName}>
@@ -1868,15 +1878,20 @@ function MobileBottomNav({
   goToSection: (section: PanelSection) => void;
 }) {
   return (
-    <nav className="cliente-panel-bottom-nav" aria-label="Navegacion principal">
+    <nav className="cliente-panel-bottom-nav" aria-label="Navegación principal">
       {mobileNavItems.map((item) => (
         <button
           key={item.id}
           type="button"
-          className={activeSection === item.id ? "active" : ""}
+          className={`${activeSection === item.id ? "active" : ""} ${
+            item.id === "reserva" ? "cliente-panel-bottom-nav-fab-item" : ""
+          }`}
+          aria-current={activeSection === item.id ? "page" : undefined}
           onClick={() => goToSection(item.id)}
         >
-          <span className="cliente-panel-nav-icon">{item.icon}</span>
+          <span className="cliente-panel-nav-icon">
+            {item.id === "reserva" ? "✦" : item.icon}
+          </span>
           <small>{item.label}</small>
         </button>
       ))}
@@ -1886,6 +1901,7 @@ function MobileBottomNav({
 
 function DashboardSection({
   goToSection,
+  goToServices,
   reservaConfirmada,
   serviciosSeleccionados,
   addonsActivos,
@@ -1900,6 +1916,7 @@ function DashboardSection({
   clientName,
 }: {
   goToSection: (section: PanelSection) => void;
+  goToServices: (filter?: ServiceCatalogFilter) => void;
   reservaConfirmada: boolean;
   serviciosSeleccionados: Service[];
   addonsActivos: Addon[];
@@ -1952,8 +1969,8 @@ function DashboardSection({
     <section className="cliente-panel-section cliente-panel-dashboard active">
       <div className="cliente-panel-app-home-hero">
         <div>
-          <span>belu en Lima ✦</span>
-          <h1>Que quieres reservar hoy?</h1>
+          <span>BELLEZA A DOMICILIO</span>
+          <h1>¿Qué quieres reservar hoy?</h1>
           <p>Lashes y nails a domicilio con especialistas verificadas.</p>
         </div>
 
@@ -1961,7 +1978,7 @@ function DashboardSection({
           <button
             className="cliente-panel-btn-r"
             type="button"
-            onClick={() => goToSection("servicios")}
+            onClick={() => goToServices("all")}
           >
             Explorar servicios
           </button>
@@ -1972,13 +1989,13 @@ function DashboardSection({
       </div>
 
       <div className="cliente-panel-app-quick-grid">
-        <button type="button" onClick={() => goToSection("servicios")}>
+        <button type="button" onClick={() => goToServices("lashes")}>
           <span>Lashes</span>
-          <strong>Pestanas</strong>
+          <strong>Pestañas</strong>
         </button>
-        <button type="button" onClick={() => goToSection("servicios")}>
+        <button type="button" onClick={() => goToServices("nails")}>
           <span>Nails</span>
-          <strong>Unas</strong>
+          <strong>Uñas</strong>
         </button>
         <button type="button" onClick={() => goToSection("historial")}>
           <span>Historial</span>
@@ -1999,7 +2016,7 @@ function DashboardSection({
             visita.
           </p>
         </div>
-        <button type="button" onClick={() => goToSection("servicios")}>
+        <button type="button" onClick={() => goToServices("all")}>
           Ver servicios
         </button>
       </div>
@@ -2235,6 +2252,9 @@ function HistorialSection({
   const [selectedBooking, setSelectedBooking] = useState<ClientBooking | null>(
     null
   );
+  const [historyFilter, setHistoryFilter] = useState<
+    "all" | "upcoming" | "completed"
+  >("all");
 
   const statusLabels: Record<string, string> = {
     pending: "Pendiente",
@@ -2260,26 +2280,53 @@ function HistorialSection({
   const selectedBookingTotal = selectedBooking
     ? getClientBookingTotal(selectedBooking)
     : null;
+  const filteredHistory = bookingHistory.filter((booking) => {
+    if (historyFilter === "completed") return booking.status === "completed";
+    if (historyFilter === "upcoming") {
+      return !["completed", "cancelled", "refunded"].includes(booking.status);
+    }
+
+    return true;
+  });
   
   return (
-    <section className="cliente-panel-section active">
+    <section className="cliente-panel-section cliente-panel-history-section active">
       <div className="cliente-panel-top-bar">
         <div className="cliente-panel-greeting">
-          <h1>Tu historial</h1>
-          <p>Revisa tus servicios anteriores y repite tus reservas favoritas.</p>
+          <h1>Historial</h1>
+          <p>Tus reservas belu ✦</p>
         </div>
 
         <UserPill clientName={clientName} />
       </div>
 
+      <div className="cliente-panel-history-chips" aria-label="Filtros de historial">
+        {[
+          { id: "all", label: "Todas" },
+          { id: "upcoming", label: "Próximas" },
+          { id: "completed", label: "Completadas" },
+        ].map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            className={historyFilter === item.id ? "active" : ""}
+            onClick={() =>
+              setHistoryFilter(item.id as "all" | "upcoming" | "completed")
+            }
+          >
+            {item.label}
+          </button>
+        ))}
+      </div>
+
       <div className="cliente-panel-historial-grid">
-        {bookingHistory.length === 0 && (
+        {filteredHistory.length === 0 && (
           <div className="cliente-panel-card">
             <p>Aún no tienes reservas registradas.</p>
           </div>
         )}
 
-        {bookingHistory.map((item) => {
+        {filteredHistory.map((item) => {
           const itemTotal = getClientBookingTotal(item);
 
           return (
@@ -2292,7 +2339,9 @@ function HistorialSection({
                 )}
                 alt={item.services?.name || "Servicio belu"}
               />
-              <span>{statusLabels[item.status] || item.status}</span>
+              <span data-status={item.status}>
+                {statusLabels[item.status] || item.status}
+              </span>
             </div>
 
             <div className="cliente-panel-historial-body">
@@ -2338,7 +2387,7 @@ function HistorialSection({
                   className="cliente-panel-btn-r"
                   onClick={goToReserva}
                 >
-                  Repetir reserva ✦
+                  Reservar de nuevo
                 </button>
 
                 <button
@@ -2617,7 +2666,7 @@ function PerfilSection({
   
 
   return (
-    <section className="cliente-panel-section active">
+    <section className="cliente-panel-section cliente-panel-profile-section active">
       <div className="cliente-panel-top-bar">
         <div className="cliente-panel-greeting">
           <h1>Mi perfil</h1>
@@ -2660,6 +2709,7 @@ function PerfilSection({
         </aside>
 
         <div className="cliente-panel-perfil-form-card">
+          <span className="cliente-panel-profile-section-label">TUS DATOS</span>
           <h3>Datos personales</h3>
 
           <div className="cliente-panel-form-grid">
@@ -2748,6 +2798,30 @@ function PerfilSection({
           >
             {profileLoading ? "Guardando..." : "Guardar cambios"}
           </button>
+
+          <section className="cliente-panel-profile-payment-card">
+            <span className="cliente-panel-profile-section-label">
+              METODOS DE PAGO
+            </span>
+            <strong>Métodos de pago próximamente</strong>
+            <p>
+              Por ahora la confirmacion final se coordina por WhatsApp belu.
+            </p>
+          </section>
+
+          <section className="cliente-panel-profile-referral-card">
+            <span>belu rewards</span>
+            <h3>Invita y gana S/30</h3>
+            <p>Comparte belu con una amiga y ambas ganan.</p>
+            <button
+              type="button"
+              onClick={() =>
+                alert("El programa de referidos se activará pronto.")
+              }
+            >
+              Copiar invitación
+            </button>
+          </section>
         </div>
       </div>
     </section>
@@ -3102,6 +3176,7 @@ function ServiceDetailModal({
   const duration = getServiceDuration(servicio);
   const galleryImages = getServiceGalleryImages(servicio);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [favoriteVisual, setFavoriteVisual] = useState(false);
   const activeImage = galleryImages[activeImageIndex] || galleryImages[0];
   const hasMultipleImages = galleryImages.length > 1;
 
@@ -3135,7 +3210,18 @@ function ServiceDetailModal({
           onClick={onClose}
           aria-label="Cerrar detalle del servicio"
         >
-          x
+          ←
+        </button>
+
+        <button
+          className={`cliente-panel-service-detail-heart ${
+            favoriteVisual ? "active" : ""
+          }`}
+          type="button"
+          onClick={() => setFavoriteVisual((current) => !current)}
+          aria-label="Marcar servicio como favorito visual"
+        >
+          ♥
         </button>
 
         <div className="cliente-panel-service-detail-gallery">
@@ -3199,12 +3285,18 @@ function ServiceDetailModal({
           <div className="cliente-panel-service-detail-facts">
             <span>
               Precio
-              <strong>S/ {servicio.precio}</strong>
+              <strong>{formatSoles(servicio.precio)}</strong>
             </span>
             <span>
-              Duracion
+              Duración
               <strong>{duration || "Por confirmar"}</strong>
             </span>
+          </div>
+
+          <div className="cliente-panel-service-detail-trust">
+            <span>Especialistas verificadas</span>
+            <span>Pago seguro</span>
+            <span>Servicio a domicilio</span>
           </div>
 
           <div className="cliente-panel-service-detail-actions">
@@ -3220,7 +3312,7 @@ function ServiceDetailModal({
               type="button"
               onClick={onClose}
             >
-              Cerrar
+              Ver otros servicios
             </button>
           </div>
 
@@ -3295,15 +3387,21 @@ function ServiciosSection({
   selectedService,
   onSelectServiceForBooking,
   clientName,
+  initialFilter,
 }: {
   services: Service[];
   selectedService: Service | null;
   onSelectServiceForBooking: (servicio: Service) => void;
   clientName: string;
+  initialFilter: ServiceCatalogFilter;
 }) {
   const [filter, setFilter] = useState<ServiceCatalogFilter>("all");
   const [search, setSearch] = useState("");
   const [detailService, setDetailService] = useState<Service | null>(null);
+
+  useEffect(() => {
+    setFilter(initialFilter);
+  }, [initialFilter]);
 
   const normalizedSearch = normalizeServiceCatalogText(search);
   const sortedServices = sortServicesForReservation(services);
@@ -3341,7 +3439,7 @@ function ServiciosSection({
     {
       id: "lashes",
       title: "Lashes",
-      eyebrow: "Pestanas",
+      eyebrow: "Pestañas",
       services: filteredServices.filter(
         (servicio) => servicio.categoria === "lashes"
       ),
@@ -3366,7 +3464,7 @@ function ServiciosSection({
 
   const filters: { id: ServiceCatalogFilter; label: string }[] = [
     { id: "all", label: "Todos" },
-    { id: "featured", label: "Destacados" },
+    { id: "featured", label: "Destacados ✦" },
     { id: "lashes", label: "Lashes" },
     { id: "nails", label: "Nails" },
   ];
@@ -3388,9 +3486,9 @@ function ServiciosSection({
     <section className="cliente-panel-section cliente-panel-services-section active">
       <div className="cliente-panel-top-bar cliente-panel-services-topbar">
         <div className="cliente-panel-greeting">
-          <span className="cliente-panel-dashboard-kicker">Catalogo ✦</span>
-          <h1>Explora servicios</h1>
-          <p>Lashes y nails a domicilio, cuando quieras.</p>
+          <span className="cliente-panel-dashboard-kicker">CATALOGO ✦</span>
+          <h1>Servicios</h1>
+          <p>Elige tu próximo look.</p>
         </div>
 
         <UserPill clientName={clientName} />
@@ -3403,7 +3501,7 @@ function ServiciosSection({
             type="search"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Buscar servicio"
+            placeholder="Buscar lashes, nails..."
           />
         </label>
 
@@ -3486,13 +3584,17 @@ function ServiceCatalogCard({
     <article
       className={`cliente-panel-services-card ${selected ? "selected" : ""}`}
     >
-      <div className="cliente-panel-services-card-image">
+      <div
+        className={`cliente-panel-services-card-image cliente-panel-services-card-image-${servicio.categoria}`}
+      >
         {servicio.image_url ? (
           <img src={servicio.foto} alt={servicio.nombre} />
         ) : (
           <span className="cliente-panel-services-placeholder" aria-hidden="true">
             <b>{servicio.nombre.slice(0, 1).toUpperCase()}</b>
-            <small>✦</small>
+            <small>
+              FOTO · {servicio.categoria === "lashes" ? "LASHES" : "SOFT GEL"}
+            </small>
           </span>
         )}
 
@@ -3518,8 +3620,8 @@ function ServiceCatalogCard({
         </p>
 
         <div className="cliente-panel-services-card-meta">
-          <strong>{formatSoles(servicio.precio)}</strong>
-          <span>{duration || "Duracion por confirmar"}</span>
+          <strong>Desde {formatSoles(servicio.precio)}</strong>
+          <span>{duration || "Duración por confirmar"}</span>
         </div>
 
         <button type="button" onClick={onViewDetail}>
