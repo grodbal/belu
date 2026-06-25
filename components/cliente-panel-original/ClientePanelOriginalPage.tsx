@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { createBookingAction } from "@/app/actions/client/createBooking";
 import { cancelBookingAction } from "@/app/actions/client/cancelBooking";
 import { updateClientProfileAction } from "@/app/actions/client/updateClientProfile";
+import LogoutButton from "@/components/auth/LogoutButton";
 import {
   addonsLashes,
   addonsNails,
@@ -2798,6 +2799,8 @@ function PerfilSection({
           >
             {profileLoading ? "Guardando..." : "Guardar cambios"}
           </button>
+
+          <LogoutButton className="cliente-panel-profile-logout-btn" />
 
           <section className="cliente-panel-profile-payment-card">
             <span className="cliente-panel-profile-section-label">

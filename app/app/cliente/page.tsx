@@ -1,5 +1,4 @@
 ﻿import ClientePanelOriginalPage from "@/components/cliente-panel-original/ClientePanelOriginalPage";
-import LogoutButton from "@/components/auth/LogoutButton";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { crearPlaceholder } from "@/components/cliente-panel-original/clientePanelData";
@@ -289,16 +288,12 @@ export default async function ClientePanelPage() {
   }
 
   return (
-    <>
-      <ClientePanelOriginalPage
-        clientProfile={profile}
-        nextBooking={nextBooking}
-        bookingHistory={bookingHistory}
-        realBeluers={realBeluers}
-        realServices={realServices}
-      />
-
-      <LogoutButton className="fixed right-6 bottom-6 z-50 rounded-full bg-[#E60023] px-5 py-3 text-sm font-bold text-white shadow-lg transition hover:bg-[#C4001D]" />
-    </>
+    <ClientePanelOriginalPage
+      clientProfile={profile}
+      nextBooking={nextBooking}
+      bookingHistory={bookingHistory}
+      realBeluers={realBeluers}
+      realServices={realServices}
+    />
   );
 }

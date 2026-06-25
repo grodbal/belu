@@ -9593,3 +9593,274 @@
     width: calc(100% - 32px);
   }
 }
+
+/* Desktop restoration: keep Claude app below 900px, restore panel layout above */
+@media (min-width: 900px) {
+  .cliente-panel-shell {
+    min-height: 100vh;
+    overflow-x: hidden;
+    background: radial-gradient(
+      ellipse at 30% 10%,
+      #fff5f7 0%,
+      #fce4ec 40%,
+      #f8f8f8 100%
+    );
+  }
+
+  .cliente-panel-app {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    max-width: none;
+    min-height: 100vh;
+    margin: 0;
+    overflow: visible;
+    background: transparent;
+  }
+
+  .cliente-panel-sidebar {
+    display: flex !important;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 100;
+    width: 280px;
+  }
+
+  .cliente-panel-menu-btn,
+  .cliente-panel-backdrop,
+  .cliente-panel-app-header,
+  .cliente-panel-bottom-nav,
+  .cliente-panel-floating-booking-cta {
+    display: none !important;
+  }
+
+  .cliente-panel-main {
+    flex: 1;
+    width: auto;
+    max-width: none;
+    min-height: 100vh;
+    margin-left: 280px;
+    padding: 2.5rem 3rem;
+    gap: 2rem;
+    overflow: visible;
+  }
+
+  .cliente-panel-section {
+    width: 100%;
+    max-width: none;
+  }
+
+  .cliente-panel-app-home-hero,
+  .cliente-panel-app-quick-grid,
+  .cliente-panel-app-reco-card {
+    display: none !important;
+  }
+
+  .cliente-panel-dashboard .cliente-panel-dashboard-topbar,
+  .cliente-panel-dashboard-quick-card,
+  .cliente-panel-dashboard-section-heading,
+  .cliente-panel-dashboard-service-grid {
+    display: flex !important;
+  }
+
+  .cliente-panel-dashboard-service-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .cliente-panel-dashboard-main-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
+    gap: var(--sp-6, 1.5rem);
+    align-items: start;
+  }
+
+  .cliente-panel-dashboard-empty {
+    display: grid;
+  }
+
+  .cliente-panel-dashboard-appointment {
+    display: grid;
+    grid-template-columns: minmax(220px, 0.8fr) minmax(0, 1.2fr);
+    gap: var(--sp-6, 1.5rem);
+    align-items: stretch;
+    margin-top: 0;
+    padding: clamp(1.4rem, 3vw, 2rem);
+  }
+
+  .cliente-panel-dashboard-appointment-visual {
+    width: auto;
+    min-height: 260px;
+    border-radius: var(--r-xl, 24px);
+  }
+
+  .cliente-panel-dashboard-appointment-visual span {
+    font-size: var(--fs-label, 0.7rem);
+  }
+
+  .cliente-panel-dashboard-appointment-visual strong {
+    max-width: 100%;
+    font-size: clamp(1.6rem, 2.4vw, 2.25rem);
+  }
+
+  .cliente-panel-dashboard-appointment .cliente-panel-dashboard-card-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--sp-4, 1rem);
+  }
+
+  .cliente-panel-dashboard-appointment .cliente-panel-dashboard-card-head h2 {
+    font-family: var(--font-serif, Georgia, serif);
+    font-size: clamp(1.55rem, 3vw, 2.35rem);
+    font-weight: 900;
+    letter-spacing: -0.045em;
+  }
+
+  .cliente-panel-dashboard-appointment .cliente-panel-dashboard-card-head p,
+  .cliente-panel-dashboard-manual-note {
+    display: block;
+  }
+
+  .cliente-panel-dashboard-appointment-details {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--sp-3, 0.75rem);
+    margin-top: var(--sp-5, 1.25rem);
+  }
+
+  .cliente-panel-dashboard-appointment-details div,
+  .cliente-panel-dashboard-appointment-details div:nth-child(n + 4) {
+    display: grid;
+    justify-content: stretch;
+    gap: var(--sp-1, 0.25rem);
+    border: 1px solid var(--border, #ece8e4);
+    border-radius: var(--r-md, 14px);
+    background: var(--surface-soft, #fffaf8);
+    padding: var(--sp-3, 0.75rem);
+  }
+
+  .cliente-panel-dashboard-appointment-details span,
+  .cliente-panel-dashboard-appointment-details strong {
+    font-size: inherit;
+    white-space: normal;
+  }
+
+  .cliente-panel-dashboard-appointment .cliente-panel-ra-acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-3, 0.75rem);
+    margin-top: var(--sp-5, 1.25rem);
+  }
+
+  .cliente-panel-dashboard-appointment .cliente-panel-ra-acciones button,
+  .cliente-panel-dashboard-appointment
+    .cliente-panel-ra-acciones
+    button:first-child {
+    display: inline-flex;
+    min-height: 40px;
+    border-radius: var(--r-pill, 999px);
+    padding-inline: 1rem;
+  }
+
+  .cliente-panel-services-tools {
+    position: static;
+    grid-template-columns: minmax(220px, 1fr) auto;
+    border-radius: 16px;
+    box-shadow: none;
+  }
+
+  .cliente-panel-services-chips {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    overflow-x: visible;
+  }
+
+  .cliente-panel-services-grid {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
+
+  .cliente-panel-services-card-image img,
+  .cliente-panel-services-placeholder {
+    height: auto;
+    aspect-ratio: 4 / 3;
+  }
+
+  .cliente-panel-reserva-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(320px, 420px);
+    align-items: start;
+    gap: var(--sp-6, 1.5rem);
+    border: 1px solid var(--border, #ece8e4);
+    background: color-mix(in srgb, var(--surface, #fff) 94%, var(--belu-pink-tint, #fff1f5));
+    box-shadow: var(--shadow-card, 0 18px 44px rgba(26, 26, 26, 0.08));
+  }
+
+  .cliente-panel-reserva-card > * {
+    grid-column: 1;
+  }
+
+  .cliente-panel-booking-summary,
+  .cliente-panel-reserva-summary-title,
+  .cliente-panel-reserva-card > .cliente-panel-full-btn,
+  .cliente-panel-reserva-mvp-note {
+    grid-column: 2;
+  }
+
+  .cliente-panel-booking-summary {
+    position: sticky;
+    top: var(--sp-6, 1.5rem);
+  }
+
+  .cliente-panel-selected-service-card {
+    grid-template-columns: 112px minmax(0, 1fr) auto;
+  }
+
+  .cliente-panel-selected-service-card img,
+  .cliente-panel-selected-service-placeholder {
+    width: 112px;
+  }
+
+  .cliente-panel-historial-grid {
+    gap: var(--sp-5, 1.25rem);
+  }
+
+  .cliente-panel-historial-card {
+    grid-template-columns: minmax(180px, 0.45fr) minmax(0, 1fr);
+    gap: var(--sp-5, 1.25rem);
+    padding: var(--sp-5, 1.25rem);
+  }
+
+  .cliente-panel-historial-img,
+  .cliente-panel-historial-img img {
+    width: 100%;
+    min-width: 0;
+    height: auto;
+  }
+
+  .cliente-panel-historial-img img {
+    aspect-ratio: 4 / 3;
+  }
+
+  .cliente-panel-perfil-layout {
+    grid-template-columns: minmax(260px, 0.38fr) minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
+.cliente-panel-profile-logout-btn {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid rgba(26, 26, 26, 0.1);
+  border-radius: 12px;
+  background: #1a1a1a;
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 800;
+  margin-top: 12px;
+  padding: 0.75rem 1rem;
+}
