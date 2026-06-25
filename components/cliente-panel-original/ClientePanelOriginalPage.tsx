@@ -1950,60 +1950,6 @@ function DashboardSection({
 
   return (
     <section className="cliente-panel-section cliente-panel-dashboard active">
-      <div className="cliente-panel-app-home-hero">
-        <div>
-          <span>belu en Lima ✦</span>
-          <h1>¿Qué quieres reservar hoy?</h1>
-          <p>Lashes y nails a domicilio con especialistas verificadas.</p>
-        </div>
-
-        <div className="cliente-panel-app-home-actions">
-          <button
-            className="cliente-panel-btn-r"
-            type="button"
-            onClick={() => goToSection("servicios")}
-          >
-            Explorar servicios
-          </button>
-          <button type="button" onClick={() => goToSection("reserva")}>
-            Nueva reserva
-          </button>
-        </div>
-      </div>
-
-      <div className="cliente-panel-app-quick-grid">
-        <button type="button" onClick={() => goToSection("servicios")}>
-          <span>Lashes</span>
-          <strong>Pestañas</strong>
-        </button>
-        <button type="button" onClick={() => goToSection("servicios")}>
-          <span>Nails</span>
-          <strong>Uñas</strong>
-        </button>
-        <button type="button" onClick={() => goToSection("historial")}>
-          <span>Historial</span>
-          <strong>Reservas</strong>
-        </button>
-        <button type="button" onClick={() => goToSection("perfil")}>
-          <span>Perfil</span>
-          <strong>Cuenta</strong>
-        </button>
-      </div>
-
-      <div className="cliente-panel-app-reco-card">
-        <div>
-          <span>Completa tu look</span>
-          <h2>Quieres completar tu look?</h2>
-          <p>
-            Muchas clientas combinan lashes + nails para aprovechar una sola
-            visita.
-          </p>
-        </div>
-        <button type="button" onClick={() => goToSection("servicios")}>
-          Ver servicios
-        </button>
-      </div>
-
       <div className="cliente-panel-top-bar cliente-panel-dashboard-topbar">
         <div className="cliente-panel-greeting">
           <h1>
@@ -2176,6 +2122,11 @@ function DashboardSection({
             <button type="button" onClick={() => goToSection("reserva")}>
               <span className="cliente-panel-nav-icon">{icons.reserva}</span>
               Nueva reserva
+            </button>
+
+            <button type="button" onClick={() => goToSection("servicios")}>
+              <span className="cliente-panel-nav-icon">{icons.servicios}</span>
+              Servicios
             </button>
 
             <button type="button" onClick={() => goToSection("beluers")}>
