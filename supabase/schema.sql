@@ -206,6 +206,15 @@ create table if not exists public.bookings (
   updated_at timestamptz not null default now()
 );
 
+alter table if exists public.bookings
+  add column if not exists beluer_level_snapshot text,
+  add column if not exists commission_rate_snapshot numeric(6,4),
+  add column if not exists beluer_service_payout_amount numeric(10,2),
+  add column if not exists beluer_logistic_payout_amount numeric(10,2),
+  add column if not exists beluer_total_payout_amount numeric(10,2),
+  add column if not exists commission_locked_at timestamptz,
+  add column if not exists commission_locked_event text;
+
 -- Fase 2:
 -- Para reservas combinadas, crear booking_items con snapshots por servicio:
 -- booking_id, service_id, service_name_snapshot, category_snapshot,

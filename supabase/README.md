@@ -208,12 +208,49 @@ base_price
 belu_commission_rate
 belu_commission_amount
 beluer_payment_amount
+beluer_level_snapshot
+commission_rate_snapshot
+beluer_service_payout_amount
+beluer_logistic_payout_amount
+beluer_total_payout_amount
+commission_locked_at
+commission_locked_event
 payment_status
 created_at
 updated_at
 ```
 
 Nota importante: por compatibilidad con la app actual, `bookings.client_profile_id` apunta a `profiles.id` de una clienta. No apunta a `client_profiles.id`.
+
+Regla financiera:
+
+- `public_price`, `logistic_fee` y `base_price` se congelan al crear la reserva.
+- La comision interna y el pago real de la Beluer se congelan cuando ya se sabe que Beluer atendera: en el MVP actual, al asignar Beluer desde Admin; en un flujo futuro, al aceptar la reserva.
+- `logistic_fee` va completo para la Beluer.
+- `belu_commission_amount` se calcula solo sobre `base_price`.
+- `beluer_service_payout_amount` guarda `base_price - belu_commission_amount`.
+- `beluer_logistic_payout_amount` guarda el `logistic_fee` completo.
+- `beluer_total_payout_amount` es el monto total real que debe ver la Beluer.
+- `commission_rate_snapshot` guarda la tasa como decimal: `0.1300` para 13%, `0.1000` para 10%, `0.0800` para 8%.
+- `beluer_level_snapshot` guarda el nivel de la Beluer al momento de congelar la comision.
+- `commission_locked_at` y `commission_locked_event` documentan cuando y por que se congelo la comision.
+- `belu_commission_rate`, `belu_commission_amount` y `beluer_payment_amount` se mantienen por compatibilidad.
+
+Para actualizar un entorno existente manualmente:
+
+```sql
+alter table if exists public.bookings
+  add column if not exists beluer_level_snapshot text,
+  add column if not exists commission_rate_snapshot numeric(6,4),
+  add column if not exists beluer_service_payout_amount numeric(10,2),
+  add column if not exists beluer_logistic_payout_amount numeric(10,2),
+  add column if not exists beluer_total_payout_amount numeric(10,2),
+  add column if not exists commission_locked_at timestamptz,
+  add column if not exists commission_locked_event text;
+```
+
+Este SQL queda documentado para revision manual; no se aplica automaticamente
+en Supabase remoto.
 
 Estados usados por el MVP:
 
