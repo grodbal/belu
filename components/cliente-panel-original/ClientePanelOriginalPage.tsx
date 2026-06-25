@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import { createBookingAction } from "@/app/actions/client/createBooking";
 import { cancelBookingAction } from "@/app/actions/client/cancelBooking";
 import { updateClientProfileAction } from "@/app/actions/client/updateClientProfile";
-import LogoutButton from "@/components/auth/LogoutButton";
 import {
   addonsLashes,
   addonsNails,
@@ -307,8 +306,6 @@ export default function ClientePanelOriginalPage({
     useState<ServiceCategory>("lashes");
   const [serviceCatalogFilter, setServiceCatalogFilter] =
     useState<ServiceCatalogFilter>("all");
-  const [servicesInitialFilter, setServicesInitialFilter] =
-    useState<ServiceCatalogFilter>("all");
   const [openServiceSections, setOpenServiceSections] = useState<
     Record<ServiceCatalogSection, boolean>
   >(() => {
@@ -420,12 +417,6 @@ const horaHelpText = noAvailableTimesToday
 
   const goToSection = (section: PanelSection) => {
     setActiveSection(section);
-    setSidebarOpen(false);
-  };
-
-  const goToServices = (filter: ServiceCatalogFilter = "all") => {
-    setServicesInitialFilter(filter);
-    setActiveSection("servicios");
     setSidebarOpen(false);
   };
 
@@ -757,10 +748,7 @@ const selectedBookingService = serviciosSeleccionados[0] || null;
 
           <ul className="cliente-panel-sidebar-nav">
             {navItems.map((item) => (
-              <li
-                key={item.id}
-                className={`cliente-panel-sidebar-nav-item cliente-panel-sidebar-nav-item-${item.id}`}
-              >
+              <li key={item.id}>
                 <button
                   type="button"
                   className={activeSection === item.id ? "active" : ""}
@@ -788,7 +776,6 @@ const selectedBookingService = serviciosSeleccionados[0] || null;
           {activeSection === "dashboard" && (
 <DashboardSection
   goToSection={goToSection}
-  goToServices={goToServices}
   reservaConfirmada={reservaConfirmada || hasRealBooking}
   serviciosSeleccionados={serviciosSeleccionados}
   addonsActivos={addonsActivos}
@@ -829,7 +816,7 @@ const selectedBookingService = serviciosSeleccionados[0] || null;
                 <div className="cliente-panel-booking-left">
                   <div className="cliente-panel-booking-block cliente-panel-selected-service-block">
                     <div className="cliente-panel-reserva-block-title">
-                      <span>1 · Servicio</span>
+                      <span>1 Â· Servicio</span>
                       <h2>Servicio para tu cita</h2>
                       <p>
                         Elige con calma desde Servicios y vuelve aqui para
@@ -854,7 +841,7 @@ const selectedBookingService = serviciosSeleccionados[0] || null;
                                 .slice(0, 1)
                                 .toUpperCase()}
                             </b>
-                            <small>✦</small>
+                            <small>âœ¦</small>
                           </span>
                         )}
 
@@ -874,7 +861,7 @@ const selectedBookingService = serviciosSeleccionados[0] || null;
                             </strong>
                             <span>
                               {getServiceDuration(serviciosSeleccionados[0]) ||
-                                "Duración por confirmar"}
+                                "Duracion por confirmar"}
                             </span>
                           </div>
                         </div>
@@ -1412,7 +1399,6 @@ const selectedBookingService = serviciosSeleccionados[0] || null;
               selectedService={serviciosSeleccionados[0] || null}
               onSelectServiceForBooking={selectServiceForBooking}
               clientName={clientName}
-              initialFilter={servicesInitialFilter}
             />
           )}
 
@@ -1863,8 +1849,8 @@ function ClientAppHeader({
     <header className="cliente-panel-app-header">
       <div>
         <span>Hola, {clientFirstName}</span>
-        <h1>Luce increíble, cuando quieras ✦</h1>
-        <p>{district ? `Atención en ${district}` : "Lashes y nails a domicilio"}</p>
+        <h1>Luce increible, cuando quieras ✦</h1>
+        <p>{district ? `Atencion en ${district}` : "Lashes y nails a domicilio"}</p>
       </div>
 
       <div className="cliente-panel-app-header-avatar" aria-label={clientName}>
@@ -1882,20 +1868,15 @@ function MobileBottomNav({
   goToSection: (section: PanelSection) => void;
 }) {
   return (
-    <nav className="cliente-panel-bottom-nav" aria-label="Navegación principal">
+    <nav className="cliente-panel-bottom-nav" aria-label="Navegacion principal">
       {mobileNavItems.map((item) => (
         <button
           key={item.id}
           type="button"
-          className={`${activeSection === item.id ? "active" : ""} ${
-            item.id === "reserva" ? "cliente-panel-bottom-nav-fab-item" : ""
-          }`}
-          aria-current={activeSection === item.id ? "page" : undefined}
+          className={activeSection === item.id ? "active" : ""}
           onClick={() => goToSection(item.id)}
         >
-          <span className="cliente-panel-nav-icon">
-            {item.id === "reserva" ? "✦" : item.icon}
-          </span>
+          <span className="cliente-panel-nav-icon">{item.icon}</span>
           <small>{item.label}</small>
         </button>
       ))}
@@ -1905,7 +1886,6 @@ function MobileBottomNav({
 
 function DashboardSection({
   goToSection,
-  goToServices,
   reservaConfirmada,
   serviciosSeleccionados,
   addonsActivos,
@@ -1920,7 +1900,6 @@ function DashboardSection({
   clientName,
 }: {
   goToSection: (section: PanelSection) => void;
-  goToServices: (filter?: ServiceCatalogFilter) => void;
   reservaConfirmada: boolean;
   serviciosSeleccionados: Service[];
   addonsActivos: Addon[];
@@ -1973,8 +1952,8 @@ function DashboardSection({
     <section className="cliente-panel-section cliente-panel-dashboard active">
       <div className="cliente-panel-app-home-hero">
         <div>
-          <span>BELLEZA A DOMICILIO</span>
-          <h1>¿Qué quieres reservar hoy?</h1>
+          <span>belu en Lima ✦</span>
+          <h1>Que quieres reservar hoy?</h1>
           <p>Lashes y nails a domicilio con especialistas verificadas.</p>
         </div>
 
@@ -1982,7 +1961,7 @@ function DashboardSection({
           <button
             className="cliente-panel-btn-r"
             type="button"
-            onClick={() => goToServices("all")}
+            onClick={() => goToSection("servicios")}
           >
             Explorar servicios
           </button>
@@ -1993,13 +1972,13 @@ function DashboardSection({
       </div>
 
       <div className="cliente-panel-app-quick-grid">
-        <button type="button" onClick={() => goToServices("lashes")}>
+        <button type="button" onClick={() => goToSection("servicios")}>
           <span>Lashes</span>
-          <strong>Pestañas</strong>
+          <strong>Pestanas</strong>
         </button>
-        <button type="button" onClick={() => goToServices("nails")}>
+        <button type="button" onClick={() => goToSection("servicios")}>
           <span>Nails</span>
-          <strong>Uñas</strong>
+          <strong>Unas</strong>
         </button>
         <button type="button" onClick={() => goToSection("historial")}>
           <span>Historial</span>
@@ -2020,7 +1999,7 @@ function DashboardSection({
             visita.
           </p>
         </div>
-        <button type="button" onClick={() => goToServices("all")}>
+        <button type="button" onClick={() => goToSection("servicios")}>
           Ver servicios
         </button>
       </div>
@@ -2256,9 +2235,6 @@ function HistorialSection({
   const [selectedBooking, setSelectedBooking] = useState<ClientBooking | null>(
     null
   );
-  const [historyFilter, setHistoryFilter] = useState<
-    "all" | "upcoming" | "completed"
-  >("all");
 
   const statusLabels: Record<string, string> = {
     pending: "Pendiente",
@@ -2284,53 +2260,26 @@ function HistorialSection({
   const selectedBookingTotal = selectedBooking
     ? getClientBookingTotal(selectedBooking)
     : null;
-  const filteredHistory = bookingHistory.filter((booking) => {
-    if (historyFilter === "completed") return booking.status === "completed";
-    if (historyFilter === "upcoming") {
-      return !["completed", "cancelled", "refunded"].includes(booking.status);
-    }
-
-    return true;
-  });
   
   return (
-    <section className="cliente-panel-section cliente-panel-history-section active">
+    <section className="cliente-panel-section active">
       <div className="cliente-panel-top-bar">
         <div className="cliente-panel-greeting">
-          <h1>Historial</h1>
-          <p>Tus reservas belu ✦</p>
+          <h1>Tu historial</h1>
+          <p>Revisa tus servicios anteriores y repite tus reservas favoritas.</p>
         </div>
 
         <UserPill clientName={clientName} />
       </div>
 
-      <div className="cliente-panel-history-chips" aria-label="Filtros de historial">
-        {[
-          { id: "all", label: "Todas" },
-          { id: "upcoming", label: "Próximas" },
-          { id: "completed", label: "Completadas" },
-        ].map((item) => (
-          <button
-            key={item.id}
-            type="button"
-            className={historyFilter === item.id ? "active" : ""}
-            onClick={() =>
-              setHistoryFilter(item.id as "all" | "upcoming" | "completed")
-            }
-          >
-            {item.label}
-          </button>
-        ))}
-      </div>
-
       <div className="cliente-panel-historial-grid">
-        {filteredHistory.length === 0 && (
+        {bookingHistory.length === 0 && (
           <div className="cliente-panel-card">
             <p>Aún no tienes reservas registradas.</p>
           </div>
         )}
 
-        {filteredHistory.map((item) => {
+        {bookingHistory.map((item) => {
           const itemTotal = getClientBookingTotal(item);
 
           return (
@@ -2343,9 +2292,7 @@ function HistorialSection({
                 )}
                 alt={item.services?.name || "Servicio belu"}
               />
-              <span data-status={item.status}>
-                {statusLabels[item.status] || item.status}
-              </span>
+              <span>{statusLabels[item.status] || item.status}</span>
             </div>
 
             <div className="cliente-panel-historial-body">
@@ -2391,7 +2338,7 @@ function HistorialSection({
                   className="cliente-panel-btn-r"
                   onClick={goToReserva}
                 >
-                  Reservar de nuevo
+                  Repetir reserva ✦
                 </button>
 
                 <button
@@ -2670,7 +2617,7 @@ function PerfilSection({
   
 
   return (
-    <section className="cliente-panel-section cliente-panel-profile-section active">
+    <section className="cliente-panel-section active">
       <div className="cliente-panel-top-bar">
         <div className="cliente-panel-greeting">
           <h1>Mi perfil</h1>
@@ -2713,7 +2660,6 @@ function PerfilSection({
         </aside>
 
         <div className="cliente-panel-perfil-form-card">
-          <span className="cliente-panel-profile-section-label">TUS DATOS</span>
           <h3>Datos personales</h3>
 
           <div className="cliente-panel-form-grid">
@@ -2802,32 +2748,6 @@ function PerfilSection({
           >
             {profileLoading ? "Guardando..." : "Guardar cambios"}
           </button>
-
-          <LogoutButton className="cliente-panel-profile-logout-btn" />
-
-          <section className="cliente-panel-profile-payment-card">
-            <span className="cliente-panel-profile-section-label">
-              METODOS DE PAGO
-            </span>
-            <strong>Métodos de pago próximamente</strong>
-            <p>
-              Por ahora la confirmacion final se coordina por WhatsApp belu.
-            </p>
-          </section>
-
-          <section className="cliente-panel-profile-referral-card">
-            <span>belu rewards</span>
-            <h3>Invita y gana S/30</h3>
-            <p>Comparte belu con una amiga y ambas ganan.</p>
-            <button
-              type="button"
-              onClick={() =>
-                alert("El programa de referidos se activará pronto.")
-              }
-            >
-              Copiar invitación
-            </button>
-          </section>
         </div>
       </div>
     </section>
@@ -3182,7 +3102,6 @@ function ServiceDetailModal({
   const duration = getServiceDuration(servicio);
   const galleryImages = getServiceGalleryImages(servicio);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
-  const [favoriteVisual, setFavoriteVisual] = useState(false);
   const activeImage = galleryImages[activeImageIndex] || galleryImages[0];
   const hasMultipleImages = galleryImages.length > 1;
 
@@ -3216,18 +3135,7 @@ function ServiceDetailModal({
           onClick={onClose}
           aria-label="Cerrar detalle del servicio"
         >
-          ←
-        </button>
-
-        <button
-          className={`cliente-panel-service-detail-heart ${
-            favoriteVisual ? "active" : ""
-          }`}
-          type="button"
-          onClick={() => setFavoriteVisual((current) => !current)}
-          aria-label="Marcar servicio como favorito visual"
-        >
-          ♥
+          x
         </button>
 
         <div className="cliente-panel-service-detail-gallery">
@@ -3291,18 +3199,12 @@ function ServiceDetailModal({
           <div className="cliente-panel-service-detail-facts">
             <span>
               Precio
-              <strong>{formatSoles(servicio.precio)}</strong>
+              <strong>S/ {servicio.precio}</strong>
             </span>
             <span>
-              Duración
+              Duracion
               <strong>{duration || "Por confirmar"}</strong>
             </span>
-          </div>
-
-          <div className="cliente-panel-service-detail-trust">
-            <span>Especialistas verificadas</span>
-            <span>Pago seguro</span>
-            <span>Servicio a domicilio</span>
           </div>
 
           <div className="cliente-panel-service-detail-actions">
@@ -3318,7 +3220,7 @@ function ServiceDetailModal({
               type="button"
               onClick={onClose}
             >
-              Ver otros servicios
+              Cerrar
             </button>
           </div>
 
@@ -3393,21 +3295,15 @@ function ServiciosSection({
   selectedService,
   onSelectServiceForBooking,
   clientName,
-  initialFilter,
 }: {
   services: Service[];
   selectedService: Service | null;
   onSelectServiceForBooking: (servicio: Service) => void;
   clientName: string;
-  initialFilter: ServiceCatalogFilter;
 }) {
   const [filter, setFilter] = useState<ServiceCatalogFilter>("all");
   const [search, setSearch] = useState("");
   const [detailService, setDetailService] = useState<Service | null>(null);
-
-  useEffect(() => {
-    setFilter(initialFilter);
-  }, [initialFilter]);
 
   const normalizedSearch = normalizeServiceCatalogText(search);
   const sortedServices = sortServicesForReservation(services);
@@ -3445,7 +3341,7 @@ function ServiciosSection({
     {
       id: "lashes",
       title: "Lashes",
-      eyebrow: "Pestañas",
+      eyebrow: "Pestanas",
       services: filteredServices.filter(
         (servicio) => servicio.categoria === "lashes"
       ),
@@ -3470,7 +3366,7 @@ function ServiciosSection({
 
   const filters: { id: ServiceCatalogFilter; label: string }[] = [
     { id: "all", label: "Todos" },
-    { id: "featured", label: "Destacados ✦" },
+    { id: "featured", label: "Destacados" },
     { id: "lashes", label: "Lashes" },
     { id: "nails", label: "Nails" },
   ];
@@ -3492,9 +3388,9 @@ function ServiciosSection({
     <section className="cliente-panel-section cliente-panel-services-section active">
       <div className="cliente-panel-top-bar cliente-panel-services-topbar">
         <div className="cliente-panel-greeting">
-          <span className="cliente-panel-dashboard-kicker">CATALOGO ✦</span>
-          <h1>Servicios</h1>
-          <p>Elige tu próximo look.</p>
+          <span className="cliente-panel-dashboard-kicker">Catalogo ✦</span>
+          <h1>Explora servicios</h1>
+          <p>Lashes y nails a domicilio, cuando quieras.</p>
         </div>
 
         <UserPill clientName={clientName} />
@@ -3507,7 +3403,7 @@ function ServiciosSection({
             type="search"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Buscar lashes, nails..."
+            placeholder="Buscar servicio"
           />
         </label>
 
@@ -3590,17 +3486,13 @@ function ServiceCatalogCard({
     <article
       className={`cliente-panel-services-card ${selected ? "selected" : ""}`}
     >
-      <div
-        className={`cliente-panel-services-card-image cliente-panel-services-card-image-${servicio.categoria}`}
-      >
+      <div className="cliente-panel-services-card-image">
         {servicio.image_url ? (
           <img src={servicio.foto} alt={servicio.nombre} />
         ) : (
           <span className="cliente-panel-services-placeholder" aria-hidden="true">
             <b>{servicio.nombre.slice(0, 1).toUpperCase()}</b>
-            <small>
-              FOTO · {servicio.categoria === "lashes" ? "LASHES" : "SOFT GEL"}
-            </small>
+            <small>✦</small>
           </span>
         )}
 
@@ -3626,8 +3518,8 @@ function ServiceCatalogCard({
         </p>
 
         <div className="cliente-panel-services-card-meta">
-          <strong>Desde {formatSoles(servicio.precio)}</strong>
-          <span>{duration || "Duración por confirmar"}</span>
+          <strong>{formatSoles(servicio.precio)}</strong>
+          <span>{duration || "Duracion por confirmar"}</span>
         </div>
 
         <button type="button" onClick={onViewDetail}>
