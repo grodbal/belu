@@ -281,6 +281,18 @@ const navItems: {
   { id: "perfil", label: "Mi Perfil", icon: icons.perfil },
 ];
 
+const mobileNavItems: {
+  id: PanelSection;
+  label: string;
+  icon: React.ReactNode;
+}[] = [
+  { id: "dashboard", label: "Inicio", icon: icons.dashboard },
+  { id: "servicios", label: "Servicios", icon: icons.servicios },
+  { id: "reserva", label: "Reserva", icon: icons.reserva },
+  { id: "historial", label: "Historial", icon: icons.historial },
+  { id: "perfil", label: "Perfil", icon: icons.perfil },
+];
+
 export default function ClientePanelOriginalPage({
   clientProfile,
   nextBooking,
@@ -707,6 +719,7 @@ const handleCancelarReserva = async () => {
 const clientName = clientProfile?.full_name || "Clienta";
 const clientFirstName = clientProfile?.full_name?.split(" ")[0] || "Clienta";
 const hasRealBooking = Boolean(nextBooking);
+const selectedBookingService = serviciosSeleccionados[0] || null;
 
   return (
     <div className="cliente-panel-shell">
@@ -754,6 +767,12 @@ const hasRealBooking = Boolean(nextBooking);
         </aside>
 
         <main className="cliente-panel-main">
+          <ClientAppHeader
+            clientFirstName={clientFirstName}
+            district={distritoReserva}
+            clientName={clientName}
+          />
+
           {activeSection === "dashboard" && (
 <DashboardSection
   goToSection={goToSection}
@@ -789,7 +808,11 @@ const hasRealBooking = Boolean(nextBooking);
                 <UserPill clientName={clientName} />
               </div>
 
-              <div className="cliente-panel-reserva-card">
+              <div
+                className={`cliente-panel-reserva-card ${
+                  serviciosSeleccionados.length === 0 ? "no-service" : ""
+                }`}
+              >
                 <div className="cliente-panel-booking-left">
                   <div className="cliente-panel-booking-block cliente-panel-selected-service-block">
                     <div className="cliente-panel-reserva-block-title">
@@ -1446,9 +1469,23 @@ activeSection !== "perfil" && (
         </p>
       </div>
     </section>
-  )}
+          )}
         </main>
       </div>
+
+      {selectedBookingService &&
+      (activeSection === "dashboard" || activeSection === "servicios") ? (
+        <button
+          className="cliente-panel-floating-booking-cta"
+          type="button"
+          onClick={() => goToSection("reserva")}
+        >
+          <span>Reservar {selectedBookingService.nombre}</span>
+          <strong>Total desde {formatSoles(total)}</strong>
+        </button>
+      ) : null}
+
+      <MobileBottomNav activeSection={activeSection} goToSection={goToSection} />
 
       {sidebarOpen && (
         <button
@@ -1792,6 +1829,61 @@ activeSection !== "perfil" && (
   );
 }
 
+function ClientAppHeader({
+  clientFirstName,
+  district,
+  clientName,
+}: {
+  clientFirstName: string;
+  district: string;
+  clientName: string;
+}) {
+  const initials = clientName
+    .split(" ")
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
+  return (
+    <header className="cliente-panel-app-header">
+      <div>
+        <span>Hola, {clientFirstName}</span>
+        <h1>Luce increible, cuando quieras ✦</h1>
+        <p>{district ? `Atencion en ${district}` : "Lashes y nails a domicilio"}</p>
+      </div>
+
+      <div className="cliente-panel-app-header-avatar" aria-label={clientName}>
+        {initials || "B"}
+      </div>
+    </header>
+  );
+}
+
+function MobileBottomNav({
+  activeSection,
+  goToSection,
+}: {
+  activeSection: PanelSection;
+  goToSection: (section: PanelSection) => void;
+}) {
+  return (
+    <nav className="cliente-panel-bottom-nav" aria-label="Navegacion principal">
+      {mobileNavItems.map((item) => (
+        <button
+          key={item.id}
+          type="button"
+          className={activeSection === item.id ? "active" : ""}
+          onClick={() => goToSection(item.id)}
+        >
+          <span className="cliente-panel-nav-icon">{item.icon}</span>
+          <small>{item.label}</small>
+        </button>
+      ))}
+    </nav>
+  );
+}
+
 function DashboardSection({
   goToSection,
   reservaConfirmada,
@@ -1858,6 +1950,60 @@ function DashboardSection({
 
   return (
     <section className="cliente-panel-section cliente-panel-dashboard active">
+      <div className="cliente-panel-app-home-hero">
+        <div>
+          <span>belu en Lima ✦</span>
+          <h1>Que quieres reservar hoy?</h1>
+          <p>Lashes y nails a domicilio con especialistas verificadas.</p>
+        </div>
+
+        <div className="cliente-panel-app-home-actions">
+          <button
+            className="cliente-panel-btn-r"
+            type="button"
+            onClick={() => goToSection("servicios")}
+          >
+            Explorar servicios
+          </button>
+          <button type="button" onClick={() => goToSection("reserva")}>
+            Nueva reserva
+          </button>
+        </div>
+      </div>
+
+      <div className="cliente-panel-app-quick-grid">
+        <button type="button" onClick={() => goToSection("servicios")}>
+          <span>Lashes</span>
+          <strong>Pestanas</strong>
+        </button>
+        <button type="button" onClick={() => goToSection("servicios")}>
+          <span>Nails</span>
+          <strong>Unas</strong>
+        </button>
+        <button type="button" onClick={() => goToSection("historial")}>
+          <span>Historial</span>
+          <strong>Reservas</strong>
+        </button>
+        <button type="button" onClick={() => goToSection("perfil")}>
+          <span>Perfil</span>
+          <strong>Cuenta</strong>
+        </button>
+      </div>
+
+      <div className="cliente-panel-app-reco-card">
+        <div>
+          <span>Completa tu look</span>
+          <h2>Quieres completar tu look?</h2>
+          <p>
+            Muchas clientas combinan lashes + nails para aprovechar una sola
+            visita.
+          </p>
+        </div>
+        <button type="button" onClick={() => goToSection("servicios")}>
+          Ver servicios
+        </button>
+      </div>
+
       <div className="cliente-panel-top-bar cliente-panel-dashboard-topbar">
         <div className="cliente-panel-greeting">
           <h1>
@@ -1895,6 +2041,14 @@ function DashboardSection({
 
               <button
                 className="cliente-panel-btn-r cliente-panel-dashboard-primary"
+                type="button"
+                onClick={() => goToSection("servicios")}
+              >
+                Explorar servicios
+              </button>
+
+              <button
+                className="cliente-panel-app-secondary-action"
                 type="button"
                 onClick={() => goToSection("reserva")}
               >
@@ -2054,13 +2208,13 @@ function DashboardSection({
       </div>
 
       <div className="cliente-panel-dashboard-service-grid">
-        <button type="button" onClick={() => goToSection("reserva")}>
+        <button type="button" onClick={() => goToSection("servicios")}>
           <span>Lashes</span>
           <strong>Pestañas diseñadas para tu estilo</strong>
           <small>Extensiones, lifting y servicios relacionados.</small>
         </button>
 
-        <button type="button" onClick={() => goToSection("reserva")}>
+        <button type="button" onClick={() => goToSection("servicios")}>
           <span>Nails</span>
           <strong>Manicure y uñas con acabado premium</strong>
           <small>Servicios de uñas coordinados por belu.</small>

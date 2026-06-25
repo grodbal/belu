@@ -7861,3 +7861,382 @@
     width: 100%;
   }
 }
+
+/* Cliente app shell mobile-first */
+.cliente-panel-app-header,
+.cliente-panel-bottom-nav,
+.cliente-panel-floating-booking-cta {
+  display: none;
+}
+
+.cliente-panel-app-home-hero {
+  display: grid;
+  gap: 1rem;
+  border: 1px solid rgba(230, 0, 35, 0.12);
+  border-radius: 1.4rem;
+  background: linear-gradient(135deg, #e60023 0%, #bd001d 100%);
+  color: #fff;
+  padding: 1.35rem;
+  box-shadow: 0 18px 44px rgba(230, 0, 35, 0.18);
+}
+
+.cliente-panel-app-home-hero span,
+.cliente-panel-app-reco-card span {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.cliente-panel-app-home-hero h1 {
+  margin: 0.28rem 0 0;
+  font-size: clamp(1.65rem, 6vw, 2.45rem);
+  font-weight: 900;
+  line-height: 1;
+}
+
+.cliente-panel-app-home-hero p,
+.cliente-panel-app-reco-card p {
+  margin: 0.45rem 0 0;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.cliente-panel-app-home-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.cliente-panel-app-home-actions button,
+.cliente-panel-app-secondary-action,
+.cliente-panel-app-reco-card button {
+  min-height: 44px;
+  border: 1px solid rgba(230, 0, 35, 0.16);
+  border-radius: 999px;
+  background: #fff;
+  color: #e60023;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 900;
+  padding: 0.75rem 1rem;
+}
+
+.cliente-panel-app-home-actions .cliente-panel-btn-r {
+  border-color: transparent;
+  background: #fff;
+  color: #e60023;
+}
+
+.cliente-panel-app-home-actions button:not(.cliente-panel-btn-r) {
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.34);
+}
+
+.cliente-panel-app-quick-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.cliente-panel-app-quick-grid button {
+  display: grid;
+  gap: 0.24rem;
+  min-height: 76px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.86);
+  color: #1a1a1a;
+  cursor: pointer;
+  font: inherit;
+  padding: 0.85rem;
+  text-align: left;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.04);
+}
+
+.cliente-panel-app-quick-grid span {
+  color: #e60023;
+  font-size: 0.7rem;
+  font-weight: 900;
+}
+
+.cliente-panel-app-quick-grid strong {
+  font-size: 0.86rem;
+  font-weight: 900;
+}
+
+.cliente-panel-app-reco-card {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+  border: 1px solid rgba(230, 0, 35, 0.12);
+  border-radius: 1.2rem;
+  background: rgba(255, 214, 226, 0.22);
+  margin-bottom: 1rem;
+  padding: 1rem;
+}
+
+.cliente-panel-app-reco-card span {
+  color: #e60023;
+}
+
+.cliente-panel-app-reco-card h2 {
+  margin: 0.18rem 0 0;
+  color: #1a1a1a;
+  font-size: 1rem;
+  font-weight: 900;
+}
+
+.cliente-panel-reserva-card.no-service .cliente-panel-details-block,
+.cliente-panel-reserva-card.no-service .cliente-panel-booking-summary {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .cliente-panel-shell {
+    background: #fff7fa;
+  }
+
+  .cliente-panel-app {
+    display: block;
+    min-height: 100vh;
+  }
+
+  .cliente-panel-sidebar {
+    display: none;
+  }
+
+  .cliente-panel-menu-btn {
+    display: none;
+  }
+
+  .cliente-panel-main {
+    margin-left: 0;
+    padding: 0.85rem 0.85rem 8.6rem;
+    gap: 1rem;
+  }
+
+  .cliente-panel-app-header {
+    position: sticky;
+    top: 0;
+    z-index: 80;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.84);
+    border-radius: 1.2rem;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(18px);
+    box-shadow: 0 12px 34px rgba(0, 0, 0, 0.06);
+    padding: 0.85rem;
+  }
+
+  .cliente-panel-app-header span {
+    color: #e60023;
+    font-size: 0.74rem;
+    font-weight: 900;
+  }
+
+  .cliente-panel-app-header h1 {
+    margin: 0.14rem 0;
+    color: #1a1a1a;
+    font-size: 0.98rem;
+    font-weight: 900;
+    line-height: 1.15;
+  }
+
+  .cliente-panel-app-header p {
+    margin: 0;
+    color: #777;
+    font-size: 0.76rem;
+    font-weight: 700;
+  }
+
+  .cliente-panel-app-header-avatar {
+    display: grid;
+    place-items: center;
+    flex: 0 0 42px;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: #e60023;
+    color: #fff;
+    font-size: 0.78rem;
+    font-weight: 900;
+  }
+
+  .cliente-panel-top-bar {
+    margin-bottom: 1rem;
+  }
+
+  .cliente-panel-dashboard .cliente-panel-dashboard-topbar,
+  .cliente-panel-reserva-topbar,
+  .cliente-panel-services-topbar {
+    display: none;
+  }
+
+  .cliente-panel-app-home-hero {
+    padding: 1.15rem;
+  }
+
+  .cliente-panel-app-home-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .cliente-panel-app-quick-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .cliente-panel-app-reco-card {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .cliente-panel-app-reco-card button {
+    width: 100%;
+  }
+
+  .cliente-panel-reserva-card {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .cliente-panel-booking-left,
+  .cliente-panel-booking-summary {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .cliente-panel-booking-summary {
+    position: static;
+  }
+
+  .cliente-panel-services-tools {
+    position: sticky;
+    top: 5.4rem;
+    z-index: 60;
+    border-radius: 1.1rem;
+    background: rgba(255, 255, 255, 0.94);
+    backdrop-filter: blur(16px);
+    padding: 0.75rem;
+    box-shadow: 0 12px 34px rgba(0, 0, 0, 0.06);
+  }
+
+  .cliente-panel-services-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cliente-panel-floating-booking-cta {
+    position: fixed;
+    left: 0.85rem;
+    right: 0.85rem;
+    bottom: 5.8rem;
+    z-index: 120;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    border: 0;
+    border-radius: 1rem;
+    background: #e60023;
+    color: #fff;
+    cursor: pointer;
+    font: inherit;
+    padding: 0.82rem 1rem;
+    text-align: left;
+    box-shadow: 0 18px 38px rgba(230, 0, 35, 0.28);
+  }
+
+  .cliente-panel-floating-booking-cta span,
+  .cliente-panel-floating-booking-cta strong {
+    display: block;
+    min-width: 0;
+  }
+
+  .cliente-panel-floating-booking-cta span {
+    overflow: hidden;
+    font-size: 0.82rem;
+    font-weight: 900;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .cliente-panel-floating-booking-cta strong {
+    flex: 0 0 auto;
+    font-size: 0.78rem;
+    font-weight: 900;
+  }
+
+  .cliente-panel-bottom-nav {
+    position: fixed;
+    left: 0.75rem;
+    right: 0.75rem;
+    bottom: 0.75rem;
+    z-index: 130;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 0.2rem;
+    border: 1px solid rgba(255, 255, 255, 0.84);
+    border-radius: 1.25rem;
+    background: rgba(255, 255, 255, 0.94);
+    backdrop-filter: blur(18px);
+    padding: 0.4rem;
+    box-shadow: 0 18px 44px rgba(0, 0, 0, 0.14);
+  }
+
+  .cliente-panel-bottom-nav button {
+    display: grid;
+    place-items: center;
+    gap: 0.18rem;
+    min-height: 54px;
+    border: 0;
+    border-radius: 0.95rem;
+    background: transparent;
+    color: #777;
+    cursor: pointer;
+    font: inherit;
+    padding: 0.32rem 0.2rem;
+  }
+
+  .cliente-panel-bottom-nav .cliente-panel-nav-icon,
+  .cliente-panel-bottom-nav .cliente-panel-nav-icon svg {
+    width: 19px;
+    height: 19px;
+  }
+
+  .cliente-panel-bottom-nav small {
+    font-size: 0.64rem;
+    font-weight: 900;
+  }
+
+  .cliente-panel-bottom-nav button.active {
+    background: #ffd6e2;
+    color: #e60023;
+  }
+}
+
+@media (max-width: 420px) {
+  .cliente-panel-main {
+    padding-inline: 0.65rem;
+  }
+
+  .cliente-panel-app-home-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .cliente-panel-bottom-nav {
+    left: 0.45rem;
+    right: 0.45rem;
+  }
+
+  .cliente-panel-bottom-nav small {
+    font-size: 0.58rem;
+  }
+}
