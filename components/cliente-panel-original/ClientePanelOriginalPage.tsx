@@ -892,22 +892,6 @@ const selectedBookingService = serviciosSeleccionados[0] || null;
                       </div>
                     )}
 
-                    <div className="cliente-panel-booking-cross-sell">
-                      <div>
-                        <span>Completa tu visita</span>
-                        <h3>Quieres completar tu look?</h3>
-                        <p>
-                          Muchas clientas combinan lashes + nails para
-                          aprovechar una sola visita.
-                        </p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => goToSection("servicios")}
-                      >
-                        Ver servicios complementarios
-                      </button>
-                    </div>
                   </div>
 
                   {false && (
@@ -1279,8 +1263,8 @@ const selectedBookingService = serviciosSeleccionados[0] || null;
 
                 <aside className="cliente-panel-booking-summary">
                 <div className="cliente-panel-reserva-block-title cliente-panel-reserva-summary-title">
-                  <span>Resumen de reserva</span>
-                  <h2>Resumen de reserva</h2>
+                  <span>Resumen</span>
+                  <h2>Tu reserva ✦</h2>
                   <p>
                     Revisa los datos principales antes de continuar con la
                     confirmación.
