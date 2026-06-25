@@ -31,6 +31,14 @@ type Booking = {
   belu_commission_rate: number;
   belu_commission_amount: number;
   beluer_payment_amount: number;
+  beluer_level_snapshot: string | null;
+  commission_rate_snapshot: number | null;
+  beluer_service_payout_amount: number | null;
+  beluer_logistic_payout_amount: number | null;
+  beluer_express_payout_amount: number | null;
+  beluer_total_payout_amount: number | null;
+  commission_locked_at: string | null;
+  commission_locked_event: string | null;
   payment_status: "pending" | "paid" | "failed" | "refunded";
   created_at: string;
 };
@@ -46,11 +54,13 @@ type BeluerProfile = {
   id: string;
   public_name: string | null;
   profile_id: string;
+  level: string | null;
 };
 
 type AssignableBeluer = {
   id: string;
   public_name: string | null;
+  level: string | null;
 };
 
 type Service = {
@@ -75,7 +85,9 @@ function formatDate(value: string) {
   }).format(new Date(`${value}T00:00:00`));
 }
 
-function formatRate(value: number) {
+function formatRate(value: number | null | undefined) {
+  if (value === null || value === undefined) return "";
+
   const normalizedRate = value > 1 ? value : value * 100;
 
   return new Intl.NumberFormat("es-PE", {
@@ -123,13 +135,65 @@ function getCategoryLabel(category: string) {
   return category;
 }
 
+function normalizeBeluerLevel(level: string | null | undefined) {
+  return String(level || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function getBeluerLevelLabel(level: string | null | undefined) {
+  const normalizedLevel = normalizeBeluerLevel(level);
+
+  if (["top", "beluer_top", "beluer top", "top ✦"].includes(normalizedLevel)) {
+    return "Top ✦";
+  }
+
+  if (
+    ["premium", "verified", "verificada", "beluer_verificada", "beluer verificada"].includes(
+      normalizedLevel
+    )
+  ) {
+    return normalizedLevel === "premium" ? "Premium" : "Verificada";
+  }
+
+  if (["new", "nueva", "beluer_nueva", "beluer nueva"].includes(normalizedLevel)) {
+    return "Nueva";
+  }
+
+  if (["standard", "estandar"].includes(normalizedLevel)) {
+    return "Estándar";
+  }
+
+  return level ? String(level) : "No congelado";
+}
+
+function formatMoneyOrPending(value: number | null | undefined) {
+  if (value === null || value === undefined) return "Pendiente";
+  return formatCurrency(Number(value || 0));
+}
+
+function formatSnapshotRate(booking: Booking) {
+  if (booking.commission_rate_snapshot !== null) {
+    return `${formatRate(booking.commission_rate_snapshot)}%`;
+  }
+
+  if (booking.belu_commission_rate !== null) {
+    return `${formatRate(booking.belu_commission_rate)}%`;
+  }
+
+  return "Pendiente";
+}
+
 export default async function AdminBookingsRealList() {
   const supabase = createAdminClient();
 
   const { data: bookings, error: bookingsError } = await supabase
     .from("bookings")
     .select(
-      "id, client_profile_id, beluer_profile_id, service_id, booking_mode, scheduled_date, scheduled_time, address, district, notes, is_express, express_fee, status, public_price, logistic_fee, base_price, belu_commission_rate, belu_commission_amount, beluer_payment_amount, payment_status, created_at"
+      "id, client_profile_id, beluer_profile_id, service_id, booking_mode, scheduled_date, scheduled_time, address, district, notes, is_express, express_fee, status, public_price, logistic_fee, base_price, belu_commission_rate, belu_commission_amount, beluer_payment_amount, beluer_level_snapshot, commission_rate_snapshot, beluer_service_payout_amount, beluer_logistic_payout_amount, beluer_express_payout_amount, beluer_total_payout_amount, commission_locked_at, commission_locked_event, payment_status, created_at"
     )
     .order("scheduled_date", { ascending: false })
     .order("scheduled_time", { ascending: false });
@@ -187,7 +251,7 @@ export default async function AdminBookingsRealList() {
     beluerProfileIds.length > 0
       ? await supabase
           .from("beluer_profiles")
-          .select("id, public_name, profile_id")
+          .select("id, public_name, profile_id, level")
           .in("id", beluerProfileIds)
       : { data: [], error: null };
 
@@ -203,7 +267,7 @@ export default async function AdminBookingsRealList() {
   const { data: availableBeluers, error: availableBeluersError } =
     await supabase
       .from("beluer_profiles")
-      .select("id, public_name")
+      .select("id, public_name, level")
       .eq("status", "approved")
       .eq("is_available", true)
       .order("public_name", { ascending: true });
@@ -332,6 +396,20 @@ export default async function AdminBookingsRealList() {
 
           const service = servicesById.get(booking.service_id);
           const hasAssignedBeluer = Boolean(booking.beluer_profile_id);
+          const hasCommissionSnapshot = Boolean(booking.commission_locked_at);
+          const appliedLevelLabel = booking.beluer_level_snapshot
+            ? getBeluerLevelLabel(booking.beluer_level_snapshot)
+            : hasAssignedBeluer
+              ? "Pendiente de snapshot"
+              : "Pendiente";
+          const appliedRateLabel =
+            booking.commission_rate_snapshot !== null
+              ? `${formatRate(booking.commission_rate_snapshot)}%`
+              : hasAssignedBeluer
+                ? "Pendiente"
+                : "Pendiente";
+          const beluerTotalPayout =
+            booking.beluer_total_payout_amount ?? booking.beluer_payment_amount;
 
           return (
             <article key={booking.id} className="admin-booking-admin-card">
@@ -455,6 +533,20 @@ export default async function AdminBookingsRealList() {
                       : "Pendiente de asignacion por Admin."}
                   </p>
 
+                  {hasAssignedBeluer ? (
+                    <div className="admin-booking-money-grid">
+                      <div>
+                        <span>Nivel aplicado</span>
+                        <strong>{appliedLevelLabel}</strong>
+                      </div>
+
+                      <div>
+                        <span>Comision aplicada</span>
+                        <strong>{appliedRateLabel}</strong>
+                      </div>
+                    </div>
+                  ) : null}
+
                   <AssignBookingBeluerForm
                     bookingId={booking.id}
                     currentStatus={booking.status}
@@ -478,10 +570,20 @@ export default async function AdminBookingsRealList() {
                     </div>
 
                     <div>
-                      <span>Nivel Beluer</span>
-                      <strong>
-                        {hasAssignedBeluer ? "No disponible" : "Pendiente"}
-                      </strong>
+                      <span>Logistica</span>
+                      <strong>{formatCurrency(booking.logistic_fee)}</strong>
+                    </div>
+
+                    {booking.express_fee > 0 ? (
+                      <div>
+                        <span>Express</span>
+                        <strong>{formatCurrency(booking.express_fee)}</strong>
+                      </div>
+                    ) : null}
+
+                    <div>
+                      <span>Nivel aplicado</span>
+                      <strong>{appliedLevelLabel}</strong>
                     </div>
 
                     <div>
@@ -494,26 +596,69 @@ export default async function AdminBookingsRealList() {
                       {hasAssignedBeluer ? (
                         <small>
                           Tasa registrada:{" "}
-                          {formatRate(booking.belu_commission_rate)}%
+                          {formatSnapshotRate(booking)}
                         </small>
                       ) : null}
                     </div>
 
                     <div>
-                      <span>Pago Beluer</span>
+                      <span>Pago servicio Beluer</span>
                       <strong>
                         {hasAssignedBeluer
-                          ? formatCurrency(booking.beluer_payment_amount)
+                          ? formatMoneyOrPending(
+                              booking.beluer_service_payout_amount
+                            )
                           : "Pendiente"}
                       </strong>
                     </div>
 
-                    {booking.express_fee > 0 ? (
+                    <div>
+                      <span>Pago logistica Beluer</span>
+                      <strong>
+                        {hasAssignedBeluer
+                          ? formatMoneyOrPending(
+                              booking.beluer_logistic_payout_amount
+                            )
+                          : "Pendiente"}
+                      </strong>
+                    </div>
+
+                    {booking.express_fee > 0 ||
+                    Number(booking.beluer_express_payout_amount || 0) > 0 ? (
                       <div>
-                        <span>Express</span>
-                        <strong>{formatCurrency(booking.express_fee)}</strong>
+                        <span>Pago express Beluer</span>
+                        <strong>
+                          {hasAssignedBeluer
+                            ? formatMoneyOrPending(
+                                booking.beluer_express_payout_amount
+                              )
+                            : "Pendiente"}
+                        </strong>
                       </div>
                     ) : null}
+
+                    <div>
+                      <span>Total Beluer</span>
+                      <strong>
+                        {hasAssignedBeluer
+                          ? formatMoneyOrPending(beluerTotalPayout)
+                          : "Pendiente"}
+                      </strong>
+                    </div>
+
+                    <div>
+                      <span>Estado comision</span>
+                      <strong>
+                        {hasCommissionSnapshot
+                          ? "Comision congelada"
+                          : "Pendiente de congelar"}
+                      </strong>
+                      {booking.commission_locked_at ? (
+                        <small>
+                          {formatDate(booking.commission_locked_at.slice(0, 10))}
+                        </small>
+                      ) : null}
+                    </div>
                   </div>
                 </section>
 
