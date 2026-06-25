@@ -32,32 +32,61 @@ for each row
 execute function public.sync_booking_payment_status();
 
 -- =====================================================
--- 2. UPDATE BELUER TOTAL BOOKINGS AFTER COMPLETION
+-- 2. RECALCULATE BELUER TOTAL BOOKINGS AFTER BOOKING CHANGES
 -- =====================================================
 
-create or replace function public.update_beluer_total_bookings()
+drop trigger if exists update_beluer_total_bookings_trigger on public.bookings;
+drop function if exists public.update_beluer_total_bookings();
+
+create or replace function public.recalculate_beluer_total_bookings(
+  p_beluer_profile_id uuid
+)
+returns void as $$
+begin
+  if p_beluer_profile_id is null then
+    return;
+  end if;
+
+  update public.beluer_profiles
+  set
+    total_bookings = (
+      select count(*)::integer
+      from public.bookings
+      where beluer_profile_id = p_beluer_profile_id
+        and status = 'completed'
+    ),
+    updated_at = now()
+  where id = p_beluer_profile_id;
+end;
+$$ language plpgsql;
+
+create or replace function public.sync_beluer_total_bookings()
 returns trigger as $$
 begin
-  if new.status = 'completed'
-     and old.status is distinct from 'completed'
-     and new.beluer_profile_id is not null then
-
-    update public.beluer_profiles
-    set
-      total_bookings = total_bookings + 1,
-      updated_at = now()
-    where id = new.beluer_profile_id;
+  if tg_op = 'DELETE' then
+    perform public.recalculate_beluer_total_bookings(old.beluer_profile_id);
+    return old;
   end if;
+
+  if tg_op = 'INSERT' then
+    perform public.recalculate_beluer_total_bookings(new.beluer_profile_id);
+    return new;
+  end if;
+
+  if old.beluer_profile_id is distinct from new.beluer_profile_id then
+    perform public.recalculate_beluer_total_bookings(old.beluer_profile_id);
+  end if;
+
+  perform public.recalculate_beluer_total_bookings(new.beluer_profile_id);
 
   return new;
 end;
 $$ language plpgsql;
 
-drop trigger if exists update_beluer_total_bookings_trigger on public.bookings;
 create trigger update_beluer_total_bookings_trigger
-after update on public.bookings
+after insert or update or delete on public.bookings
 for each row
-execute function public.update_beluer_total_bookings();
+execute function public.sync_beluer_total_bookings();
 
 -- =====================================================
 -- 3. ENSURE ONLY ONE COVER PHOTO PER BELUER

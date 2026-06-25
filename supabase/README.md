@@ -118,6 +118,113 @@ updated_at
 
 Admin asigna servicios a Beluers. La Beluer no edita sus servicios en el MVP.
 
+`beluer_profiles.total_bookings` debe representar el conteo real de reservas
+completadas de esa Beluer. No es una regla de nivel automatico: Admin sigue
+controlando `beluer_profiles.level` manualmente en el MVP.
+
+El trigger local `update_beluer_total_bookings_trigger` recalcula el contador
+desde `public.bookings` cada vez que una reserva se inserta, actualiza o elimina.
+Cuenta solo reservas con:
+
+```txt
+bookings.beluer_profile_id = beluer_profiles.id
+bookings.status = completed
+```
+
+No cuenta reservas `pending`, `assigned`, `confirmed`, `cancelled` ni reservas
+sin `beluer_profile_id`.
+
+SQL remoto para corregir el trigger y hacer backfill manual en Supabase SQL
+Editor:
+
+```sql
+drop trigger if exists update_beluer_total_bookings_trigger on public.bookings;
+drop function if exists public.update_beluer_total_bookings();
+
+create or replace function public.recalculate_beluer_total_bookings(
+  p_beluer_profile_id uuid
+)
+returns void as $$
+begin
+  if p_beluer_profile_id is null then
+    return;
+  end if;
+
+  update public.beluer_profiles
+  set
+    total_bookings = (
+      select count(*)::integer
+      from public.bookings
+      where beluer_profile_id = p_beluer_profile_id
+        and status = 'completed'
+    ),
+    updated_at = now()
+  where id = p_beluer_profile_id;
+end;
+$$ language plpgsql;
+
+create or replace function public.sync_beluer_total_bookings()
+returns trigger as $$
+begin
+  if tg_op = 'DELETE' then
+    perform public.recalculate_beluer_total_bookings(old.beluer_profile_id);
+    return old;
+  end if;
+
+  if tg_op = 'INSERT' then
+    perform public.recalculate_beluer_total_bookings(new.beluer_profile_id);
+    return new;
+  end if;
+
+  if old.beluer_profile_id is distinct from new.beluer_profile_id then
+    perform public.recalculate_beluer_total_bookings(old.beluer_profile_id);
+  end if;
+
+  perform public.recalculate_beluer_total_bookings(new.beluer_profile_id);
+
+  return new;
+end;
+$$ language plpgsql;
+
+create trigger update_beluer_total_bookings_trigger
+after insert or update or delete on public.bookings
+for each row
+execute function public.sync_beluer_total_bookings();
+
+update public.beluer_profiles bp
+set
+  total_bookings = real_counts.completed_count,
+  updated_at = now()
+from (
+  select
+    bp_inner.id,
+    count(b.id)::integer as completed_count
+  from public.beluer_profiles bp_inner
+  left join public.bookings b
+    on b.beluer_profile_id = bp_inner.id
+   and b.status = 'completed'
+  group by bp_inner.id
+) real_counts
+where bp.id = real_counts.id;
+```
+
+Query de verificacion despues del backfill. Debe devolver cero filas:
+
+```sql
+select
+  bp.id,
+  bp.public_name,
+  bp.total_bookings,
+  count(b.id)::integer as real_completed_bookings
+from public.beluer_profiles bp
+left join public.bookings b
+  on b.beluer_profile_id = bp.id
+ and b.status = 'completed'
+group by bp.id, bp.public_name, bp.total_bookings
+having bp.total_bookings is distinct from count(b.id)::integer
+order by bp.public_name;
+```
+
 ### Servicios
 
 `services` usa el modelo de precios actual:
