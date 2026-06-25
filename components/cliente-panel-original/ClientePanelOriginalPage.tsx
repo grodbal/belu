@@ -224,6 +224,16 @@ const icons = {
       <polyline points="12 6 12 12 16 14" />
     </svg>
   ),
+  servicios: (
+    <svg viewBox="0 0 24 24">
+      <path d="M4 7h16" />
+      <path d="M4 12h16" />
+      <path d="M4 17h16" />
+      <circle cx="7" cy="7" r="1" />
+      <circle cx="7" cy="12" r="1" />
+      <circle cx="7" cy="17" r="1" />
+    </svg>
+  ),
   beluers: (
     <svg viewBox="0 0 24 24">
       <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
@@ -263,6 +273,7 @@ const navItems: {
 }[] = [
   { id: "dashboard", label: "Inicio", icon: icons.dashboard },
   { id: "reserva", label: "Nueva Reserva", icon: icons.reserva },
+  { id: "servicios", label: "Servicios", icon: icons.servicios },
   { id: "beluers", label: "Especialistas", icon: icons.beluers },
   { id: "favoritas", label: "Favoritas", icon: icons.favoritas },
   { id: "historial", label: "Historial", icon: icons.historial },
@@ -1251,6 +1262,14 @@ const hasRealBooking = Boolean(nextBooking);
             </section>
           )}
 
+          {activeSection === "servicios" && (
+            <ServiciosSection
+              services={realServices}
+              goToReserva={() => goToSection("reserva")}
+              clientName={clientName}
+            />
+          )}
+
           {activeSection === "beluers" && (
   <EspecialistasSection
     beluers={realBeluers}
@@ -1294,6 +1313,7 @@ const hasRealBooking = Boolean(nextBooking);
 
 {activeSection !== "dashboard" &&
   activeSection !== "reserva" &&
+  activeSection !== "servicios" &&
   activeSection !== "beluers" &&
   activeSection !== "favoritas" &&
   activeSection !== "historial" &&
@@ -2808,11 +2828,13 @@ function ServiceDetailModal({
   selected,
   onChoose,
   onClose,
+  primaryLabel = "Elegir este servicio",
 }: {
   servicio: Service;
   selected: boolean;
   onChoose: () => void;
   onClose: () => void;
+  primaryLabel?: string;
 }) {
   const duration = getServiceDuration(servicio);
   const galleryImages = getServiceGalleryImages(servicio);
@@ -2928,7 +2950,7 @@ function ServiceDetailModal({
               type="button"
               onClick={onChoose}
             >
-              Elegir este servicio
+              {primaryLabel}
             </button>
             <button
               className="cliente-panel-service-detail-secondary"
@@ -3005,6 +3027,233 @@ function getServiceDuration(servicio: Service) {
   return "";
 }
 
+function ServiciosSection({
+  services,
+  goToReserva,
+  clientName,
+}: {
+  services: Service[];
+  goToReserva: () => void;
+  clientName: string;
+}) {
+  const [filter, setFilter] = useState<ServiceCatalogFilter>("all");
+  const [search, setSearch] = useState("");
+  const [detailService, setDetailService] = useState<Service | null>(null);
+
+  const normalizedSearch = normalizeServiceCatalogText(search);
+  const sortedServices = sortServicesForReservation(services);
+  const filteredServices = sortedServices.filter((servicio) => {
+    if (filter === "featured" && !servicio.is_featured) return false;
+
+    if (
+      (filter === "lashes" || filter === "nails") &&
+      servicio.categoria !== filter
+    ) {
+      return false;
+    }
+
+    if (!normalizedSearch) return true;
+
+    return normalizeServiceCatalogText(
+      `${servicio.nombre} ${servicio.desc} ${servicio.categoria}`
+    ).includes(normalizedSearch);
+  });
+
+  const allSections: {
+    id: ServiceCatalogSection;
+    title: string;
+    eyebrow: string;
+    services: Service[];
+  }[] = [
+    {
+      id: "featured",
+      title: "Destacados ✦",
+      eyebrow: "Seleccion belu",
+      services: filteredServices.filter((servicio) =>
+        Boolean(servicio.is_featured)
+      ),
+    },
+    {
+      id: "lashes",
+      title: "Lashes",
+      eyebrow: "Pestanas",
+      services: filteredServices.filter(
+        (servicio) => servicio.categoria === "lashes"
+      ),
+    },
+    {
+      id: "nails",
+      title: "Nails",
+      eyebrow: "Manos",
+      services: filteredServices.filter(
+        (servicio) => servicio.categoria === "nails"
+      ),
+    },
+  ];
+  const sections = allSections.filter((section) => {
+    if (section.services.length === 0) return false;
+    if (filter === "featured") return section.id === "featured";
+    if (filter === "lashes") return section.id === "lashes";
+    if (filter === "nails") return section.id === "nails";
+
+    return true;
+  });
+
+  const filters: { id: ServiceCatalogFilter; label: string }[] = [
+    { id: "all", label: "Todos" },
+    { id: "featured", label: "Destacados" },
+    { id: "lashes", label: "Lashes" },
+    { id: "nails", label: "Nails" },
+  ];
+
+  const handleReserveFromDetail = () => {
+    setDetailService(null);
+    goToReserva();
+  };
+
+  return (
+    <section className="cliente-panel-section cliente-panel-services-section active">
+      <div className="cliente-panel-top-bar cliente-panel-services-topbar">
+        <div className="cliente-panel-greeting">
+          <span className="cliente-panel-dashboard-kicker">Catalogo ✦</span>
+          <h1>Explora servicios</h1>
+          <p>Lashes y nails a domicilio, cuando quieras.</p>
+        </div>
+
+        <UserPill clientName={clientName} />
+      </div>
+
+      <div className="cliente-panel-services-tools">
+        <label className="cliente-panel-service-search cliente-panel-services-search">
+          <span>Buscar servicio</span>
+          <input
+            type="search"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Buscar servicio"
+          />
+        </label>
+
+        <div
+          className="cliente-panel-services-chips"
+          aria-label="Filtros de servicios"
+        >
+          {filters.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              className={filter === item.id ? "active" : ""}
+              onClick={() => setFilter(item.id)}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="cliente-panel-services-summary">
+        <span>{filteredServices.length} servicios activos</span>
+        <small>Explora con calma. Reserva desde Nueva Reserva cuando estes lista.</small>
+      </div>
+
+      <div className="cliente-panel-services-sections">
+        {sections.map((section) => (
+          <section className="cliente-panel-services-group" key={section.id}>
+            <div className="cliente-panel-services-group-head">
+              <span>{section.eyebrow}</span>
+              <h2>{section.title}</h2>
+            </div>
+
+            <div className="cliente-panel-services-grid">
+              {section.services.map((servicio) => (
+                <ServiceCatalogCard
+                  key={`${section.id}-${servicio.id || servicio.nombre}`}
+                  servicio={servicio}
+                  onViewDetail={() => setDetailService(servicio)}
+                />
+              ))}
+            </div>
+          </section>
+        ))}
+      </div>
+
+      {sections.length === 0 ? (
+        <div className="cliente-panel-services-empty">
+          <strong>No encontramos servicios con ese filtro.</strong>
+          <span>Prueba otro termino o cambia de categoria.</span>
+        </div>
+      ) : null}
+
+      {detailService ? (
+        <ServiceDetailModal
+          servicio={detailService}
+          selected={false}
+          primaryLabel="Reservar este servicio"
+          onChoose={handleReserveFromDetail}
+          onClose={() => setDetailService(null)}
+        />
+      ) : null}
+    </section>
+  );
+}
+
+function ServiceCatalogCard({
+  servicio,
+  onViewDetail,
+}: {
+  servicio: Service;
+  onViewDetail: () => void;
+}) {
+  const duration = getServiceDuration(servicio);
+
+  return (
+    <article className="cliente-panel-services-card">
+      <div className="cliente-panel-services-card-image">
+        {servicio.image_url ? (
+          <img src={servicio.foto} alt={servicio.nombre} />
+        ) : (
+          <span className="cliente-panel-services-placeholder" aria-hidden="true">
+            <b>{servicio.nombre.slice(0, 1).toUpperCase()}</b>
+            <small>✦</small>
+          </span>
+        )}
+
+        {servicio.is_featured ? (
+          <span className="cliente-panel-services-featured">Destacado ✦</span>
+        ) : null}
+      </div>
+
+      <div className="cliente-panel-services-card-body">
+        <span className="cliente-panel-services-category">
+          {servicio.categoria === "lashes" ? "Lashes" : "Nails"}
+        </span>
+        <h3>{servicio.nombre}</h3>
+        <p>
+          {servicio.desc ||
+            "Servicio belu realizado por una especialista verificada."}
+        </p>
+
+        <div className="cliente-panel-services-card-meta">
+          <strong>{formatSoles(servicio.precio)}</strong>
+          <span>{duration || "Duracion por confirmar"}</span>
+        </div>
+
+        <button type="button" onClick={onViewDetail}>
+          Ver detalle
+        </button>
+      </div>
+    </article>
+  );
+}
+
+function normalizeServiceCatalogText(text: string) {
+  return text
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim();
+}
+
 function AddonsSection({
   label,
   addons,
@@ -3048,6 +3297,7 @@ function getSectionTitle(section: PanelSection) {
   const titles: Record<PanelSection, string> = {
     dashboard: "Inicio",
     reserva: "Agendar nueva cita",
+    servicios: "Servicios",
     beluers: "Nuestras Especialistas",
     favoritas: "Tus beluers favoritas",
     historial: "Tu historial",

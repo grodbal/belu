@@ -7261,3 +7261,413 @@
     -webkit-line-clamp: 2;
   }
 }
+
+/* --------------------------------------------------------------------------
+   BLOQUE 20 - CLIENTE SERVICIOS
+   Catalogo premium independiente sin tocar el flujo de Nueva Reserva.
+-------------------------------------------------------------------------- */
+
+.cliente-panel-shell:has(.cliente-panel-services-section) {
+  background:
+    linear-gradient(180deg, #fbf8f4 0%, #fff9fb 48%, #fffdfb 100%);
+}
+
+.cliente-panel-services-section {
+  --belu-ui-font: "Gilroy", "Hanken Grotesk", "Inter", system-ui, sans-serif;
+  gap: 1rem;
+  font-family: var(--belu-ui-font);
+}
+
+.cliente-panel-services-section *,
+.cliente-panel-services-section button,
+.cliente-panel-services-section input {
+  font-family: var(--belu-ui-font);
+}
+
+.cliente-panel-services-topbar {
+  border-color: rgba(218, 211, 204, 0.54);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: none;
+}
+
+.cliente-panel-services-section .cliente-panel-dashboard-kicker {
+  width: fit-content;
+  border-radius: 999px;
+  background: #fff1f5;
+  color: #b44158;
+  padding: 0.34rem 0.62rem;
+  font-size: 0.68rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.cliente-panel-services-section .cliente-panel-greeting h1 {
+  margin-top: 0.42rem;
+  color: #1a1a1a;
+  font-size: clamp(1.8rem, 3vw, 2.7rem);
+  font-weight: 920;
+  line-height: 1;
+}
+
+.cliente-panel-services-section .cliente-panel-greeting p {
+  max-width: 520px;
+  color: #6f6861;
+  font-size: 0.96rem;
+  font-weight: 560;
+}
+
+.cliente-panel-services-tools {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) auto;
+  gap: 0.8rem;
+  align-items: end;
+  border: 1px solid rgba(218, 211, 204, 0.62);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.78);
+  padding: clamp(0.85rem, 1.8vw, 1.05rem);
+}
+
+.cliente-panel-services-search {
+  width: 100%;
+}
+
+.cliente-panel-services-search input {
+  min-height: 44px;
+  border-radius: 999px;
+  background: #fff;
+  padding-inline: 1rem;
+}
+
+.cliente-panel-services-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.42rem;
+}
+
+.cliente-panel-services-chips button {
+  min-height: 38px;
+  border: 1px solid #eaded6;
+  border-radius: 999px;
+  background: #fff;
+  color: #3b332d;
+  cursor: pointer;
+  padding: 0 0.82rem;
+  font-size: 0.76rem;
+  font-weight: 860;
+  transition:
+    border-color 0.16s ease,
+    background-color 0.16s ease,
+    color 0.16s ease;
+}
+
+.cliente-panel-services-chips button:hover,
+.cliente-panel-services-chips button.active {
+  border-color: rgba(230, 0, 35, 0.34);
+  background: #ffd6e2;
+  color: #e60023;
+}
+
+.cliente-panel-services-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  color: #6f6861;
+  font-size: 0.8rem;
+}
+
+.cliente-panel-services-summary span {
+  border-radius: 999px;
+  background: #1a1a1a;
+  color: #fff;
+  padding: 0.42rem 0.7rem;
+  font-weight: 860;
+}
+
+.cliente-panel-services-summary small {
+  color: #7c746d;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.cliente-panel-services-sections {
+  display: grid;
+  gap: 1.15rem;
+}
+
+.cliente-panel-services-group {
+  display: grid;
+  gap: 0.72rem;
+}
+
+.cliente-panel-services-group-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.8rem;
+  border-bottom: 1px solid rgba(234, 222, 214, 0.8);
+  padding-bottom: 0.52rem;
+}
+
+.cliente-panel-services-group-head span {
+  color: #b44158;
+  font-size: 0.68rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.cliente-panel-services-group-head h2 {
+  margin: 0;
+  color: #1a1a1a;
+  font-size: clamp(1.08rem, 1.7vw, 1.36rem);
+  font-weight: 920;
+}
+
+.cliente-panel-services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 0.82rem;
+}
+
+.cliente-panel-services-card {
+  display: grid;
+  overflow: hidden;
+  border: 1px solid rgba(218, 211, 204, 0.86);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.96);
+  color: #1a1a1a;
+  transition:
+    border-color 0.16s ease,
+    background-color 0.16s ease;
+}
+
+.cliente-panel-services-card:hover {
+  border-color: rgba(230, 0, 35, 0.24);
+  background: #fff;
+}
+
+.cliente-panel-services-card-image {
+  position: relative;
+  min-height: 0;
+  background: #fff1f5;
+}
+
+.cliente-panel-services-card-image img,
+.cliente-panel-services-placeholder {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+
+.cliente-panel-services-placeholder {
+  display: grid;
+  place-items: center;
+  color: #e60023;
+  box-shadow: inset 0 0 0 1px rgba(230, 0, 35, 0.08);
+}
+
+.cliente-panel-services-placeholder b {
+  font-size: 2rem;
+  font-weight: 920;
+  line-height: 1;
+}
+
+.cliente-panel-services-placeholder small {
+  margin-top: -1.6rem;
+  color: rgba(230, 0, 35, 0.58);
+  font-size: 0.82rem;
+}
+
+.cliente-panel-services-featured {
+  position: absolute;
+  top: 0.72rem;
+  left: 0.72rem;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 999px;
+  background: rgba(26, 26, 26, 0.68);
+  color: #fff;
+  padding: 0.34rem 0.58rem;
+  font-size: 0.64rem;
+  font-weight: 900;
+  line-height: 1;
+  backdrop-filter: blur(8px);
+}
+
+.cliente-panel-services-card-body {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.88rem;
+}
+
+.cliente-panel-services-category {
+  width: fit-content;
+  border-radius: 999px;
+  background: #fff1f5;
+  color: #b44158;
+  padding: 0.24rem 0.5rem;
+  font-size: 0.62rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.cliente-panel-services-card-body h3 {
+  margin: 0;
+  color: #1a1a1a;
+  font-size: 1rem;
+  font-weight: 920;
+  line-height: 1.14;
+}
+
+.cliente-panel-services-card-body p {
+  display: -webkit-box;
+  min-height: 2.68em;
+  margin: 0;
+  overflow: hidden;
+  color: #746d66;
+  font-size: 0.78rem;
+  line-height: 1.34;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.cliente-panel-services-card-meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.7rem;
+  margin-top: 0.1rem;
+}
+
+.cliente-panel-services-card-meta strong {
+  color: #e60023;
+  font-size: 1.05rem;
+  font-weight: 920;
+  white-space: nowrap;
+}
+
+.cliente-panel-services-card-meta span {
+  color: #8a827a;
+  font-size: 0.72rem;
+  font-weight: 780;
+  text-align: right;
+}
+
+.cliente-panel-services-card-body button {
+  width: fit-content;
+  min-height: 36px;
+  border: 0;
+  border-radius: 999px;
+  background: #e60023;
+  color: #fff;
+  cursor: pointer;
+  padding: 0 0.8rem;
+  font-size: 0.76rem;
+  font-weight: 920;
+}
+
+.cliente-panel-services-empty {
+  display: grid;
+  gap: 0.24rem;
+  border: 1px dashed #eaded6;
+  border-radius: 14px;
+  background: #fffaf8;
+  color: #746d66;
+  padding: 1rem;
+}
+
+.cliente-panel-services-empty strong {
+  color: #1a1a1a;
+}
+
+@media (min-width: 1240px) {
+  .cliente-panel-services-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .cliente-panel-services-tools {
+    grid-template-columns: 1fr;
+  }
+
+  .cliente-panel-services-chips {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 560px) {
+  .cliente-panel-services-section {
+    gap: 0.82rem;
+  }
+
+  .cliente-panel-services-topbar,
+  .cliente-panel-services-tools {
+    border-radius: 14px;
+  }
+
+  .cliente-panel-services-section .cliente-panel-greeting h1 {
+    font-size: 1.74rem;
+  }
+
+  .cliente-panel-services-summary {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .cliente-panel-services-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cliente-panel-services-card {
+    grid-template-columns: 108px minmax(0, 1fr);
+    min-height: 132px;
+  }
+
+  .cliente-panel-services-card-image img,
+  .cliente-panel-services-placeholder {
+    height: 100%;
+    min-height: 132px;
+    aspect-ratio: auto;
+  }
+
+  .cliente-panel-services-featured {
+    top: 0.48rem;
+    left: 0.48rem;
+    max-width: 88px;
+    padding: 0.28rem 0.42rem;
+    font-size: 0.56rem;
+  }
+
+  .cliente-panel-services-card-body {
+    gap: 0.32rem;
+    padding: 0.68rem;
+  }
+
+  .cliente-panel-services-card-body h3 {
+    font-size: 0.9rem;
+  }
+
+  .cliente-panel-services-card-body p {
+    min-height: 0;
+    font-size: 0.7rem;
+  }
+
+  .cliente-panel-services-card-meta {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.16rem;
+  }
+
+  .cliente-panel-services-card-meta span {
+    text-align: left;
+  }
+
+  .cliente-panel-services-card-body button {
+    min-height: 32px;
+    padding: 0 0.68rem;
+    font-size: 0.7rem;
+  }
+}

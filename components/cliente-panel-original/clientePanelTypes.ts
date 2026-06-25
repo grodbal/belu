@@ -1,6 +1,7 @@
 export type PanelSection =
   | "dashboard"
   | "reserva"
+  | "servicios"
   | "beluers"
   | "favoritas"
   | "historial"
