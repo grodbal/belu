@@ -211,6 +211,7 @@ alter table if exists public.bookings
   add column if not exists commission_rate_snapshot numeric(6,4),
   add column if not exists beluer_service_payout_amount numeric(10,2),
   add column if not exists beluer_logistic_payout_amount numeric(10,2),
+  add column if not exists beluer_express_payout_amount numeric(10,2),
   add column if not exists beluer_total_payout_amount numeric(10,2),
   add column if not exists commission_locked_at timestamptz,
   add column if not exists commission_locked_event text;
