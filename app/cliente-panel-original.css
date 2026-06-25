@@ -9338,3 +9338,258 @@
     width: calc(100% - 32px);
   }
 }
+
+/* Visual QA fixes after Claude handoff */
+.cliente-panel-shell,
+.cliente-panel-shell * {
+  box-sizing: border-box;
+}
+
+.cliente-panel-shell {
+  overflow-x: clip;
+}
+
+.cliente-panel-app {
+  width: min(100%, 430px);
+  max-width: 430px;
+  margin-inline: auto;
+  overflow-x: clip;
+}
+
+.cliente-panel-main {
+  width: 100%;
+  min-width: 0;
+  overflow-x: clip;
+}
+
+.cliente-panel-app-header,
+.cliente-panel-section,
+.cliente-panel-app-home-hero,
+.cliente-panel-app-quick-grid,
+.cliente-panel-app-reco-card,
+.cliente-panel-dashboard-main-grid,
+.cliente-panel-services-section,
+.cliente-panel-reserva-section,
+.cliente-panel-history-section,
+.cliente-panel-profile-section {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.cliente-panel-app-home-hero {
+  overflow: visible;
+  border-radius: 20px;
+  padding: 24px 22px;
+}
+
+.cliente-panel-app-home-hero h1 {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.cliente-panel-app-home-actions {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.cliente-panel-app-home-actions button {
+  width: 100%;
+  min-width: 0;
+  white-space: normal;
+}
+
+.cliente-panel-app-quick-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.cliente-panel-app-quick-grid button {
+  width: 100%;
+  min-width: 0;
+  min-height: auto;
+  aspect-ratio: 1 / 1;
+  padding: 8px 4px;
+  overflow: hidden;
+}
+
+.cliente-panel-app-quick-grid span,
+.cliente-panel-app-quick-grid strong {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cliente-panel-app-quick-grid strong {
+  font-size: 11.5px;
+}
+
+.cliente-panel-dashboard-appointment {
+  align-items: center;
+  grid-template-columns: 88px minmax(0, 1fr);
+  gap: 12px;
+  margin-top: 16px;
+  padding: 12px;
+}
+
+.cliente-panel-dashboard-appointment-visual {
+  width: 88px;
+  min-height: 88px;
+  border-radius: 16px;
+}
+
+.cliente-panel-dashboard-appointment-visual span {
+  font-size: 9px;
+}
+
+.cliente-panel-dashboard-appointment-visual strong {
+  max-width: 72px;
+  font-size: 15px;
+  line-height: 1.05;
+}
+
+.cliente-panel-dashboard-appointment-content {
+  min-width: 0;
+}
+
+.cliente-panel-dashboard-appointment .cliente-panel-dashboard-card-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: start;
+}
+
+.cliente-panel-dashboard-appointment .cliente-panel-dashboard-card-head h2 {
+  margin: 2px 0 0;
+  font-family: var(--font-editorial);
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: 0;
+  line-height: 1.02;
+}
+
+.cliente-panel-dashboard-appointment .cliente-panel-dashboard-card-head p,
+.cliente-panel-dashboard-manual-note {
+  display: none;
+}
+
+.cliente-panel-dashboard-appointment-details {
+  display: grid;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.cliente-panel-dashboard-appointment-details div {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  padding: 0;
+}
+
+.cliente-panel-dashboard-appointment-details div:nth-child(n + 4) {
+  display: none;
+}
+
+.cliente-panel-dashboard-appointment-details span,
+.cliente-panel-dashboard-appointment-details strong {
+  min-width: 0;
+  font-size: 12px;
+  line-height: 1.25;
+}
+
+.cliente-panel-dashboard-appointment-details strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cliente-panel-dashboard-appointment .cliente-panel-ra-acciones {
+  margin-top: 10px;
+}
+
+.cliente-panel-dashboard-appointment .cliente-panel-ra-acciones button {
+  display: none;
+}
+
+.cliente-panel-dashboard-appointment .cliente-panel-ra-acciones button:first-child {
+  display: inline-flex;
+  min-height: 36px;
+  border-radius: 9px;
+  padding-inline: 12px;
+  font-size: 12px;
+}
+
+.cliente-panel-bottom-nav,
+.cliente-panel-floating-booking-cta {
+  max-width: 430px;
+}
+
+.cliente-panel-bottom-nav {
+  left: 50%;
+  right: auto;
+  width: min(100%, 430px);
+}
+
+.cliente-panel-floating-booking-cta {
+  bottom: 88px;
+  width: min(calc(100% - 48px), 382px);
+}
+
+.cliente-panel-reserva-card.no-service .cliente-panel-details-block,
+.cliente-panel-reserva-card.no-service .cliente-panel-booking-summary,
+.cliente-panel-reserva-card.no-service .cliente-panel-booking-cross-sell,
+.cliente-panel-reserva-card.no-service .cliente-panel-full-btn,
+.cliente-panel-reserva-card.no-service .cliente-panel-reserva-mvp-note {
+  display: none !important;
+}
+
+.cliente-panel-shell ~ button[class*="right-6"][class*="bottom-6"] {
+  display: none !important;
+}
+
+.cliente-panel-shell:has(.cliente-panel-profile-section.active)
+  ~ button[class*="right-6"][class*="bottom-6"] {
+  position: fixed !important;
+  left: 50% !important;
+  right: auto !important;
+  bottom: 88px !important;
+  z-index: 120 !important;
+  display: inline-flex !important;
+  justify-content: center;
+  width: min(calc(100% - 48px), 382px);
+  max-width: 382px;
+  transform: translateX(-50%);
+  border-radius: 12px !important;
+  background: #1a1a1a !important;
+  box-shadow: 0 8px 18px rgba(26, 26, 26, 0.18) !important;
+}
+
+@media (max-width: 390px) {
+  .cliente-panel-main {
+    padding-inline: 14px;
+  }
+
+  .cliente-panel-app-home-hero {
+    padding: 20px 18px;
+  }
+
+  .cliente-panel-app-home-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .cliente-panel-app-quick-grid {
+    gap: 8px;
+  }
+
+  .cliente-panel-app-quick-grid strong {
+    font-size: 10.5px;
+  }
+
+  .cliente-panel-floating-booking-cta,
+  .cliente-panel-shell:has(.cliente-panel-profile-section.active)
+    ~ button[class*="right-6"][class*="bottom-6"] {
+    width: calc(100% - 32px);
+  }
+}
