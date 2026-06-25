@@ -40,9 +40,20 @@ type BookingRow = {
   notes: string | null;
   status: string;
   payment_status: string;
-  public_price: number;
-  belu_commission_amount: number;
-  beluer_payment_amount: number;
+  public_price: number | string | null;
+  base_price: number | string | null;
+  logistic_fee: number | string | null;
+  express_fee: number | string | null;
+  beluer_level_snapshot: string | null;
+  commission_rate_snapshot: number | string | null;
+  belu_commission_amount: number | string | null;
+  beluer_service_payout_amount: number | string | null;
+  beluer_logistic_payout_amount: number | string | null;
+  beluer_express_payout_amount: number | string | null;
+  beluer_total_payout_amount: number | string | null;
+  beluer_payment_amount: number | string | null;
+  commission_locked_at: string | null;
+  commission_locked_event: string | null;
   services: {
     name: string;
     category: string;
@@ -117,6 +128,69 @@ function mapBookingStatusToBeluerStatus(
   }
 
   return "pendiente";
+}
+
+function moneyToNumber(value: number | string | null | undefined) {
+  const amount = Number(value ?? 0);
+
+  return Number.isFinite(amount) ? amount : 0;
+}
+
+function nullableRateToNumber(value: number | string | null | undefined) {
+  if (value === null || value === undefined || value === "") return null;
+
+  const rate = Number(value);
+
+  return Number.isFinite(rate) ? rate : null;
+}
+
+function getBookingBeluerPayoutTotal(booking: BookingRow) {
+  if (booking.beluer_total_payout_amount != null) {
+    return moneyToNumber(booking.beluer_total_payout_amount);
+  }
+
+  if (booking.beluer_payment_amount != null) {
+    return moneyToNumber(booking.beluer_payment_amount);
+  }
+
+  return moneyToNumber(booking.public_price);
+}
+
+function getBookingPayoutBreakdown(booking: BookingRow) {
+  const totalBeluer = getBookingBeluerPayoutTotal(booking);
+  const publicPrice = moneyToNumber(booking.public_price);
+  const logisticFee = moneyToNumber(booking.logistic_fee);
+  const pagoLogisticaBeluer =
+    booking.beluer_logistic_payout_amount != null
+      ? moneyToNumber(booking.beluer_logistic_payout_amount)
+      : logisticFee;
+  const pagoExpressBeluer =
+    booking.beluer_express_payout_amount != null
+      ? moneyToNumber(booking.beluer_express_payout_amount)
+      : moneyToNumber(booking.express_fee);
+  const pagoServicioBeluer =
+    booking.beluer_service_payout_amount != null
+      ? moneyToNumber(booking.beluer_service_payout_amount)
+      : Math.max(totalBeluer - pagoLogisticaBeluer - pagoExpressBeluer, 0);
+
+  return {
+    publicPrice,
+    basePrice:
+      booking.base_price != null
+        ? moneyToNumber(booking.base_price)
+        : Math.max(publicPrice - logisticFee, 0),
+    logisticFee,
+    expressFee: moneyToNumber(booking.express_fee),
+    pagoServicioBeluer,
+    pagoLogisticaBeluer,
+    pagoExpressBeluer,
+    totalBeluer,
+    nivelAplicado: booking.beluer_level_snapshot,
+    comisionAplicada: nullableRateToNumber(booking.commission_rate_snapshot),
+    comisionBelu: moneyToNumber(booking.belu_commission_amount),
+    commissionLockedAt: booking.commission_locked_at,
+    commissionLockedEvent: booking.commission_locked_event,
+  };
 }
 
 function mapPaymentStatusToIngresoStatus(
@@ -214,11 +288,7 @@ function calculateIncomeByDateRange({
         bookingDate <= endDate
       );
     })
-    .reduce(
-      (acc, booking) =>
-        acc + Number(booking.beluer_payment_amount || booking.public_price || 0),
-      0
-    );
+    .reduce((acc, booking) => acc + getBookingBeluerPayoutTotal(booking), 0);
 }
 
 export default async function BeluerPanelPage() {
@@ -349,8 +419,19 @@ export default async function BeluerPanelPage() {
             status,
             payment_status,
             public_price,
+            base_price,
+            logistic_fee,
+            express_fee,
+            beluer_level_snapshot,
+            commission_rate_snapshot,
             belu_commission_amount,
+            beluer_service_payout_amount,
+            beluer_logistic_payout_amount,
+            beluer_express_payout_amount,
+            beluer_total_payout_amount,
             beluer_payment_amount,
+            commission_locked_at,
+            commission_locked_event,
             services (
               name,
               category
@@ -423,6 +504,7 @@ export default async function BeluerPanelPage() {
           const client = clients.find(
             (item) => item.id === booking.client_profile_id
           );
+          const payout = getBookingPayoutBreakdown(booking);
 
           return {
             id: booking.id,
@@ -431,9 +513,7 @@ export default async function BeluerPanelPage() {
             distrito: booking.district,
             fecha: booking.scheduled_date,
             hora: booking.scheduled_time.slice(0, 5),
-            total: Number(
-              booking.beluer_payment_amount || booking.public_price || 0
-            ),
+            total: payout.totalBeluer,
             direccion: booking.address,
             instrucciones: booking.notes || "Sin instrucciones adicionales.",
             metodoPago:
@@ -441,6 +521,7 @@ export default async function BeluerPanelPage() {
                 ? "Pago registrado por belu"
                 : "Pendiente de liquidación",
             estado: mapBookingStatusToBeluerStatus(booking.status),
+            ...payout,
           };
         });
 
@@ -455,23 +536,17 @@ export default async function BeluerPanelPage() {
               (item) => item.id === booking.client_profile_id
             );
 
-            const totalServicio = Number(booking.public_price || 0);
-            const netoBeluer = Number(
-              booking.beluer_payment_amount || booking.public_price || 0
-            );
-
-            const comisionBelu = Number(
-              booking.belu_commission_amount ||
-                Math.max(totalServicio - netoBeluer, 0)
-            );
+            const payout = getBookingPayoutBreakdown(booking);
+            const totalServicio = payout.publicPrice;
+            const netoBeluer = payout.totalBeluer;
 
             return {
               id: booking.id,
               servicio: booking.services?.name || "Servicio belu",
               clienta: client?.full_name || client?.email || "Clienta belu",
               fecha: booking.scheduled_date,
+              ...payout,
               totalServicio,
-              comisionBelu,
               netoBeluer,
               estadoPago: mapPaymentStatusToIngresoStatus(
                 booking.payment_status

@@ -621,6 +621,97 @@
   color: #444;
 }
 
+.beluer-panel-reserva-mini-payout {
+  display: grid;
+  gap: 0.12rem;
+  text-align: right;
+}
+
+.beluer-panel-reserva-mini-payout span {
+  color: #777;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.beluer-panel-reserva-mini-payout strong {
+  color: var(--r);
+  font-size: 1rem;
+  font-weight: 900;
+}
+
+.beluer-panel-payout-card {
+  display: grid;
+  gap: 0.8rem;
+  border: 1px solid rgba(230, 0, 35, 0.12);
+  border-radius: 1rem;
+  background: rgba(255, 214, 226, 0.22);
+  padding: 0.95rem;
+}
+
+.beluer-panel-payout-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.beluer-panel-payout-card-head span {
+  color: var(--r);
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.beluer-panel-payout-card-head strong {
+  color: var(--r);
+  font-size: 1rem;
+  font-weight: 900;
+}
+
+.beluer-panel-payout-breakdown {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.beluer-panel-payout-breakdown div {
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  border-radius: 0.8rem;
+  background: rgba(255, 255, 255, 0.72);
+  padding: 0.65rem;
+}
+
+.beluer-panel-payout-breakdown span,
+.beluer-panel-payout-meta span {
+  display: block;
+  color: #777;
+  font-size: 0.68rem;
+  font-weight: 850;
+}
+
+.beluer-panel-payout-breakdown strong {
+  display: block;
+  color: #222;
+  font-size: 0.9rem;
+  font-weight: 900;
+  margin-top: 0.18rem;
+}
+
+.beluer-panel-payout-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.beluer-panel-payout-meta span {
+  border-radius: 2rem;
+  background: rgba(255, 255, 255, 0.72);
+  padding: 0.34rem 0.58rem;
+}
+
 .beluer-panel-reserva-full-actions {
   display: flex;
   flex-wrap: wrap;
@@ -1509,6 +1600,24 @@
   color: var(--r);
 }
 
+.beluer-panel-ingreso-breakdown {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.045);
+  padding-top: 0.85rem;
+}
+
+.beluer-panel-ingreso-breakdown span {
+  border-radius: 2rem;
+  background: rgba(255, 214, 226, 0.28);
+  color: #555;
+  padding: 0.34rem 0.58rem;
+  font-size: 0.68rem;
+  font-weight: 850;
+}
+
 @media (max-width: 1100px) {
   .beluer-panel-ingresos-summary {
     grid-template-columns: repeat(2, 1fr);
@@ -1526,6 +1635,15 @@
 
   .beluer-panel-ingresos-card-header {
     flex-direction: column;
+  }
+
+  .beluer-panel-payout-card-head {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .beluer-panel-payout-breakdown {
+    grid-template-columns: 1fr;
   }
 
   .beluer-panel-ingreso-numeros {

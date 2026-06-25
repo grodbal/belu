@@ -20,6 +20,19 @@ export type ReservaBeluer = {
   estado: ReservaEstado;
   instrucciones: string;
   metodoPago: string;
+  publicPrice?: number;
+  basePrice?: number;
+  logisticFee?: number;
+  expressFee?: number;
+  pagoServicioBeluer?: number;
+  pagoLogisticaBeluer?: number;
+  pagoExpressBeluer?: number;
+  totalBeluer?: number;
+  nivelAplicado?: string | null;
+  comisionAplicada?: number | null;
+  comisionBelu?: number;
+  commissionLockedAt?: string | null;
+  commissionLockedEvent?: string | null;
 };
 
 export type ServicioBeluer = {
@@ -49,6 +62,14 @@ export type IngresoBeluer = {
   totalServicio: number;
   comisionBelu: number;
   netoBeluer: number;
+  pagoServicioBeluer?: number;
+  pagoLogisticaBeluer?: number;
+  pagoExpressBeluer?: number;
+  totalBeluer?: number;
+  nivelAplicado?: string | null;
+  comisionAplicada?: number | null;
+  commissionLockedAt?: string | null;
+  commissionLockedEvent?: string | null;
   estadoPago: "pendiente" | "pagado" | "retenido";
 };
 

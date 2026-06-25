@@ -104,6 +104,42 @@ function formatMoney(value: number) {
   return Number(value || 0).toFixed(2);
 }
 
+function getReservaTotalBeluer(reserva: ReservaBeluer) {
+  return reserva.totalBeluer ?? reserva.total ?? 0;
+}
+
+function formatCommissionRate(rate: number | null) {
+  if (rate === null || !Number.isFinite(rate)) return "Pendiente";
+
+  const percentage = rate > 1 ? rate : rate * 100;
+
+  return `${Number(percentage.toFixed(2))}%`;
+}
+
+function formatAppliedLevel(level: string | null) {
+  if (!level) return "Pendiente de snapshot";
+
+  const normalized = level
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+
+  if (normalized.includes("top")) return "Top ✦";
+  if (normalized.includes("premium")) return "Premium";
+  if (normalized.includes("verificada") || normalized.includes("verified")) {
+    return "Verificada";
+  }
+  if (normalized.includes("nueva") || normalized.includes("new")) {
+    return "Nueva";
+  }
+  if (normalized.includes("standard") || normalized.includes("estandar")) {
+    return "Estándar";
+  }
+
+  return level;
+}
+
 export default function BeluerPanelOriginalPage({
   beluerProfile,
   realReservas,
@@ -381,7 +417,10 @@ export default function BeluerPanelOriginalPage({
                           </div>
 
                           <div className="beluer-panel-reserva-actions">
-                            <strong>S/ {formatMoney(reserva.total)}</strong>
+                            <div className="beluer-panel-reserva-mini-payout">
+                              <span>Tú recibes</span>
+                              <strong>S/ {formatMoney(getReservaTotalBeluer(reserva))}</strong>
+                            </div>
 
                             <button
                               type="button"
@@ -585,8 +624,8 @@ export default function BeluerPanelOriginalPage({
               </div>
 
               <div>
-                <span>Total</span>
-                <strong>S/ {formatMoney(reservaDetalle.total)}</strong>
+                <span>Total Beluer</span>
+                <strong>S/ {formatMoney(getReservaTotalBeluer(reservaDetalle))}</strong>
               </div>
 
               <div className="full">
@@ -604,6 +643,8 @@ export default function BeluerPanelOriginalPage({
                 <strong>{reservaDetalle.metodoPago}</strong>
               </div>
             </div>
+
+            <ReservaPayoutSummary reserva={reservaDetalle} />
 
             {reservaDetalle.estado === "pendiente" && (
               <div className="beluer-panel-modal-actions">
@@ -754,7 +795,7 @@ function ReservaBeluerCard({
     <article className={`beluer-panel-reserva-full-card ${reserva.estado}`}>
       <div className="beluer-panel-reserva-full-top">
         <span>{getReservaEstadoLabel(reserva.estado)}</span>
-        <strong>S/ {formatMoney(reserva.total)}</strong>
+        <strong>Tú recibes S/ {formatMoney(getReservaTotalBeluer(reserva))}</strong>
       </div>
 
       <h3>{reserva.servicio}</h3>
@@ -777,6 +818,8 @@ function ReservaBeluerCard({
           Nota: {reserva.instrucciones}
         </p>
       ) : null}
+
+      <ReservaPayoutSummary reserva={reserva} />
 
       {reserva.estado === "pendiente" ? (
         <p className="beluer-panel-reserva-reassign-note">
@@ -810,6 +853,61 @@ function ReservaBeluerCard({
         )}
       </div>
     </article>
+  );
+}
+
+function ReservaPayoutSummary({ reserva }: { reserva: ReservaBeluer }) {
+  const totalBeluer = getReservaTotalBeluer(reserva);
+  const pagoLogisticaBeluer = reserva.pagoLogisticaBeluer ?? reserva.logisticFee ?? 0;
+  const pagoExpressBeluer = reserva.pagoExpressBeluer ?? reserva.expressFee ?? 0;
+  const pagoServicioBeluer =
+    reserva.pagoServicioBeluer ??
+    Math.max(totalBeluer - pagoLogisticaBeluer - pagoExpressBeluer, 0);
+  const showExpress = pagoExpressBeluer > 0;
+
+  return (
+    <div className="beluer-panel-payout-card">
+      <div className="beluer-panel-payout-card-head">
+        <span>Tú recibes</span>
+        <strong>Total Beluer: S/ {formatMoney(totalBeluer)}</strong>
+      </div>
+
+      <div className="beluer-panel-payout-breakdown">
+        <div>
+          <span>Servicio</span>
+          <strong>S/ {formatMoney(pagoServicioBeluer)}</strong>
+        </div>
+
+        <div>
+          <span>Movilidad / logística</span>
+          <strong>S/ {formatMoney(pagoLogisticaBeluer)}</strong>
+        </div>
+
+        {showExpress ? (
+          <div>
+            <span>Express</span>
+            <strong>S/ {formatMoney(pagoExpressBeluer)}</strong>
+          </div>
+        ) : null}
+      </div>
+
+      <div className="beluer-panel-payout-meta">
+        <span>Nivel aplicado: {formatAppliedLevel(reserva.nivelAplicado ?? null)}</span>
+        <span>
+          Comisión aplicada:{" "}
+          {formatCommissionRate(reserva.comisionAplicada ?? null)}
+        </span>
+        <span>
+          Estado:{" "}
+          {reserva.commissionLockedAt
+            ? "Comisión congelada"
+            : "Pendiente de congelar"}
+        </span>
+        {(reserva.comisionBelu ?? 0) > 0 ? (
+          <span>Comisión plataforma: S/ {formatMoney(reserva.comisionBelu ?? 0)}</span>
+        ) : null}
+      </div>
+    </div>
   );
 }
 
@@ -1212,7 +1310,7 @@ function IngresosSection({
         <div className="beluer-panel-greeting">
           <h1>Ingresos</h1>
           <p>
-            Revisa cuánto generaste, cuánto corresponde a comisión y cuánto
+            Revisa tu pago real por reserva, el desglose congelado y lo que
             tienes pendiente por cobrar.
           </p>
         </div>
@@ -1272,11 +1370,11 @@ function IngresosSection({
 
       <div className="beluer-panel-ingresos-hero">
         <div>
-          <span>Neto estimado del mes</span>
+          <span>Total Beluer del mes</span>
           <strong>S/ {formatMoney(totalNeto)}</strong>
           <p>
-            Este monto considera los servicios registrados para esta Beluer menos
-            la comisión de belu.
+            Este monto usa el pago congelado de tus reservas: servicio neto,
+            movilidad y express cuando aplica.
           </p>
         </div>
 
@@ -1292,17 +1390,17 @@ function IngresosSection({
 
       <div className="beluer-panel-ingresos-summary">
         <div>
-          <span>Bruto generado</span>
+          <span>Público clienta</span>
           <strong>S/ {formatMoney(totalBruto)}</strong>
         </div>
 
         <div>
-          <span>Comisión belu</span>
+          <span>Comisión plataforma</span>
           <strong>S/ {formatMoney(totalComision)}</strong>
         </div>
 
         <div>
-          <span>Neto Beluer</span>
+          <span>Total Beluer</span>
           <strong>S/ {formatMoney(totalNeto)}</strong>
         </div>
 
@@ -1352,21 +1450,52 @@ function IngresosSection({
 
                 <div className="beluer-panel-ingreso-numeros">
                   <div>
-                    <span>Bruto</span>
+                    <span>Público</span>
                     <strong>S/ {formatMoney(ingreso.totalServicio)}</strong>
                   </div>
 
                   <div>
-                    <span>Comisión</span>
+                    <span>Comisión plataforma</span>
                     <strong>- S/ {formatMoney(ingreso.comisionBelu)}</strong>
                   </div>
 
                   <div>
-                    <span>Neto</span>
+                    <span>Tú recibes</span>
                     <strong className="neto">
                       S/ {formatMoney(ingreso.netoBeluer)}
                     </strong>
                   </div>
+                </div>
+
+                <div className="beluer-panel-ingreso-breakdown">
+                  <span>
+                    Servicio: S/{" "}
+                    {formatMoney(
+                      ingreso.pagoServicioBeluer ?? ingreso.netoBeluer
+                    )}
+                  </span>
+                  <span>
+                    Movilidad / logística: S/{" "}
+                    {formatMoney(ingreso.pagoLogisticaBeluer ?? 0)}
+                  </span>
+                  {(ingreso.pagoExpressBeluer ?? 0) > 0 ? (
+                    <span>
+                      Express: S/ {formatMoney(ingreso.pagoExpressBeluer ?? 0)}
+                    </span>
+                  ) : null}
+                  <span>
+                    Nivel aplicado: {formatAppliedLevel(ingreso.nivelAplicado ?? null)}
+                  </span>
+                  <span>
+                    Comisión aplicada:{" "}
+                    {formatCommissionRate(ingreso.comisionAplicada ?? null)}
+                  </span>
+                  <span>
+                    Estado:{" "}
+                    {ingreso.commissionLockedAt
+                      ? "Comisión congelada"
+                      : "Pendiente de congelar"}
+                  </span>
                 </div>
               </article>
             ))}
