@@ -757,7 +757,10 @@ const selectedBookingService = serviciosSeleccionados[0] || null;
 
           <ul className="cliente-panel-sidebar-nav">
             {navItems.map((item) => (
-              <li key={item.id}>
+              <li
+                key={item.id}
+                className={`cliente-panel-sidebar-nav-item cliente-panel-sidebar-nav-item-${item.id}`}
+              >
                 <button
                   type="button"
                   className={activeSection === item.id ? "active" : ""}
