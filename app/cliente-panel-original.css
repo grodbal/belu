@@ -8240,3 +8240,21 @@
     font-size: 0.58rem;
   }
 }
+
+/* ── Servicios: premium card polish ──────────────────────────────────── */
+.cliente-panel-services-card {
+  transition:
+    border-color 0.2s ease,
+    background-color 0.16s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.cliente-panel-services-card:hover {
+  box-shadow: 0 8px 28px rgba(26, 26, 26, 0.1);
+  transform: translateY(-2px);
+}
+
+.cliente-panel-services-placeholder {
+  background: linear-gradient(150deg, #ffd6e2 0%, #fff0f4 100%);
+}

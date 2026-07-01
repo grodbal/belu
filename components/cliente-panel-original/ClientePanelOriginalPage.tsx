@@ -3070,7 +3070,7 @@ function ServiceDetailModal({
           onClick={onClose}
           aria-label="Cerrar detalle del servicio"
         >
-          x
+          ✕
         </button>
 
         <div className="cliente-panel-service-detail-gallery">
@@ -3161,7 +3161,7 @@ function ServiceDetailModal({
 
           {selected ? (
             <small className="cliente-panel-service-detail-selected">
-              Este servicio ya esta seleccionado en tu reserva.
+              Este servicio ya está seleccionado en tu reserva.
             </small>
           ) : null}
         </div>
@@ -3301,7 +3301,7 @@ function ServiciosSection({
 
   const filters: { id: ServiceCatalogFilter; label: string }[] = [
     { id: "all", label: "Todos" },
-    { id: "featured", label: "Destacados" },
+    { id: "featured", label: "Destacados ✦" },
     { id: "lashes", label: "Lashes" },
     { id: "nails", label: "Nails" },
   ];
@@ -3323,7 +3323,7 @@ function ServiciosSection({
     <section className="cliente-panel-section cliente-panel-services-section active">
       <div className="cliente-panel-top-bar cliente-panel-services-topbar">
         <div className="cliente-panel-greeting">
-          <span className="cliente-panel-dashboard-kicker">Catalogo ✦</span>
+          <span className="cliente-panel-dashboard-kicker">Catálogo ✦</span>
           <h1>Explora servicios</h1>
           <p>Lashes y nails a domicilio, cuando quieras.</p>
         </div>
@@ -3389,7 +3389,7 @@ function ServiciosSection({
       {sections.length === 0 ? (
         <div className="cliente-panel-services-empty">
           <strong>No encontramos servicios con ese filtro.</strong>
-          <span>Prueba otro termino o cambia de categoria.</span>
+          <span>Prueba otro término o cambia de categoría.</span>
         </div>
       ) : null}
 
@@ -3453,7 +3453,7 @@ function ServiceCatalogCard({
         </p>
 
         <div className="cliente-panel-services-card-meta">
-          <strong>{formatSoles(servicio.precio)}</strong>
+          <strong>Desde {formatSoles(servicio.precio)}</strong>
           <span>{duration || "Duración por confirmar"}</span>
         </div>
 
