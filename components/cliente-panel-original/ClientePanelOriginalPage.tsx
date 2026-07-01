@@ -746,23 +746,45 @@ const selectedBookingService = serviciosSeleccionados[0] || null;
             <img src="/logo-belu-red.png" alt="belu" />
           </div>
 
-          <ul className="cliente-panel-sidebar-nav">
-            {navItems.map((item) => (
-              <li key={item.id}>
-                <button
-                  type="button"
-                  className={activeSection === item.id ? "active" : ""}
-                  onClick={() => goToSection(item.id)}
-                >
-                  <span className="cliente-panel-nav-icon">{item.icon}</span>
-                  {item.label}
-                </button>
-              </li>
+          <nav className="cliente-panel-sidebar-nav">
+            <p className="cliente-panel-sidebar-section-label">Principal</p>
+            {navItems.slice(0, 4).map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                className={activeSection === item.id ? "active" : ""}
+                onClick={() => goToSection(item.id)}
+              >
+                <span className="cliente-panel-nav-icon">{item.icon}</span>
+                {item.label}
+              </button>
             ))}
-          </ul>
+            <p className="cliente-panel-sidebar-section-label">Cuenta</p>
+            {navItems.slice(4).map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                className={activeSection === item.id ? "active" : ""}
+                onClick={() => goToSection(item.id)}
+              >
+                <span className="cliente-panel-nav-icon">{item.icon}</span>
+                {item.label}
+              </button>
+            ))}
+          </nav>
 
           <div className="cliente-panel-sidebar-footer">
-            <a href="/">← Volver a somosbelu.pe</a>
+            <div className="cliente-panel-sidebar-help-card">
+              <span>¿Necesitas ayuda?</span>
+              <a
+                href="https://wa.me/51999999999"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="cliente-panel-sidebar-help-btn"
+              >
+                Escribir por WhatsApp
+              </a>
+            </div>
           </div>
         </aside>
 
@@ -1934,21 +1956,37 @@ function DashboardSection({
 
   return (
     <section className="cliente-panel-section cliente-panel-dashboard active">
-      <div className="cliente-panel-top-bar cliente-panel-dashboard-topbar">
-        <div className="cliente-panel-greeting">
-          <h1>
-            {greeting}, {clientFirstName} ✦
-          </h1>
-          <p>Tu próxima cita y accesos esenciales en un solo lugar.</p>
+      {/* Thin topbar strip: location dot + heart + UserPill */}
+      <div className="cliente-panel-dashboard-topbar">
+        <div className="cliente-panel-dashboard-topbar-location">
+          <span className="cliente-panel-dashboard-online-dot" />
+          {dashboardLocation || "Lima"}
         </div>
+        <div className="cliente-panel-dashboard-topbar-actions">
+          <button
+            type="button"
+            className="cliente-panel-dashboard-heart-btn"
+            onClick={() => goToSection("favoritas")}
+            aria-label="Favoritas"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+            </svg>
+          </button>
+          <UserPill clientName={clientName} />
+        </div>
+      </div>
 
-        {dashboardLocation ? (
-          <span className="cliente-panel-dashboard-location">
-            {dashboardLocation}
-          </span>
-        ) : null}
-
-        <UserPill clientName={clientName} />
+      {/* Standalone greeting — not inside a card */}
+      <div className="cliente-panel-dashboard-greeting-standalone">
+        <h1>
+          {greeting}, {clientFirstName} ✦
+        </h1>
+        <p>
+          {reservaConfirmada
+            ? "Tu próximo momento belu ya está agendado. El talento va a ti."
+            : "Descubre servicios de belleza premium a domicilio en Lima."}
+        </p>
       </div>
 
       <div className="cliente-panel-dashboard-main-grid">
@@ -1988,93 +2026,77 @@ function DashboardSection({
           </div>
         ) : (
           <article className="cliente-panel-reserva-activa-card cliente-panel-dashboard-appointment">
+            {/* Pink left column: status badge top + service name bottom */}
             <div className="cliente-panel-dashboard-appointment-visual">
-              <span>Servicio</span>
+              <span
+                className="belu-badge cliente-panel-dashboard-apt-status"
+                data-status={reservationStatus}
+              >
+                {reservationStatusLabels[reservationStatus] || reservationStatus}
+              </span>
+              {nextBooking?.is_express ? (
+                <span className="belu-badge cliente-panel-express-pill">
+                  Belu Express
+                </span>
+              ) : null}
               <strong>{appointmentService}</strong>
             </div>
 
+            {/* Right column */}
             <div className="cliente-panel-dashboard-appointment-content">
-              <div className="cliente-panel-dashboard-card-head">
-                <div>
-                  <span className="cliente-panel-dashboard-kicker">
-                    Próxima cita
-                  </span>
-                  <h2>
-                    {nextBooking
-                      ? "Tu próxima cita belu ✦"
-                      : "Tu cita belu está confirmada ✦"}
-                  </h2>
-                  <p>{assignmentMessage}</p>
-                </div>
+              <span className="cliente-panel-dashboard-kicker">Próxima cita</span>
+              <h2>{appointmentService}</h2>
 
-                <span
-                  className="belu-badge cliente-panel-dashboard-status"
-                  data-status={reservationStatus}
-                >
-                  {reservationStatusLabels[reservationStatus] ||
-                    reservationStatus}
+              <div className="cliente-panel-dashboard-beluer-row">
+                <span className="cliente-panel-dashboard-beluer-avatar">
+                  {appointmentBeluer.charAt(0)}
                 </span>
-
-                {nextBooking?.is_express ? (
-                  <span className="belu-badge cliente-panel-express-pill">
-                    Belu Express
-                  </span>
-                ) : null}
+                <span>{appointmentBeluer}</span>
               </div>
 
-              <div className="cliente-panel-dashboard-appointment-details">
-                <div>
-                  <span>Servicio</span>
-                  <strong>{appointmentService}</strong>
-                </div>
+              <hr className="cliente-panel-dashboard-divider" />
 
+              <div className="cliente-panel-dashboard-facts">
                 <div>
-                  <span>Beluer</span>
-                  <strong>{appointmentBeluer}</strong>
-                </div>
-
-                <div>
-                  <span>Fecha y hora</span>
+                  <span>Fecha &amp; hora</span>
                   <strong>
-                    {formatDisplayDate(nextBooking?.scheduled_date || fecha)} ·{" "}
+                    {formatDisplayDate(nextBooking?.scheduled_date || fecha)}{" "}
                     {formatDisplayTime(nextBooking?.scheduled_time || hora)}
                   </strong>
                 </div>
-
-                {nextBooking ? (
-                  <div>
-                    <span>Ubicación</span>
-                    <strong>
-                      {nextBooking.district} · {nextBooking.address}
-                    </strong>
-                  </div>
-                ) : null}
-
+                <div>
+                  <span>Ubicación</span>
+                  <strong>
+                    {nextBooking
+                      ? nextBooking.district
+                      : "Por confirmar"}
+                  </strong>
+                </div>
                 <div>
                   <span>Total</span>
                   <strong>
                     {formatSoles(
-                      nextBooking ? getClientBookingTotal(nextBooking).total : total
+                      nextBooking
+                        ? getClientBookingTotal(nextBooking).total
+                        : total
                     )}
                   </strong>
                 </div>
-
-                {addonsActivos.length > 0 && (
-                  <div>
-                    <span>Adicionales</span>
-                    <strong>
-                      {addonsActivos.map((addon) => addon.nombre).join(" + ")}
-                    </strong>
-                  </div>
-                )}
               </div>
 
               <div className="cliente-panel-ra-acciones">
-                <button type="button" onClick={() => goToSection("historial")}>
+                <button
+                  type="button"
+                  className="cliente-panel-dashboard-btn-primary"
+                  onClick={() => goToSection("historial")}
+                >
                   Ver detalle
                 </button>
 
-                <button type="button" onClick={() => onOpenGestion("reprogramar")}>
+                <button
+                  type="button"
+                  onClick={() => onOpenGestion("reprogramar")}
+                >
                   Reprogramar
                 </button>
 
@@ -2085,74 +2107,107 @@ function DashboardSection({
                   Cambiar Beluer
                 </button>
 
-                <button type="button" onClick={() => onOpenGestion("cancelar")}>
+                <button
+                  type="button"
+                  className="cliente-panel-dashboard-cancel-link"
+                  onClick={() => onOpenGestion("cancelar")}
+                >
                   Cancelar
                 </button>
               </div>
 
               <p className="cliente-panel-dashboard-manual-note">
-                Reprogramaciones y cambios se coordinan por WhatsApp en esta
-                etapa.
+                ✦ Reprogramaciones y cambios se coordinan por WhatsApp en
+                esta etapa.
               </p>
             </div>
           </article>
         )}
 
+        {/* Quick shortcuts */}
         <aside className="cliente-panel-dashboard-quick-card">
           <span className="cliente-panel-dashboard-kicker">Atajos</span>
           <h2>Accesos rápidos</h2>
 
           <div className="cliente-panel-dashboard-quick-list">
             <button type="button" onClick={() => goToSection("reserva")}>
-              <span className="cliente-panel-nav-icon">{icons.reserva}</span>
-              Nueva reserva
-            </button>
-
-            <button type="button" onClick={() => goToSection("servicios")}>
-              <span className="cliente-panel-nav-icon">{icons.servicios}</span>
-              Servicios
+              <span className="cliente-panel-dashboard-quick-icon">
+                {icons.reserva}
+              </span>
+              <span className="cliente-panel-dashboard-quick-label">
+                Nueva reserva
+              </span>
+              <span className="cliente-panel-dashboard-quick-arrow">→</span>
             </button>
 
             <button type="button" onClick={() => goToSection("beluers")}>
-              <span className="cliente-panel-nav-icon">{icons.beluers}</span>
-              Especialistas
+              <span className="cliente-panel-dashboard-quick-icon">
+                {icons.beluers}
+              </span>
+              <span className="cliente-panel-dashboard-quick-label">
+                Especialistas
+              </span>
+              <span className="cliente-panel-dashboard-quick-arrow">→</span>
             </button>
 
             <button type="button" onClick={() => goToSection("historial")}>
-              <span className="cliente-panel-nav-icon">{icons.historial}</span>
-              Historial
+              <span className="cliente-panel-dashboard-quick-icon">
+                {icons.historial}
+              </span>
+              <span className="cliente-panel-dashboard-quick-label">
+                Historial
+              </span>
+              <span className="cliente-panel-dashboard-quick-arrow">→</span>
             </button>
 
             <button type="button" onClick={() => goToSection("pagos")}>
-              <span className="cliente-panel-nav-icon">{icons.pagos}</span>
-              Pagos
+              <span className="cliente-panel-dashboard-quick-icon">
+                {icons.pagos}
+              </span>
+              <span className="cliente-panel-dashboard-quick-label">Pagos</span>
+              <span className="cliente-panel-dashboard-quick-arrow">→</span>
             </button>
 
             <button type="button" onClick={() => goToSection("perfil")}>
-              <span className="cliente-panel-nav-icon">{icons.perfil}</span>
-              Mi perfil
+              <span className="cliente-panel-dashboard-quick-icon">
+                {icons.perfil}
+              </span>
+              <span className="cliente-panel-dashboard-quick-label">
+                Mi perfil
+              </span>
+              <span className="cliente-panel-dashboard-quick-arrow">→</span>
             </button>
           </div>
         </aside>
       </div>
 
-      <div className="cliente-panel-dashboard-section-heading">
-        <span className="cliente-panel-dashboard-kicker">Explora servicios</span>
-        <h2>Lashes y nails a domicilio</h2>
-        <p>Elige una categoría y agenda cada servicio por separado.</p>
+      {/* Explore services */}
+      <div className="cliente-panel-dashboard-explore-header">
+        <h2 className="cliente-panel-dashboard-explore-title">
+          Explora servicios
+        </h2>
+        <button
+          type="button"
+          className="cliente-panel-dashboard-explore-link"
+          onClick={() => goToSection("servicios")}
+        >
+          Ver todo →
+        </button>
       </div>
 
       <div className="cliente-panel-dashboard-service-grid">
         <button type="button" onClick={() => goToSection("servicios")}>
           <span>Lashes</span>
-          <strong>Pestañas diseñadas para tu estilo</strong>
-          <small>Extensiones, lifting y servicios relacionados.</small>
+          <strong>Classic Full Set</strong>
+          <small>desde S/80 · 90 min</small>
+          <em>Extensiones una a una para una mirada natural e intensa.</em>
         </button>
 
         <button type="button" onClick={() => goToSection("servicios")}>
           <span>Nails</span>
-          <strong>Manicure y uñas con acabado premium</strong>
-          <small>Servicios de uñas coordinados por belu.</small>
+          <strong>Esmaltado semipermanente</strong>
+          <small>desde S/55 · 60 min</small>
+          <em>Uñas con acabado duradero y brillo de gel premium.</em>
         </button>
       </div>
     </section>

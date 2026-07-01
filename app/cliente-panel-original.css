@@ -8258,3 +8258,454 @@
 .cliente-panel-services-placeholder {
   background: linear-gradient(150deg, #ffd6e2 0%, #fff0f4 100%);
 }
+
+/* --------------------------------------------------------------------------
+   BLOQUE 10 - DASHBOARD REFERENCE MATCH
+   Visual-only overrides to match pixel-faithful reference screenshot.
+-------------------------------------------------------------------------- */
+
+/* ── Sidebar: section labels ─────────────────────────────────────────── */
+.cliente-panel-sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.cliente-panel-sidebar-section-label {
+  margin: 0.9rem 0 0.3rem 0.55rem;
+  color: rgba(31, 27, 24, 0.38);
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.cliente-panel-sidebar-section-label:first-child {
+  margin-top: 0;
+}
+
+/* ── Sidebar: help card footer ───────────────────────────────────────── */
+.cliente-panel-sidebar-help-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  border: 1px solid rgba(36, 28, 22, 0.08);
+  border-radius: 0.9rem;
+  background: rgba(255, 245, 248, 0.72);
+  padding: 0.82rem 0.88rem;
+}
+
+.cliente-panel-sidebar-help-card > span {
+  color: rgba(31, 27, 24, 0.7);
+  font-size: 0.74rem;
+  font-weight: 720;
+  line-height: 1.3;
+}
+
+.cliente-panel-sidebar-help-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(201, 25, 56, 0.22);
+  border-radius: 999px;
+  background: #fff;
+  color: #c91938;
+  padding: 0.42rem 0.7rem;
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 760;
+  text-decoration: none;
+  transition: background 0.15s ease, border-color 0.15s ease;
+  cursor: pointer;
+}
+
+.cliente-panel-sidebar-help-btn:hover {
+  border-color: rgba(201, 25, 56, 0.45);
+  background: rgba(255, 240, 244, 0.9);
+}
+
+/* ── Topbar: thin strip ──────────────────────────────────────────────── */
+.cliente-panel-dashboard-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-height: 40px;
+  border: 1px solid rgba(36, 28, 22, 0.07);
+  border-radius: 999px;
+  background: rgba(255, 253, 249, 0.85);
+  box-shadow: 0 2px 8px rgba(40, 28, 20, 0.03);
+  padding: 0.35rem 0.35rem 0.35rem 0.75rem;
+}
+
+.cliente-panel-dashboard-topbar-location {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: rgba(44, 36, 31, 0.64);
+  font-size: 0.76rem;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cliente-panel-dashboard-online-dot {
+  display: inline-block;
+  flex-shrink: 0;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.22);
+}
+
+.cliente-panel-dashboard-topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+
+.cliente-panel-dashboard-heart-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid rgba(36, 28, 22, 0.08);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.7);
+  color: rgba(44, 36, 31, 0.52);
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.cliente-panel-dashboard-heart-btn:hover {
+  border-color: rgba(201, 25, 56, 0.28);
+  background: #fff;
+  color: #c91938;
+}
+
+/* ── Standalone greeting ─────────────────────────────────────────────── */
+.cliente-panel-dashboard-greeting-standalone {
+  padding: 0 0.15rem;
+}
+
+.cliente-panel-dashboard-greeting-standalone h1 {
+  color: #2f2621;
+  font-family: var(--font-serif);
+  font-size: clamp(1.65rem, 2.7vw, 2.4rem);
+  font-weight: 900;
+  letter-spacing: 0;
+  line-height: 1;
+}
+
+.cliente-panel-dashboard-greeting-standalone p {
+  margin-top: 0.3rem;
+  color: rgba(47, 38, 33, 0.55);
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+/* ── Appointment card: pink left column restructured ─────────────────── */
+.cliente-panel-dashboard-appointment-visual {
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.cliente-panel-dashboard-apt-status {
+  align-self: flex-start;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* ── Appointment card: right column ──────────────────────────────────── */
+.cliente-panel-dashboard-appointment-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 0.55rem 0.25rem 0.25rem;
+}
+
+.cliente-panel-dashboard-appointment-content .cliente-panel-dashboard-kicker {
+  margin-bottom: 0.32rem;
+}
+
+.cliente-panel-dashboard-appointment-content h2 {
+  color: #2f2621;
+  font-family: var(--font-serif);
+  font-size: clamp(1.15rem, 2vw, 1.55rem);
+  font-weight: 900;
+  letter-spacing: 0;
+  line-height: 1.05;
+  margin-bottom: 0.62rem;
+}
+
+.cliente-panel-dashboard-beluer-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.7rem;
+}
+
+.cliente-panel-dashboard-beluer-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: #e85376;
+  color: #fff;
+  font-size: 0.62rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.cliente-panel-dashboard-beluer-row > span:last-child {
+  color: rgba(47, 38, 33, 0.72);
+  font-size: 0.78rem;
+  font-weight: 680;
+}
+
+.cliente-panel-dashboard-divider {
+  border: none;
+  border-top: 1px solid rgba(36, 28, 22, 0.09);
+  margin: 0 0 0.7rem;
+}
+
+/* 3-col facts */
+.cliente-panel-dashboard-facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0 0.5rem;
+  margin-bottom: 0.9rem;
+}
+
+.cliente-panel-dashboard-facts > div {
+  min-width: 0;
+  border-bottom: 1px solid rgba(36, 28, 22, 0.07);
+  padding-bottom: 0.45rem;
+}
+
+.cliente-panel-dashboard-facts span {
+  display: block;
+  margin-bottom: 0.14rem;
+  color: rgba(47, 38, 33, 0.46);
+  font: 800 0.56rem / 1.2 var(--font-mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.cliente-panel-dashboard-facts strong {
+  display: block;
+  color: #2f2621;
+  font-size: 0.78rem;
+  font-weight: 760;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+/* Actions row */
+.cliente-panel-dashboard .cliente-panel-ra-acciones {
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.cliente-panel-dashboard-btn-primary {
+  background: #c91938 !important;
+  border-color: #c91938 !important;
+  color: #fff !important;
+  font-weight: 760;
+}
+
+.cliente-panel-dashboard-btn-primary:hover {
+  background: #a8142e !important;
+  border-color: #a8142e !important;
+  color: #fff !important;
+}
+
+.cliente-panel-dashboard-cancel-link {
+  border-color: transparent !important;
+  background: transparent !important;
+  color: rgba(201, 25, 56, 0.65) !important;
+  padding-inline: 0.32rem !important;
+  font-size: 0.71rem !important;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.cliente-panel-dashboard-cancel-link:hover {
+  color: #c91938 !important;
+  background: transparent !important;
+}
+
+/* ── Quick shortcuts: pink icon box + arrow ──────────────────────────── */
+.cliente-panel-dashboard-quick-list button {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.cliente-panel-dashboard-quick-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: 0.55rem;
+  background: rgba(255, 214, 226, 0.7);
+  color: #c91938;
+}
+
+.cliente-panel-dashboard-quick-icon svg {
+  width: 15px;
+  height: 15px;
+}
+
+.cliente-panel-dashboard-quick-label {
+  flex: 1;
+  text-align: left;
+}
+
+.cliente-panel-dashboard-quick-arrow {
+  color: rgba(47, 38, 33, 0.34);
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
+
+/* ── Explore services: inline header + updated cards ─────────────────── */
+.cliente-panel-dashboard-explore-header {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+
+.cliente-panel-dashboard-explore-title {
+  color: #2f2621;
+  font-family: var(--font-serif);
+  font-size: clamp(1.15rem, 1.8vw, 1.5rem);
+  font-weight: 900;
+  letter-spacing: 0;
+  line-height: 1;
+}
+
+.cliente-panel-dashboard-explore-link {
+  border: none;
+  background: transparent;
+  color: #c91938;
+  padding: 0;
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  font-weight: 760;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.15s ease;
+}
+
+.cliente-panel-dashboard-explore-link:hover {
+  opacity: 0.7;
+}
+
+/* Service grid card: 4-element layout (label | right-col with 3 rows) */
+.cliente-panel-dashboard-service-grid button {
+  grid-template-columns: minmax(68px, 0.3fr) minmax(0, 1fr);
+  grid-template-areas:
+    "label title"
+    "label meta"
+    "label desc";
+  align-items: start;
+  gap: 0 0.9rem;
+  padding: 0.85rem;
+}
+
+.cliente-panel-dashboard-service-grid span {
+  grid-area: label;
+  align-self: stretch;
+  font-family: var(--font-serif);
+  font-size: 1.05rem;
+  font-weight: 900;
+  letter-spacing: 0;
+}
+
+.cliente-panel-dashboard-service-grid strong {
+  grid-area: title;
+  font-family: var(--font-serif);
+  font-size: clamp(0.92rem, 1.4vw, 1.08rem);
+  font-weight: 900;
+  line-height: 1.1;
+  margin-top: 0.1rem;
+}
+
+.cliente-panel-dashboard-service-grid small {
+  grid-area: meta;
+  color: #c91938;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  margin-top: 0.22rem;
+  text-transform: uppercase;
+}
+
+.cliente-panel-dashboard-service-grid em {
+  grid-area: desc;
+  color: rgba(47, 38, 33, 0.55);
+  font-style: normal;
+  font-size: 0.74rem;
+  line-height: 1.38;
+  margin-top: 0.18rem;
+}
+
+/* ── Responsive overrides ────────────────────────────────────────────── */
+@media (max-width: 1080px) {
+  .cliente-panel-dashboard-facts {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .cliente-panel-dashboard-topbar {
+    border-radius: 1rem;
+    padding: 0.45rem 0.5rem 0.45rem 0.75rem;
+  }
+
+  .cliente-panel-dashboard-facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .cliente-panel-dashboard-appointment-visual {
+    min-height: 110px;
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 0.75rem;
+  }
+
+  .cliente-panel-dashboard-appointment-visual strong {
+    font-size: 1.3rem;
+    align-self: flex-end;
+  }
+
+  .cliente-panel-dashboard-facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .cliente-panel-dashboard-service-grid button {
+    grid-template-columns: 60px minmax(0, 1fr);
+  }
+
+  .cliente-panel-dashboard-explore-title {
+    font-size: 1.1rem;
+  }
+}
