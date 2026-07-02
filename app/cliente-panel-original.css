@@ -8711,3 +8711,171 @@
     font-size: 1.1rem;
   }
 }
+
+/* --------------------------------------------------------------------------
+   BLOQUE 23 - SHELL VISUAL ALIGNMENT v0 (FASE 2: MARCO GENERAL)
+   Unifica fondo, sidebar, main, cards y botones compartidos a la
+   direccion visual v0 en TODAS las secciones (antes solo Inicio/Reserva/
+   Servicios tenian tratamiento premium via :has(), el resto heredaba el
+   fondo rosa con blur original). Solo visual: colores, spacing, radios,
+   tipografia. No toca JSX de logica ni estructura funcional.
+-------------------------------------------------------------------------- */
+
+/* Fondo unico calido y consistente, sin importar la seccion activa */
+.cliente-panel-shell,
+.cliente-panel-shell:has(.cliente-panel-dashboard),
+.cliente-panel-shell:has(.cliente-panel-reserva-section),
+.cliente-panel-shell:has(.cliente-panel-services-section) {
+  background: #fbfaf8;
+}
+
+.cliente-panel-shell::before,
+.cliente-panel-shell:has(.cliente-panel-dashboard)::before {
+  display: none;
+}
+
+/* Sidebar: solida, borde fino, sin blur, ancho consistente (264px, como v0) */
+.cliente-panel-sidebar,
+.cliente-panel-shell:has(.cliente-panel-dashboard) .cliente-panel-sidebar {
+  width: 264px;
+  padding: 1.75rem 1.25rem;
+  background: #ffffff;
+  border-right: 1px solid #ece5e0;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.cliente-panel-sidebar-logo,
+.cliente-panel-shell:has(.cliente-panel-dashboard) .cliente-panel-sidebar-logo {
+  margin-bottom: 2rem;
+  padding-left: 0;
+}
+
+.cliente-panel-sidebar-nav,
+.cliente-panel-shell:has(.cliente-panel-dashboard) .cliente-panel-sidebar-nav {
+  gap: 0.2rem;
+}
+
+.cliente-panel-sidebar-nav button,
+.cliente-panel-shell:has(.cliente-panel-dashboard) .cliente-panel-sidebar-nav button {
+  padding: 0.8rem 0.85rem;
+  border-radius: 1rem;
+  font-family: var(--font-sans);
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: #6b6661;
+}
+
+.cliente-panel-sidebar-nav button:hover,
+.cliente-panel-sidebar-nav button.active,
+.cliente-panel-shell:has(.cliente-panel-dashboard) .cliente-panel-sidebar-nav button:hover,
+.cliente-panel-shell:has(.cliente-panel-dashboard) .cliente-panel-sidebar-nav button.active {
+  background: #fff0f4;
+  color: #e60023;
+}
+
+.cliente-panel-nav-icon,
+.cliente-panel-nav-icon svg,
+.cliente-panel-shell:has(.cliente-panel-dashboard) .cliente-panel-nav-icon,
+.cliente-panel-shell:has(.cliente-panel-dashboard) .cliente-panel-nav-icon svg {
+  width: 19px;
+  height: 19px;
+}
+
+.cliente-panel-sidebar-footer,
+.cliente-panel-shell:has(.cliente-panel-dashboard) .cliente-panel-sidebar-footer {
+  padding-top: 1.1rem;
+}
+
+/* Main: ancho contenido y con aire, consistente entre secciones (solo desktop,
+   en mobile el sidebar esta oculto y el margen/ancho no aplican) */
+@media (min-width: 901px) {
+  .cliente-panel-main,
+  .cliente-panel-shell:has(.cliente-panel-dashboard) .cliente-panel-main,
+  .cliente-panel-shell:has(.cliente-panel-reserva-section) .cliente-panel-main,
+  .cliente-panel-shell:has(.cliente-panel-services-section) .cliente-panel-main {
+    max-width: 1180px;
+    margin-left: 264px;
+    padding: clamp(1.5rem, 2.5vw, 2.5rem) clamp(1.5rem, 3vw, 3rem);
+  }
+}
+
+/* Header movil (saludo sticky): solido, sin blur */
+.cliente-panel-app-header {
+  border: 1px solid #ece5e0;
+  background: #ffffff;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: 0 2px 10px rgba(26, 26, 26, 0.04);
+}
+
+/* Cards compartidas: blancas, borde suave, sin blur, sombra minima (solo
+   borde en reposo, como en v0) */
+.cliente-panel-empty-state,
+.cliente-panel-card,
+.cliente-panel-beluer-card,
+.cliente-panel-historial-card,
+.cliente-panel-pago-card,
+.cliente-panel-perfil-card,
+.cliente-panel-perfil-form-card {
+  background: #ffffff;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: 1px solid #ece5e0;
+  border-radius: 1.5rem;
+  box-shadow: none;
+}
+
+.cliente-panel-card:hover {
+  transform: none;
+  box-shadow: none;
+  border-color: rgba(230, 0, 35, 0.2);
+}
+
+/* Botones compartidos: radio v0 (rounded-xl, no pill completo) */
+.cliente-panel-btn-r {
+  border-radius: 1rem;
+  font-family: var(--font-heading);
+  box-shadow: 0 6px 16px rgba(230, 0, 35, 0.18);
+}
+
+.cliente-panel-btn-ghost {
+  border-radius: 1rem;
+  border-color: #ece5e0;
+}
+
+.cliente-panel-btn-ghost:hover {
+  border-color: rgba(230, 0, 35, 0.3);
+}
+
+/* Bottom nav mobile: barra fija de borde a borde, plana, como v0
+   (antes era un dock flotante con blur y esquinas redondeadas) */
+@media (max-width: 900px) {
+  .cliente-panel-main {
+    padding-bottom: 7.5rem;
+  }
+
+  .cliente-panel-floating-booking-cta {
+    bottom: 5.4rem;
+  }
+
+  .cliente-panel-bottom-nav {
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 0;
+    border: none;
+    border-top: 1px solid #ece5e0;
+    background: #ffffff;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    box-shadow: 0 -6px 20px rgba(26, 26, 26, 0.05);
+    padding: 0.5rem 0.5rem calc(0.5rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .cliente-panel-bottom-nav button.active {
+    background: #fff0f4;
+    color: #e60023;
+  }
+}
