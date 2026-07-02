@@ -810,6 +810,9 @@ const selectedBookingService = serviciosSeleccionados[0] || null;
   clientFirstName={clientFirstName}
   nextBooking={nextBooking}
   clientName={clientName}
+  realBeluers={realBeluers}
+  bookingCount={bookingHistory.length}
+  favoritesCount={beluersFavoritas.length}
 />
 )}
 
@@ -1904,6 +1907,9 @@ function DashboardSection({
   clientFirstName,
   nextBooking,
   clientName,
+  realBeluers,
+  bookingCount,
+  favoritesCount,
 }: {
   goToSection: (section: PanelSection) => void;
   reservaConfirmada: boolean;
@@ -1920,6 +1926,9 @@ function DashboardSection({
   clientFirstName: string;
   nextBooking: ClientBooking | null;
   clientName: string;
+  realBeluers: Beluer[];
+  bookingCount: number;
+  favoritesCount: number;
 }) {
   const assignedBeluerName = nextBooking?.beluer_profiles?.public_name || "";
   const greeting = getLimaGreeting();
@@ -2058,9 +2067,14 @@ function DashboardSection({
 
               <div className="cliente-panel-dashboard-facts">
                 <div>
-                  <span>Fecha &amp; hora</span>
+                  <span>Fecha</span>
                   <strong>
-                    {formatDisplayDate(nextBooking?.scheduled_date || fecha)}{" "}
+                    {formatDisplayDate(nextBooking?.scheduled_date || fecha)}
+                  </strong>
+                </div>
+                <div>
+                  <span>Hora</span>
+                  <strong>
                     {formatDisplayTime(nextBooking?.scheduled_time || hora)}
                   </strong>
                 </div>
@@ -2124,7 +2138,8 @@ function DashboardSection({
           </article>
         )}
 
-        {/* Quick shortcuts */}
+        {/* Right column: quick shortcuts + trust + stats (visual only) */}
+        <div className="cliente-panel-dashboard-side-stack">
         <aside className="cliente-panel-dashboard-quick-card">
           <span className="cliente-panel-dashboard-kicker">Atajos</span>
           <h2>Accesos rápidos</h2>
@@ -2179,6 +2194,49 @@ function DashboardSection({
             </button>
           </div>
         </aside>
+
+        <div className="cliente-panel-dashboard-trust-card">
+          <span className="cliente-panel-dashboard-kicker">Por qué belu</span>
+          <h2>Seguridad en cada cita</h2>
+
+          <div className="cliente-panel-dashboard-trust-list">
+            <div className="cliente-panel-dashboard-trust-row">
+              <span className="cliente-panel-dashboard-trust-icon">✦</span>
+              <div>
+                <strong>Beluers verificadas</strong>
+                <p>Perfiles revisados por el equipo belu antes de atenderte.</p>
+              </div>
+            </div>
+
+            <div className="cliente-panel-dashboard-trust-row">
+              <span className="cliente-panel-dashboard-trust-icon">✦</span>
+              <div>
+                <strong>Pago protegido</strong>
+                <p>Tu pago se confirma solo cuando el servicio queda agendado.</p>
+              </div>
+            </div>
+
+            <div className="cliente-panel-dashboard-trust-row">
+              <span className="cliente-panel-dashboard-trust-icon">✦</span>
+              <div>
+                <strong>Soporte por WhatsApp</strong>
+                <p>Acompañamiento directo antes, durante y después de tu cita.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="cliente-panel-dashboard-stats-card">
+          <div className="cliente-panel-dashboard-stat-box">
+            <strong>{bookingCount}</strong>
+            <span>Reservas realizadas</span>
+          </div>
+          <div className="cliente-panel-dashboard-stat-box">
+            <strong>{favoritesCount}</strong>
+            <span>Beluers favoritas</span>
+          </div>
+        </div>
+        </div>
       </div>
 
       {/* Explore services */}
@@ -2210,6 +2268,43 @@ function DashboardSection({
           <em>Uñas con acabado duradero y brillo de gel premium.</em>
         </button>
       </div>
+
+      {realBeluers.length > 0 && (
+        <>
+          <div className="cliente-panel-dashboard-explore-header">
+            <h2 className="cliente-panel-dashboard-explore-title">
+              Beluers destacadas
+            </h2>
+            <button
+              type="button"
+              className="cliente-panel-dashboard-explore-link"
+              onClick={() => goToSection("beluers")}
+            >
+              Ver todas →
+            </button>
+          </div>
+
+          <div className="cliente-panel-dashboard-beluers-scroll">
+            {realBeluers.slice(0, 6).map((beluer) => (
+              <button
+                key={beluer.nombre}
+                type="button"
+                className="cliente-panel-dashboard-beluer-mini-card"
+                onClick={() => goToSection("beluers")}
+              >
+                <span className="cliente-panel-dashboard-beluer-mini-avatar">
+                  {beluer.nombre.charAt(0).toUpperCase()}
+                </span>
+                <strong>{beluer.nombre}</strong>
+                <small>{beluer.espec}</small>
+                <span className="cliente-panel-dashboard-beluer-mini-rating">
+                  ★ {beluer.rating}
+                </span>
+              </button>
+            ))}
+          </div>
+        </>
+      )}
     </section>
   );
 }

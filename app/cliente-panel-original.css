@@ -8713,6 +8713,214 @@
 }
 
 /* --------------------------------------------------------------------------
+   BLOQUE 24 - INICIO / DASHBOARD ALIGNMENT v0 (FASE 3)
+   Header oscuro de proxima cita, grilla 2x2 real, columna derecha con
+   trust block + stats reales, y Beluers destacadas con datos reales.
+   Solo visual: no agrega props de logica, solo pasa datos ya calculados
+   (bookingHistory.length, beluersFavoritas.length, realBeluers) a Inicio.
+-------------------------------------------------------------------------- */
+
+/* Proxima cita: header oscuro (NextAppointmentCard de v0) en vez de rosa */
+.cliente-panel-dashboard-appointment-visual {
+  background: #1a1a1a;
+}
+
+.cliente-panel-dashboard-appointment-visual::after {
+  color: rgba(255, 255, 255, 0.06);
+}
+
+.cliente-panel-dashboard-appointment-visual span {
+  color: #ffb8c9;
+}
+
+.cliente-panel-dashboard-appointment-visual strong {
+  color: #ffffff;
+}
+
+/* Grilla 2x2 real: Fecha / Hora / Ubicacion / Total */
+.cliente-panel-dashboard-facts {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (max-width: 1080px) {
+  .cliente-panel-dashboard-facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Columna derecha: quick shortcuts + trust + stats apilados */
+.cliente-panel-dashboard-side-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.cliente-panel-dashboard-trust-card,
+.cliente-panel-dashboard-stats-card {
+  border: 1px solid #ece5e0;
+  border-radius: 1.05rem;
+  background: #ffffff;
+  padding: 0.95rem;
+}
+
+.cliente-panel-dashboard-trust-card h2 {
+  margin: 0 0 0.85rem;
+  color: #1a1a1a;
+  font-family: var(--font-heading);
+  font-size: 1.05rem;
+  line-height: 1.15;
+}
+
+.cliente-panel-dashboard-trust-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.cliente-panel-dashboard-trust-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+}
+
+.cliente-panel-dashboard-trust-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: #fff0f4;
+  color: #e60023;
+  font-size: 0.8rem;
+}
+
+.cliente-panel-dashboard-trust-row strong {
+  display: block;
+  color: #1a1a1a;
+  font-size: 0.8rem;
+  font-weight: 760;
+  line-height: 1.3;
+}
+
+.cliente-panel-dashboard-trust-row p {
+  margin: 0.16rem 0 0;
+  color: #6b6661;
+  font-size: 0.76rem;
+  line-height: 1.42;
+}
+
+/* Stats: 2 StatBox reales (reservas, favoritas) */
+.cliente-panel-dashboard-stats-card {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.cliente-panel-dashboard-stat-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  text-align: center;
+}
+
+.cliente-panel-dashboard-stat-box strong {
+  color: #e60023;
+  font-family: var(--font-heading);
+  font-size: 1.6rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.cliente-panel-dashboard-stat-box span {
+  color: #6b6661;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1.25;
+}
+
+/* Beluers destacadas: scroll horizontal con datos reales */
+.cliente-panel-dashboard-beluers-scroll {
+  display: flex;
+  gap: 0.75rem;
+  overflow-x: auto;
+  padding-bottom: 0.35rem;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+.cliente-panel-dashboard-beluer-mini-card {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.3rem;
+  width: 150px;
+  border: 1px solid #ece5e0;
+  border-radius: 1.1rem;
+  background: #ffffff;
+  padding: 0.9rem 0.85rem;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.18s ease;
+}
+
+.cliente-panel-dashboard-beluer-mini-card:hover {
+  border-color: rgba(230, 0, 35, 0.3);
+}
+
+.cliente-panel-dashboard-beluer-mini-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #ffd6e2;
+  color: #e60023;
+  font-family: var(--font-heading);
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
+.cliente-panel-dashboard-beluer-mini-card strong {
+  color: #1a1a1a;
+  font-size: 0.84rem;
+  font-weight: 760;
+  line-height: 1.2;
+}
+
+.cliente-panel-dashboard-beluer-mini-card small {
+  color: #6b6661;
+  font-size: 0.72rem;
+  line-height: 1.3;
+}
+
+.cliente-panel-dashboard-beluer-mini-rating {
+  color: #e60023;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+/* Accesos rapidos Lashes/Nails: chip mas grande y con mas peso visual */
+.cliente-panel-dashboard-service-grid span {
+  min-height: 68px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 900px) {
+  .cliente-panel-dashboard-beluer-mini-card {
+    width: 132px;
+  }
+}
+
+/* --------------------------------------------------------------------------
    BLOQUE 23 - SHELL VISUAL ALIGNMENT v0 (FASE 2: MARCO GENERAL)
    Unifica fondo, sidebar, main, cards y botones compartidos a la
    direccion visual v0 en TODAS las secciones (antes solo Inicio/Reserva/
