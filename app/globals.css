@@ -59,9 +59,14 @@
   --shadow-float:0 28px 80px rgba(26,26,26,.14);
   --shadow-red:0 18px 42px rgba(230,0,35,.24);
 
-  --font-serif:"Cormorant Garamond", Georgia, serif;
-  --font-sans:"Hanken Grotesk", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  /* belu tipografia oficial: Poppins (titulos/headings) + Nunito (texto/UI) */
+  --font-display:var(--font-poppins), "Poppins", system-ui, sans-serif;
+  --font-heading:var(--font-poppins), "Poppins", system-ui, sans-serif;
+  --font-sans:var(--font-nunito), "Nunito", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-mono:"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  /* Alias legado: se usaba para titulares editoriales, ahora apunta a Poppins */
+  --font-serif:var(--font-display);
 
   --fs-display:clamp(2.7rem, 5vw, 5.5rem);
   --fs-h1:clamp(2.1rem, 3.8vw, 4rem);
@@ -129,6 +134,10 @@ a{
 button{
   font-family:var(--font-sans);
   cursor:pointer;
+}
+
+h1, h2, h3, h4, h5, h6{
+  font-family:var(--font-heading);
 }
 
 img{

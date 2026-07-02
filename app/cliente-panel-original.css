@@ -5248,7 +5248,7 @@
 }
 
 .cliente-panel-reserva-section {
-  --belu-ui-font: "Gilroy", "Hanken Grotesk", "Inter", system-ui, sans-serif;
+  --belu-ui-font: var(--font-nunito), "Nunito", system-ui, sans-serif;
   font-family: var(--belu-ui-font);
 }
 
@@ -5275,7 +5275,7 @@
 }
 
 .cliente-panel-reserva-section .cliente-panel-greeting h1 {
-  font-family: var(--belu-ui-font);
+  font-family: var(--font-heading);
   font-weight: 800;
   line-height: 1.04;
 }
@@ -5325,7 +5325,7 @@
 .cliente-panel-reserva-block-title h2,
 .cliente-panel-reserva-summary-title h2 {
   color: #221b17;
-  font-family: var(--belu-ui-font);
+  font-family: var(--font-heading);
   font-size: clamp(1.1rem, 1.55vw, 1.36rem);
   font-weight: 800;
   line-height: 1.12;
@@ -5728,7 +5728,7 @@
 
 .cliente-panel-reserva-section .cliente-panel-resumen-pago .linea.total strong {
   color: #e60023;
-  font-family: var(--belu-ui-font);
+  font-family: var(--font-heading);
   font-size: 1.55rem;
   font-weight: 900;
 }
@@ -7273,7 +7273,7 @@
 }
 
 .cliente-panel-services-section {
-  --belu-ui-font: "Gilroy", "Hanken Grotesk", "Inter", system-ui, sans-serif;
+  --belu-ui-font: var(--font-nunito), "Nunito", system-ui, sans-serif;
   gap: 1rem;
   font-family: var(--belu-ui-font);
 }
@@ -7421,6 +7421,7 @@
 .cliente-panel-services-group-head h2 {
   margin: 0;
   color: #1a1a1a;
+  font-family: var(--font-heading);
   font-size: clamp(1.08rem, 1.7vw, 1.36rem);
   font-weight: 920;
 }
@@ -7516,6 +7517,7 @@
 .cliente-panel-services-card-body h3 {
   margin: 0;
   color: #1a1a1a;
+  font-family: var(--font-heading);
   font-size: 1rem;
   font-weight: 920;
   line-height: 1.14;
