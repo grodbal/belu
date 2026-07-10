@@ -58,6 +58,9 @@ type ClienteDesignaliPageProps = {
 };
 
 type ServiceCatalogFilter = "all" | "featured" | "lashes" | "nails";
+
+// Tipo local para el prototipo Designali que incluye sección de soporte
+type DesignaliSection = PanelSection | "soporte";
 type ServiceCatalogSection = "featured" | "lashes" | "nails";
 
 // ============================================================
@@ -203,11 +206,11 @@ function Sidebar({
 }: {
   isOpen: boolean;
   onClose: () => void;
-  activeSection: PanelSection;
-  onSelectSection: (section: PanelSection) => void;
+  activeSection: DesignaliSection;
+  onSelectSection: (section: DesignaliSection) => void;
   clientProfile: ClientProfile | null;
 }) {
-  const menuItems: { id: PanelSection; label: string; icon: string }[] = [
+  const menuItems: { id: DesignaliSection; label: string; icon: string }[] = [
     { id: "dashboard", label: "Inicio", icon: "🏠" },
     { id: "reserva", label: "Nueva Reserva", icon: "✨" },
     { id: "servicios", label: "Servicios", icon: "💅" },
@@ -325,7 +328,7 @@ export default function ClienteDesignaliPage({
   realBeluers,
   realServices,
 }: ClienteDesignaliPageProps) {
-  const [activeSection, setActiveSection] = useState<PanelSection>("dashboard");
+  const [activeSection, setActiveSection] = useState<DesignaliSection>("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeServiceCategory, setActiveServiceCategory] =
     useState<ServiceCategory>("lashes");
@@ -443,7 +446,7 @@ export default function ClienteDesignaliPage({
         ? "Solo mostramos horarios disponibles desde ahora."
         : "Elige la hora en formato 12 horas.";
 
-  const goToSection = (section: PanelSection) => {
+  const goToSection = (section: DesignaliSection) => {
     setActiveSection(section);
     setSidebarOpen(false);
   };
@@ -1743,12 +1746,9 @@ function SoporteSection() {
         <p className="mb-6">Contáctanos por WhatsApp o correo</p>
 
         <div className="space-y-3">
-          <a
-            href="https://wa.me/51XXXXXXXXX"
-            className="block bg-white/20 hover:bg-white/30 transition rounded-xl p-4 text-left font-bold"
-          >
-            💬 WhatsApp: +51 XXX XXX XXX
-          </a>
+          <div className="block bg-white/20 rounded-xl p-4 text-left font-bold opacity-50">
+            💬 WhatsApp: Configura tu número en panel de admin
+          </div>
           <a
             href="mailto:hola@belu.pe"
             className="block bg-white/20 hover:bg-white/30 transition rounded-xl p-4 text-left font-bold"
