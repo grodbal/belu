@@ -1,6 +1,22 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import {
+  Menu,
+  X,
+  CalendarCheck,
+  Zap,
+  ShoppingBag,
+  CreditCard,
+  User,
+  LogOut,
+  ChevronDown,
+  Clock,
+  MapPin,
+  Plus,
+  Sparkles,
+  Eye,
+} from "lucide-react";
 import { createBookingAction } from "@/app/actions/client/createBooking";
 import { cancelBookingAction } from "@/app/actions/client/cancelBooking";
 import { updateClientProfileAction } from "@/app/actions/client/updateClientProfile";
@@ -210,14 +226,14 @@ function Sidebar({
   onSelectSection: (section: DesignaliSection) => void;
   clientProfile: ClientProfile | null;
 }) {
-  const menuItems: { id: DesignaliSection; label: string; icon: string }[] = [
-    { id: "dashboard", label: "Inicio", icon: "🏠" },
-    { id: "reserva", label: "Nueva Reserva", icon: "✨" },
-    { id: "servicios", label: "Servicios", icon: "💅" },
-    { id: "historial", label: "Mis Reservas", icon: "📅" },
-    { id: "pagos", label: "Pagos", icon: "💳" },
-    { id: "perfil", label: "Mi Perfil", icon: "👤" },
-    { id: "soporte", label: "Soporte", icon: "💬" },
+  const menuItems: { id: DesignaliSection; label: string; icon: React.ReactNode; highlight?: boolean }[] = [
+    { id: "dashboard", label: "Inicio", icon: <CalendarCheck size={20} /> },
+    { id: "reserva", label: "Nueva Reserva", icon: <Plus size={20} />, highlight: true },
+    { id: "servicios", label: "Servicios", icon: <Sparkles size={20} /> },
+    { id: "historial", label: "Mis Reservas", icon: <ShoppingBag size={20} /> },
+    { id: "pagos", label: "Pagos", icon: <CreditCard size={20} /> },
+    { id: "perfil", label: "Mi Perfil", icon: <User size={20} /> },
+    { id: "soporte", label: "Soporte", icon: <Eye size={20} /> },
   ];
 
   return (
@@ -233,15 +249,15 @@ function Sidebar({
           isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         }`}
       >
-        <div className="flex flex-col h-full bg-gradient-to-b from-white to-[#F7F3F0] overflow-y-auto">
-          {/* Header */}
+        <div className="flex flex-col h-full overflow-y-auto">
+          {/* Logo Area */}
           <div className="p-6 border-b border-[#E8E0E3]">
-            <div className="text-2xl font-bold text-[#E60023]">belu</div>
-            <p className="text-xs text-neutral-500 mt-1">Panel de cliente</p>
+            <div className="text-2xl font-bold text-[#E60023] tracking-tight">✦ belu</div>
+            <p className="text-xs text-neutral-500 mt-2">Belleza a domicilio</p>
           </div>
 
           {/* Menu */}
-          <nav className="flex-1 p-4 space-y-2">
+          <nav className="flex-1 p-4 space-y-1">
             {menuItems.map((item) => (
               <button
                 key={item.id}
@@ -249,29 +265,41 @@ function Sidebar({
                   onSelectSection(item.id);
                   onClose();
                 }}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-medium transition ${
+                className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition ${
                   activeSection === item.id
-                    ? "bg-[#E60023] text-white shadow-md"
-                    : "text-[#1A1A1A] hover:bg-[#FFD6E2]/30"
+                    ? item.highlight
+                      ? "bg-[#E60023] text-white shadow-sm"
+                      : "bg-[#FFD6E2]/40 text-[#E60023]"
+                    : item.highlight
+                      ? "text-[#1A1A1A] hover:bg-[#FFD6E2]/20"
+                      : "text-neutral-600 hover:bg-[#F7F3F0]"
                 }`}
               >
-                <span>{item.icon}</span>
+                <span className="flex-shrink-0">{item.icon}</span>
                 <span>{item.label}</span>
               </button>
             ))}
           </nav>
 
           {/* Profile Footer */}
-          <div className="p-4 border-t border-[#E8E0E3] space-y-3">
-            {clientProfile && (
-              <div className="px-3 py-2 bg-[#FFD6E2]/20 rounded-xl">
-                <p className="text-xs text-neutral-500">Logged in as</p>
-                <p className="text-sm font-bold text-[#1A1A1A] truncate">
-                  {clientProfile.full_name || "Cliente"}
-                </p>
+          <div className="p-4 border-t border-[#E8E0E3] bg-[#F7F3F0] space-y-3">
+            {clientProfile ? (
+              <div className="space-y-2">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-[#E60023] text-white flex items-center justify-center font-bold text-sm">
+                    {(clientProfile.full_name?.charAt(0) || "C").toUpperCase()}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-[#1A1A1A] truncate">
+                      {clientProfile.full_name || "Clienta"}
+                    </p>
+                    <p className="text-xs text-neutral-500 truncate">{clientProfile.email || ""}</p>
+                  </div>
+                </div>
               </div>
-            )}
-            <button className="w-full py-2 px-4 rounded-xl bg-[#F7F3F0] text-sm font-medium text-[#1A1A1A] hover:bg-[#E8E0E3] transition">
+            ) : null}
+            <button className="w-full py-2 px-3 rounded-lg bg-white text-sm font-medium text-[#1A1A1A] hover:bg-[#E8E0E3] transition flex items-center justify-center gap-2 border border-[#E8E0E3]">
+              <LogOut size={16} />
               Cerrar sesión
             </button>
           </div>
@@ -292,24 +320,22 @@ function Header({
 }) {
   return (
     <header className="sticky top-0 z-20 bg-white border-b border-[#E8E0E3]">
-      <div className="flex items-center justify-between px-4 py-4 md:px-6">
+      <div className="flex items-center justify-between px-4 py-3 md:px-6">
         <div className="flex items-center gap-4">
           <button
             onClick={onOpenSidebar}
-            className="lg:hidden p-2 hover:bg-[#F7F3F0] rounded-lg transition"
+            className="lg:hidden p-2 hover:bg-[#F7F3F0] rounded-lg transition text-[#1A1A1A]"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
+            <Menu size={24} />
           </button>
           <div>
-            <h1 className="text-xl md:text-2xl font-bold text-[#1A1A1A]">{title}</h1>
+            <h1 className="text-lg md:text-xl font-bold text-[#1A1A1A]">{title}</h1>
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#E60023] to-[#FFD6E2] flex items-center justify-center text-white font-bold text-sm">
-            {clientProfile?.full_name?.charAt(0) || "C"}
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-full bg-[#E60023] flex items-center justify-center text-white font-bold text-sm">
+            {(clientProfile?.full_name?.charAt(0) || "C").toUpperCase()}
           </div>
         </div>
       </div>
@@ -909,122 +935,166 @@ function DashboardSection({
   onSelectSection: (section: PanelSection) => void;
 }) {
   const greeting = getLimaGreeting();
+  const firstName = clientProfile?.full_name?.split(" ")[0] || null;
 
   return (
     <div className="space-y-6">
-      {/* Welcome */}
-      <div className="bg-gradient-to-r from-[#E60023] to-[#FFD6E2] rounded-3xl p-8 text-white">
-        <h2 className="text-3xl font-bold mb-2">
-          {greeting}, {clientProfile?.full_name?.split(" ")[0] || "Cliente"}!
-        </h2>
-        <p className="text-white/90">Bienvenida a tu panel de belleza a domicilio</p>
-      </div>
+      {/* Premium Banner */}
+      <div className="relative bg-gradient-to-br from-[#E60023] via-[#E60023] to-[#FFD6E2] rounded-3xl overflow-hidden">
+        <div className="absolute top-0 right-0 w-48 h-48 bg-white/5 rounded-full -mr-24 -mt-24" />
+        <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full -ml-16 -mb-16" />
 
-      {/* Next Booking Banner */}
-      {nextBooking ? (
-        <div className="bg-white border-2 border-[#E60023] rounded-2xl p-6">
-          <h3 className="text-lg font-bold text-[#E60023] mb-4">✦ Próxima cita</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div>
-              <p className="text-xs text-neutral-500 mb-1">Servicio</p>
-              <p className="font-bold text-[#1A1A1A]">
-                {nextBooking.services?.name || "Servicio"}
-              </p>
+        <div className="relative p-8 md:p-10 text-white">
+          <div className="space-y-3 max-w-2xl">
+            <div className="flex items-baseline gap-2">
+              <span className="text-xl">✦</span>
+              <h2 className="text-4xl md:text-5xl font-bold leading-tight">
+                {greeting}{firstName ? `, ${firstName}` : ""}
+              </h2>
             </div>
-            <div>
-              <p className="text-xs text-neutral-500 mb-1">Fecha</p>
-              <p className="font-bold text-[#1A1A1A]">
-                {formatDisplayDate(nextBooking.scheduled_date)}
-              </p>
-            </div>
-            <div>
-              <p className="text-xs text-neutral-500 mb-1">Hora</p>
-              <p className="font-bold text-[#1A1A1A]">
-                {formatDisplayTime(nextBooking.scheduled_time)}
-              </p>
-            </div>
-            <div>
-              <p className="text-xs text-neutral-500 mb-1">Estado</p>
-              <p className="font-bold text-[#1A1A1A]">
-                {nextBooking.status === "pending"
-                  ? "Pendiente"
-                  : nextBooking.status === "assigned"
-                    ? "Asignada"
-                    : "Confirmada"}
-              </p>
-            </div>
+            <p className="text-white/90 text-lg">
+              Tu belleza a domicilio, a un clic de distancia
+            </p>
           </div>
         </div>
-      ) : (
-        <div className="bg-[#FFD6E2]/30 border-2 border-[#FFD6E2] rounded-2xl p-6 text-center">
-          <p className="text-[#1A1A1A] font-bold mb-4">No tienes próxima cita</p>
+      </div>
+
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left Column - Primary CTA and Next Booking */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Next Booking or CTA */}
+          {nextBooking ? (
+            <div className="bg-white rounded-2xl p-6 border border-[#E8E0E3] shadow-sm">
+              <div className="flex items-center gap-2 mb-4">
+                <CalendarCheck size={20} className="text-[#E60023]" />
+                <h3 className="text-lg font-bold text-[#1A1A1A]">Tu próxima cita</h3>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex items-start justify-between pb-4 border-b border-[#E8E0E3]">
+                  <div>
+                    <p className="text-sm font-medium text-neutral-600">Servicio</p>
+                    <p className="font-bold text-[#1A1A1A] mt-1">
+                      {nextBooking.services?.name || "Servicio"}
+                    </p>
+                  </div>
+                  <span className="inline-block px-3 py-1 bg-[#E60023]/10 text-[#E60023] text-xs font-bold rounded-full">
+                    {nextBooking.status === "pending"
+                      ? "Pendiente"
+                      : nextBooking.status === "assigned"
+                        ? "Asignada"
+                        : "Confirmada"}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex items-start gap-2">
+                    <Clock size={16} className="text-neutral-400 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-xs text-neutral-500 font-medium">Fecha y hora</p>
+                      <p className="font-bold text-[#1A1A1A]">
+                        {formatDisplayDate(nextBooking.scheduled_date)} <br /> a las {formatDisplayTime(nextBooking.scheduled_time)}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <MapPin size={16} className="text-neutral-400 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-xs text-neutral-500 font-medium">Ubicación</p>
+                      <p className="font-bold text-[#1A1A1A]">{nextBooking.district || "Por confirmar"}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-gradient-to-br from-[#FFD6E2]/40 to-[#FFD6E2]/20 rounded-2xl p-8 border border-[#FFD6E2] text-center">
+              <p className="text-neutral-600 mb-4">Tu próxima cita belu empieza aquí ✦</p>
+              <p className="text-sm text-neutral-500 mb-6">Elige tu servicio, fecha y hora. La especialista va hacia ti.</p>
+              <button
+                onClick={() => onSelectSection("reserva")}
+                className="bg-[#E60023] text-white px-8 py-3 rounded-full font-bold hover:bg-[#C4001D] transition inline-flex items-center gap-2"
+              >
+                <Plus size={18} />
+                Nueva reserva
+              </button>
+            </div>
+          )}
+
+          {/* Recent History */}
+          {bookingHistory.length > 0 && (
+            <div className="bg-white rounded-2xl p-6 border border-[#E8E0E3]">
+              <h3 className="text-lg font-bold text-[#1A1A1A] mb-4">Reservas recientes</h3>
+              <div className="space-y-3">
+                {bookingHistory.slice(0, 3).map((booking) => (
+                  <div
+                    key={booking.id}
+                    className="flex items-center justify-between p-3 bg-[#F7F3F0] rounded-lg hover:bg-[#E8E0E3]/50 transition"
+                  >
+                    <div className="min-w-0">
+                      <p className="font-bold text-sm text-[#1A1A1A]">
+                        {booking.services?.name || "Servicio"}
+                      </p>
+                      <p className="text-xs text-neutral-500 mt-0.5">
+                        {formatDisplayDate(booking.scheduled_date)}
+                      </p>
+                    </div>
+                    <p className="font-bold text-sm text-[#E60023] flex-shrink-0 ml-2">
+                      {formatSoles(getClientBookingTotal(booking).total)}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Right Column - Quick Actions */}
+        <div className="space-y-3">
+          <p className="text-xs font-bold text-neutral-500 uppercase tracking-wide px-1">Accesos rápidos</p>
+
           <button
             onClick={() => onSelectSection("reserva")}
-            className="bg-[#E60023] text-white px-6 py-2 rounded-full font-bold hover:bg-[#C4001D] transition"
+            className="w-full bg-[#E60023] text-white rounded-lg p-4 text-center hover:bg-[#C4001D] transition flex flex-col items-center gap-2 font-bold"
           >
-            Reservar ahora
+            <Plus size={20} />
+            <span className="text-sm">Nueva reserva</span>
+          </button>
+
+          <button
+            onClick={() => onSelectSection("servicios")}
+            className="w-full bg-[#FFD6E2] text-[#E60023] rounded-lg p-4 text-center hover:bg-[#FFD6E2]/80 transition flex flex-col items-center gap-2 font-bold"
+          >
+            <Sparkles size={20} />
+            <span className="text-sm">Servicios</span>
+          </button>
+
+          <button
+            onClick={() => onSelectSection("historial")}
+            className="w-full bg-[#F7F3F0] text-[#1A1A1A] rounded-lg p-4 text-center hover:bg-[#E8E0E3] transition flex flex-col items-center gap-2 font-bold"
+          >
+            <ShoppingBag size={20} />
+            <span className="text-sm">Mis reservas</span>
+          </button>
+
+          <button
+            onClick={() => onSelectSection("pagos")}
+            className="w-full bg-[#F7F3F0] text-[#1A1A1A] rounded-lg p-4 text-center hover:bg-[#E8E0E3] transition flex flex-col items-center gap-2 font-bold"
+          >
+            <CreditCard size={20} />
+            <span className="text-sm">Pagos</span>
+          </button>
+
+          <button
+            onClick={() => onSelectSection("perfil")}
+            className="w-full bg-[#F7F3F0] text-[#1A1A1A] rounded-lg p-4 text-center hover:bg-[#E8E0E3] transition flex flex-col items-center gap-2 font-bold"
+          >
+            <User size={20} />
+            <span className="text-sm">Mi perfil</span>
           </button>
         </div>
-      )}
-
-      {/* Quick Actions */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <button
-          onClick={() => onSelectSection("reserva")}
-          className="bg-[#E60023] text-white rounded-2xl p-6 text-center hover:bg-[#C4001D] transition"
-        >
-          <p className="text-2xl mb-2">✨</p>
-          <p className="font-bold text-sm">Nueva Reserva</p>
-        </button>
-        <button
-          onClick={() => onSelectSection("servicios")}
-          className="bg-[#FFD6E2] text-[#1A1A1A] rounded-2xl p-6 text-center hover:bg-[#FFD6E2]/80 transition"
-        >
-          <p className="text-2xl mb-2">💅</p>
-          <p className="font-bold text-sm">Servicios</p>
-        </button>
-        <button
-          onClick={() => onSelectSection("historial")}
-          className="bg-[#F7F3F0] text-[#1A1A1A] rounded-2xl p-6 text-center hover:bg-[#E8E0E3] transition"
-        >
-          <p className="text-2xl mb-2">📅</p>
-          <p className="font-bold text-sm">Mis Reservas</p>
-        </button>
-        <button
-          onClick={() => onSelectSection("pagos")}
-          className="bg-[#F7F3F0] text-[#1A1A1A] rounded-2xl p-6 text-center hover:bg-[#E8E0E3] transition"
-        >
-          <p className="text-2xl mb-2">💳</p>
-          <p className="font-bold text-sm">Pagos</p>
-        </button>
       </div>
-
-      {/* Recent Bookings */}
-      {bookingHistory.length > 0 && (
-        <div className="bg-white rounded-2xl p-6 border border-[#E8E0E3]">
-          <h3 className="text-lg font-bold text-[#1A1A1A] mb-4">Reservas recientes</h3>
-          <div className="space-y-3">
-            {bookingHistory.slice(0, 3).map((booking) => (
-              <div
-                key={booking.id}
-                className="flex items-between justify-between p-3 bg-[#F7F3F0] rounded-xl"
-              >
-                <div>
-                  <p className="font-bold text-sm text-[#1A1A1A]">
-                    {booking.services?.name || "Servicio"}
-                  </p>
-                  <p className="text-xs text-neutral-500">
-                    {formatDisplayDate(booking.scheduled_date)}
-                  </p>
-                </div>
-                <p className="font-bold text-sm text-[#E60023]">
-                  {formatSoles(getClientBookingTotal(booking).total)}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
