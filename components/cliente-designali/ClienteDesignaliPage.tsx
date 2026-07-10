@@ -1742,45 +1742,8 @@ function SoporteSection() {
   return (
     <div className="max-w-2xl space-y-6">
       <div className="bg-gradient-to-r from-[#E60023] to-[#FFD6E2] rounded-3xl p-8 text-white">
-        <h2 className="text-2xl font-bold mb-2">¿Necesitas ayuda?</h2>
-        <p className="mb-6">Contáctanos por WhatsApp o correo</p>
-
-        <div className="space-y-3">
-          <div className="block bg-white/20 rounded-xl p-4 text-left font-bold opacity-50">
-            💬 WhatsApp: Configura tu número en panel de admin
-          </div>
-          <a
-            href="mailto:hola@belu.pe"
-            className="block bg-white/20 hover:bg-white/30 transition rounded-xl p-4 text-left font-bold"
-          >
-            ✉️ Email: hola@belu.pe
-          </a>
-        </div>
-      </div>
-
-      <div className="bg-white rounded-2xl p-6 border border-[#E8E0E3] space-y-4">
-        <h3 className="text-lg font-bold text-[#1A1A1A]">Preguntas frecuentes</h3>
-
-        <div>
-          <p className="font-bold text-[#1A1A1A] mb-2">¿Cuál es el tiempo mínimo para reservar?</p>
-          <p className="text-neutral-600 text-sm">
-            Puedes reservar con 2 horas de anticipación. Si necesitas un servicio más urgente, usa belu Express.
-          </p>
-        </div>
-
-        <div>
-          <p className="font-bold text-[#1A1A1A] mb-2">¿Puedo cambiar de Beluer?</p>
-          <p className="text-neutral-600 text-sm">
-            Sí, contáctanos por WhatsApp y gestionaremos el cambio para asegurar disponibilidad.
-          </p>
-        </div>
-
-        <div>
-          <p className="font-bold text-[#1A1A1A] mb-2">¿Cómo cancelo una reserva?</p>
-          <p className="text-neutral-600 text-sm">
-            Puedes cancelar desde tu panel. Si es muy cercana, contáctanos por WhatsApp.
-          </p>
-        </div>
+        <h2 className="text-2xl font-bold mb-2">¿Necesitas ayuda con tu reserva?</h2>
+        <p className="text-base">Revisa el detalle de tu reserva para encontrar las opciones de asistencia disponibles.</p>
       </div>
     </div>
   );
