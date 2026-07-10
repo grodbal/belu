@@ -245,64 +245,60 @@ function Sidebar({
         />
       )}
       <aside
-        className={`fixed left-0 top-0 z-40 h-screen w-72 transform bg-white transition-transform duration-300 ease-in-out lg:static lg:z-0 lg:transform-none ${
+        className={`fixed left-0 top-0 z-40 h-screen w-64 transform bg-white transition-transform duration-300 ease-in-out lg:static lg:z-0 lg:transform-none flex flex-col ${
           isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         }`}
       >
-        <div className="flex flex-col h-full overflow-y-auto">
-          {/* Logo Area */}
-          <div className="p-6 border-b border-[#E8E0E3]">
-            <div className="text-2xl font-bold text-[#E60023] tracking-tight">✦ belu</div>
-            <p className="text-xs text-neutral-500 mt-2">Belleza a domicilio</p>
-          </div>
+        {/* Logo Area */}
+        <div className="p-4 border-b border-[#E8E0E3] flex-shrink-0">
+          <div className="text-xl font-bold text-[#E60023] tracking-tight">✦ belu</div>
+          <p className="text-xs text-neutral-500 mt-1">Belleza a domicilio</p>
+        </div>
 
-          {/* Menu */}
-          <nav className="flex-1 p-4 space-y-1">
-            {menuItems.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => {
-                  onSelectSection(item.id);
-                  onClose();
-                }}
-                className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition ${
-                  activeSection === item.id
-                    ? item.highlight
-                      ? "bg-[#E60023] text-white shadow-sm"
-                      : "bg-[#FFD6E2]/40 text-[#E60023]"
-                    : item.highlight
-                      ? "text-[#1A1A1A] hover:bg-[#FFD6E2]/20"
-                      : "text-neutral-600 hover:bg-[#F7F3F0]"
-                }`}
-              >
-                <span className="flex-shrink-0">{item.icon}</span>
-                <span>{item.label}</span>
-              </button>
-            ))}
-          </nav>
-
-          {/* Profile Footer */}
-          <div className="p-4 border-t border-[#E8E0E3] bg-[#F7F3F0] space-y-3">
-            {clientProfile ? (
-              <div className="space-y-2">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-[#E60023] text-white flex items-center justify-center font-bold text-sm">
-                    {(clientProfile.full_name?.charAt(0) || "C").toUpperCase()}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-[#1A1A1A] truncate">
-                      {clientProfile.full_name || "Clienta"}
-                    </p>
-                    <p className="text-xs text-neutral-500 truncate">{clientProfile.email || ""}</p>
-                  </div>
-                </div>
-              </div>
-            ) : null}
-            <button className="w-full py-2 px-3 rounded-lg bg-white text-sm font-medium text-[#1A1A1A] hover:bg-[#E8E0E3] transition flex items-center justify-center gap-2 border border-[#E8E0E3]">
-              <LogOut size={16} />
-              Cerrar sesión
+        {/* Menu - Scrollable */}
+        <nav className="flex-1 overflow-y-auto p-3 space-y-0.5">
+          {menuItems.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => {
+                onSelectSection(item.id);
+                onClose();
+              }}
+              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition ${
+                activeSection === item.id
+                  ? item.highlight
+                    ? "bg-[#E60023] text-white"
+                    : "bg-[#FFD6E2]/40 text-[#E60023]"
+                  : item.highlight
+                    ? "text-[#1A1A1A] hover:bg-[#FFD6E2]/20"
+                    : "text-neutral-600 hover:bg-[#F7F3F0]"
+              }`}
+            >
+              <span className="flex-shrink-0">{item.icon}</span>
+              <span>{item.label}</span>
             </button>
-          </div>
+          ))}
+        </nav>
+
+        {/* Profile Footer - Fixed */}
+        <div className="p-3 border-t border-[#E8E0E3] bg-[#F7F3F0] space-y-2 flex-shrink-0">
+          {clientProfile ? (
+            <div className="flex items-center gap-2">
+              <div className="w-9 h-9 rounded-full bg-[#E60023] text-white flex items-center justify-center font-bold text-xs flex-shrink-0">
+                {(clientProfile.full_name?.charAt(0) || "C").toUpperCase()}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-bold text-[#1A1A1A] truncate">
+                  {clientProfile.full_name || "—"}
+                </p>
+                <p className="text-xs text-neutral-500 truncate">{clientProfile.email || "—"}</p>
+              </div>
+            </div>
+          ) : null}
+          <button className="w-full py-1.5 px-2 rounded-lg bg-white text-xs font-medium text-[#1A1A1A] hover:bg-[#E8E0E3] transition flex items-center justify-center gap-1.5 border border-[#E8E0E3]">
+            <LogOut size={14} />
+            Cerrar
+          </button>
         </div>
       </aside>
     </>
@@ -787,6 +783,7 @@ export default function ClienteDesignaliPage({
             clientProfile={clientProfile}
             nextBooking={nextBooking}
             bookingHistory={bookingHistory}
+            realServices={realServices}
             onSelectSection={goToSection}
           />
         );
@@ -927,174 +924,216 @@ function DashboardSection({
   clientProfile,
   nextBooking,
   bookingHistory,
+  realServices,
   onSelectSection,
 }: {
   clientProfile: ClientProfile | null;
   nextBooking: ClientBooking | null;
   bookingHistory: ClientBooking[];
+  realServices: Service[];
   onSelectSection: (section: PanelSection) => void;
 }) {
   const greeting = getLimaGreeting();
   const firstName = clientProfile?.full_name?.split(" ")[0] || null;
 
+  // Get featured services or first 3 services
+  const featuredServices = realServices
+    .filter((s) => s.is_featured)
+    .slice(0, 3);
+  const displayServices = featuredServices.length > 0
+    ? featuredServices
+    : realServices.slice(0, 3);
+
   return (
     <div className="space-y-6">
-      {/* Premium Banner */}
-      <div className="relative bg-gradient-to-br from-[#E60023] via-[#E60023] to-[#FFD6E2] rounded-3xl overflow-hidden">
-        <div className="absolute top-0 right-0 w-48 h-48 bg-white/5 rounded-full -mr-24 -mt-24" />
-        <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full -ml-16 -mb-16" />
+      {/* Banner */}
+      <div className="relative bg-gradient-to-br from-[#E60023] via-[#E60023] to-[#FFD6E2] rounded-2xl overflow-hidden">
+        <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full -mr-20 -mt-20" />
+        <div className="absolute bottom-0 left-0 w-28 h-28 bg-white/5 rounded-full -ml-14 -mb-14" />
 
-        <div className="relative p-8 md:p-10 text-white">
-          <div className="space-y-3 max-w-2xl">
-            <div className="flex items-baseline gap-2">
-              <span className="text-xl">✦</span>
-              <h2 className="text-4xl md:text-5xl font-bold leading-tight">
-                {greeting}{firstName ? `, ${firstName}` : ""}
-              </h2>
-            </div>
-            <p className="text-white/90 text-lg">
+        <div className="relative p-6 md:p-8 text-white">
+          <div className="max-w-xl">
+            <h2 className="text-3xl md:text-4xl font-bold leading-tight mb-2">
+              {greeting}{firstName ? `, ${firstName}` : " ✦"}
+            </h2>
+            <p className="text-white/85 text-sm md:text-base">
               Tu belleza a domicilio, a un clic de distancia
             </p>
           </div>
         </div>
       </div>
 
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column - Primary CTA and Next Booking */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Next Booking or CTA */}
+      {/* Row 1: Next Booking + Compact Actions */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Next Booking - 8 cols */}
+        <div className="lg:col-span-8">
           {nextBooking ? (
-            <div className="bg-white rounded-2xl p-6 border border-[#E8E0E3] shadow-sm">
-              <div className="flex items-center gap-2 mb-4">
-                <CalendarCheck size={20} className="text-[#E60023]" />
-                <h3 className="text-lg font-bold text-[#1A1A1A]">Tu próxima cita</h3>
+            <div className="bg-white rounded-xl p-5 border border-[#E8E0E3]">
+              <div className="flex items-center gap-2 mb-3">
+                <CalendarCheck size={18} className="text-[#E60023]" />
+                <h3 className="font-bold text-[#1A1A1A]">Tu próxima cita</h3>
               </div>
 
-              <div className="space-y-4">
-                <div className="flex items-start justify-between pb-4 border-b border-[#E8E0E3]">
+              <div className="space-y-3">
+                <div className="flex items-start justify-between pb-3 border-b border-[#E8E0E3]">
                   <div>
-                    <p className="text-sm font-medium text-neutral-600">Servicio</p>
-                    <p className="font-bold text-[#1A1A1A] mt-1">
-                      {nextBooking.services?.name || "Servicio"}
+                    <p className="text-xs text-neutral-600">Servicio</p>
+                    <p className="font-bold text-[#1A1A1A] text-sm">
+                      {nextBooking.services?.name}
                     </p>
                   </div>
-                  <span className="inline-block px-3 py-1 bg-[#E60023]/10 text-[#E60023] text-xs font-bold rounded-full">
-                    {nextBooking.status === "pending"
-                      ? "Pendiente"
-                      : nextBooking.status === "assigned"
-                        ? "Asignada"
-                        : "Confirmada"}
+                  <span className="px-2 py-1 bg-[#E60023]/10 text-[#E60023] text-xs font-bold rounded">
+                    {nextBooking.status === "pending" ? "Pendiente" : nextBooking.status === "assigned" ? "Asignada" : "Confirmada"}
                   </span>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="flex items-start gap-2">
-                    <Clock size={16} className="text-neutral-400 mt-0.5 flex-shrink-0" />
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div className="flex gap-2">
+                    <Clock size={14} className="text-neutral-400 flex-shrink-0 mt-0.5" />
                     <div>
-                      <p className="text-xs text-neutral-500 font-medium">Fecha y hora</p>
-                      <p className="font-bold text-[#1A1A1A]">
-                        {formatDisplayDate(nextBooking.scheduled_date)} <br /> a las {formatDisplayTime(nextBooking.scheduled_time)}
-                      </p>
+                      <p className="text-xs text-neutral-600">Fecha y hora</p>
+                      <p className="font-bold text-[#1A1A1A]">{formatDisplayDate(nextBooking.scheduled_date)} a las {formatDisplayTime(nextBooking.scheduled_time)}</p>
                     </div>
                   </div>
-                  <div className="flex items-start gap-2">
-                    <MapPin size={16} className="text-neutral-400 mt-0.5 flex-shrink-0" />
+                  <div className="flex gap-2">
+                    <MapPin size={14} className="text-neutral-400 flex-shrink-0 mt-0.5" />
                     <div>
-                      <p className="text-xs text-neutral-500 font-medium">Ubicación</p>
-                      <p className="font-bold text-[#1A1A1A]">{nextBooking.district || "Por confirmar"}</p>
+                      <p className="text-xs text-neutral-600">Ubicación</p>
+                      <p className="font-bold text-[#1A1A1A]">{nextBooking.district}</p>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
           ) : (
-            <div className="bg-gradient-to-br from-[#FFD6E2]/40 to-[#FFD6E2]/20 rounded-2xl p-8 border border-[#FFD6E2] text-center">
-              <p className="text-neutral-600 mb-4">Tu próxima cita belu empieza aquí ✦</p>
-              <p className="text-sm text-neutral-500 mb-6">Elige tu servicio, fecha y hora. La especialista va hacia ti.</p>
+            <div className="bg-[#FFD6E2]/20 rounded-xl p-5 border border-[#FFD6E2] text-center">
+              <p className="text-neutral-700 font-bold text-sm mb-2">Agenda tu cita ahora</p>
+              <p className="text-xs text-neutral-600 mb-4">Elige servicio, fecha y la especialista irá a ti</p>
               <button
                 onClick={() => onSelectSection("reserva")}
-                className="bg-[#E60023] text-white px-8 py-3 rounded-full font-bold hover:bg-[#C4001D] transition inline-flex items-center gap-2"
+                className="bg-[#E60023] text-white px-4 py-2 rounded-lg font-bold hover:bg-[#C4001D] transition text-sm inline-flex items-center gap-1.5"
               >
-                <Plus size={18} />
+                <Plus size={16} />
                 Nueva reserva
               </button>
             </div>
           )}
-
-          {/* Recent History */}
-          {bookingHistory.length > 0 && (
-            <div className="bg-white rounded-2xl p-6 border border-[#E8E0E3]">
-              <h3 className="text-lg font-bold text-[#1A1A1A] mb-4">Reservas recientes</h3>
-              <div className="space-y-3">
-                {bookingHistory.slice(0, 3).map((booking) => (
-                  <div
-                    key={booking.id}
-                    className="flex items-center justify-between p-3 bg-[#F7F3F0] rounded-lg hover:bg-[#E8E0E3]/50 transition"
-                  >
-                    <div className="min-w-0">
-                      <p className="font-bold text-sm text-[#1A1A1A]">
-                        {booking.services?.name || "Servicio"}
-                      </p>
-                      <p className="text-xs text-neutral-500 mt-0.5">
-                        {formatDisplayDate(booking.scheduled_date)}
-                      </p>
-                    </div>
-                    <p className="font-bold text-sm text-[#E60023] flex-shrink-0 ml-2">
-                      {formatSoles(getClientBookingTotal(booking).total)}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
 
-        {/* Right Column - Quick Actions */}
-        <div className="space-y-3">
-          <p className="text-xs font-bold text-neutral-500 uppercase tracking-wide px-1">Accesos rápidos</p>
-
+        {/* Compact Quick Actions - 4 cols */}
+        <div className="lg:col-span-4 space-y-2">
           <button
             onClick={() => onSelectSection("reserva")}
-            className="w-full bg-[#E60023] text-white rounded-lg p-4 text-center hover:bg-[#C4001D] transition flex flex-col items-center gap-2 font-bold"
+            className="w-full bg-[#E60023] text-white rounded-lg p-3 hover:bg-[#C4001D] transition flex items-center gap-2 font-bold text-sm"
           >
-            <Plus size={20} />
-            <span className="text-sm">Nueva reserva</span>
+            <Plus size={16} />
+            Reservar
           </button>
 
           <button
             onClick={() => onSelectSection("servicios")}
-            className="w-full bg-[#FFD6E2] text-[#E60023] rounded-lg p-4 text-center hover:bg-[#FFD6E2]/80 transition flex flex-col items-center gap-2 font-bold"
+            className="w-full bg-[#FFD6E2] text-[#E60023] rounded-lg p-3 hover:bg-[#FFD6E2]/80 transition flex items-center gap-2 font-bold text-sm"
           >
-            <Sparkles size={20} />
-            <span className="text-sm">Servicios</span>
+            <Sparkles size={16} />
+            Servicios
           </button>
 
           <button
             onClick={() => onSelectSection("historial")}
-            className="w-full bg-[#F7F3F0] text-[#1A1A1A] rounded-lg p-4 text-center hover:bg-[#E8E0E3] transition flex flex-col items-center gap-2 font-bold"
+            className="w-full bg-[#F7F3F0] text-[#1A1A1A] rounded-lg p-3 hover:bg-[#E8E0E3] transition flex items-center gap-2 font-bold text-sm"
           >
-            <ShoppingBag size={20} />
-            <span className="text-sm">Mis reservas</span>
+            <ShoppingBag size={16} />
+            Mis citas
           </button>
 
           <button
             onClick={() => onSelectSection("pagos")}
-            className="w-full bg-[#F7F3F0] text-[#1A1A1A] rounded-lg p-4 text-center hover:bg-[#E8E0E3] transition flex flex-col items-center gap-2 font-bold"
+            className="w-full bg-[#F7F3F0] text-[#1A1A1A] rounded-lg p-3 hover:bg-[#E8E0E3] transition flex items-center gap-2 font-bold text-sm"
           >
-            <CreditCard size={20} />
-            <span className="text-sm">Pagos</span>
-          </button>
-
-          <button
-            onClick={() => onSelectSection("perfil")}
-            className="w-full bg-[#F7F3F0] text-[#1A1A1A] rounded-lg p-4 text-center hover:bg-[#E8E0E3] transition flex flex-col items-center gap-2 font-bold"
-          >
-            <User size={20} />
-            <span className="text-sm">Mi perfil</span>
+            <CreditCard size={16} />
+            Pagos
           </button>
         </div>
       </div>
+
+      {/* Row 2: Featured Services */}
+      {displayServices.length > 0 && (
+        <div>
+          <h3 className="text-lg font-bold text-[#1A1A1A] mb-4">Servicios para ti</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {displayServices.map((service) => (
+              <div key={service.id} className="bg-white rounded-xl overflow-hidden border border-[#E8E0E3] hover:shadow-md transition group">
+                <div className="relative aspect-video bg-[#F7F3F0] overflow-hidden">
+                  <img
+                    src={service.foto}
+                    alt={service.nombre}
+                    className="w-full h-full object-cover group-hover:scale-105 transition"
+                  />
+                </div>
+                <div className="p-4">
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <div>
+                      <p className="font-bold text-[#1A1A1A] text-sm">{service.nombre}</p>
+                      <p className="text-xs text-neutral-500 capitalize">{service.categoria}</p>
+                    </div>
+                    <span className="text-[#E60023] font-bold text-sm flex-shrink-0">S/ {service.precio}</span>
+                  </div>
+                  <button
+                    onClick={() => onSelectSection("reserva")}
+                    className="w-full bg-[#E60023] text-white text-xs py-2 rounded-lg font-bold hover:bg-[#C4001D] transition"
+                  >
+                    Ver servicio
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Row 3: Recent Bookings */}
+      {bookingHistory.length > 0 && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="bg-white rounded-xl p-5 border border-[#E8E0E3]">
+            <h3 className="font-bold text-[#1A1A1A] mb-3 text-sm">Reservas recientes</h3>
+            <div className="space-y-2">
+              {bookingHistory.slice(0, 3).map((booking) => (
+                <div key={booking.id} className="flex items-center justify-between p-2.5 bg-[#F7F3F0] rounded-lg text-sm">
+                  <div className="min-w-0">
+                    <p className="font-bold text-[#1A1A1A] text-xs">{booking.services?.name}</p>
+                    <p className="text-xs text-neutral-500">{formatDisplayDate(booking.scheduled_date)}</p>
+                  </div>
+                  <p className="font-bold text-[#E60023] flex-shrink-0 ml-2 text-xs">{formatSoles(getClientBookingTotal(booking).total)}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl p-5 border border-[#E8E0E3]">
+            <h3 className="font-bold text-[#1A1A1A] mb-3 text-sm">Tu perfil</h3>
+            <div className="space-y-3">
+              {clientProfile && (
+                <>
+                  <div>
+                    <p className="text-xs text-neutral-600">Nombre</p>
+                    <p className="font-bold text-[#1A1A1A] text-sm">{clientProfile.full_name || "—"}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-neutral-600">Correo</p>
+                    <p className="font-bold text-[#1A1A1A] text-sm break-all">{clientProfile.email || "—"}</p>
+                  </div>
+                  <button
+                    onClick={() => onSelectSection("perfil")}
+                    className="w-full bg-[#E60023] text-white text-xs py-2 rounded-lg font-bold hover:bg-[#C4001D] transition"
+                  >
+                    Editar perfil
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
