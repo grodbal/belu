@@ -744,36 +744,64 @@ const selectedBookingService = serviciosSeleccionados[0] || null;
         >
           <div className="cliente-panel-sidebar-logo">
             <img src="/logo-belu-red.png" alt="belu" />
+            <span className="cliente-panel-logo-star">✦</span>
           </div>
 
           <nav className="cliente-panel-sidebar-nav">
-            <p className="cliente-panel-sidebar-section-label">Principal</p>
-            {navItems.slice(0, 4).map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                className={activeSection === item.id ? "active" : ""}
-                onClick={() => goToSection(item.id)}
-              >
-                <span className="cliente-panel-nav-icon">{item.icon}</span>
-                {item.label}
-              </button>
-            ))}
-            <p className="cliente-panel-sidebar-section-label">Cuenta</p>
-            {navItems.slice(4).map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                className={activeSection === item.id ? "active" : ""}
-                onClick={() => goToSection(item.id)}
-              >
-                <span className="cliente-panel-nav-icon">{item.icon}</span>
-                {item.label}
-              </button>
-            ))}
+            <div className="cliente-panel-sidebar-group">
+              <p className="cliente-panel-sidebar-section-label">Navegación</p>
+              {navItems.slice(0, 2).map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  className={`${activeSection === item.id ? "active" : ""}${item.id === "reserva" ? " cliente-panel-nav-btn--cta" : ""}`}
+                  onClick={() => goToSection(item.id)}
+                >
+                  <span className="cliente-panel-nav-icon">{item.icon}</span>
+                  <span className="cliente-panel-nav-label">{item.label}</span>
+                  {item.id === "reserva" && <span className="cliente-panel-nav-cta-dot" />}
+                </button>
+              ))}
+            </div>
+
+            <div className="cliente-panel-sidebar-group">
+              <p className="cliente-panel-sidebar-section-label">Mi espacio</p>
+              {navItems.slice(2, 6).map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  className={activeSection === item.id ? "active" : ""}
+                  onClick={() => goToSection(item.id)}
+                >
+                  <span className="cliente-panel-nav-icon">{item.icon}</span>
+                  <span className="cliente-panel-nav-label">{item.label}</span>
+                </button>
+              ))}
+            </div>
+
+            <div className="cliente-panel-sidebar-group cliente-panel-sidebar-group--footer">
+              {navItems.slice(6).map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  className={activeSection === item.id ? "active" : ""}
+                  onClick={() => goToSection(item.id)}
+                >
+                  <span className="cliente-panel-nav-icon">{item.icon}</span>
+                  <span className="cliente-panel-nav-label">{item.label}</span>
+                </button>
+              ))}
+            </div>
           </nav>
 
           <div className="cliente-panel-sidebar-footer">
+            <div className="cliente-panel-sidebar-user">
+              <div className="cliente-panel-avatar">{clientFirstName?.charAt(0).toUpperCase()}</div>
+              <div className="cliente-panel-user-info">
+                <strong>{clientFirstName}</strong>
+                <span>Clienta belu</span>
+              </div>
+            </div>
             <div className="cliente-panel-sidebar-help-card">
               <span>¿Necesitas ayuda?</span>
               <a
