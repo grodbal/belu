@@ -849,12 +849,11 @@ const selectedBookingService = serviciosSeleccionados[0] || null;
               <div className="cliente-panel-top-bar cliente-panel-reserva-topbar">
                 <div className="cliente-panel-greeting">
                   <span className="cliente-panel-dashboard-kicker">
-                    Nueva reserva
+                    Nueva reserva ✦
                   </span>
-                  <h1>Agenda tu nueva cita</h1>
+                  <h1 style={{ fontWeight: 900, letterSpacing: "-0.03em" }}>Agenda tu cita</h1>
                   <p>
-                    Elige tu servicio, fecha y dirección. belu coordina el
-                    resto.
+                    Completa los pasos y belu coordina tu especialista.
                   </p>
                 </div>
 
@@ -3502,8 +3501,8 @@ function ServiciosSection({
       <div className="cliente-panel-top-bar cliente-panel-services-topbar">
         <div className="cliente-panel-greeting">
           <span className="cliente-panel-dashboard-kicker">Catálogo ✦</span>
-          <h1>Explora servicios</h1>
-          <p>Lashes y nails a domicilio, cuando quieras.</p>
+          <h1 style={{ fontWeight: 900, letterSpacing: "-0.03em" }}>Explora servicios</h1>
+          <p>Lashes y nails a domicilio. Elige el servicio ideal y agenda en minutos.</p>
         </div>
 
         <UserPill clientName={clientName} />
