@@ -3699,6 +3699,7 @@ function getSectionTitle(section: PanelSection) {
     historial: "Tu historial",
     pagos: "Historial de pagos",
     perfil: "Mi perfil",
+    soporte: "Soporte",
   };
 
   return titles[section];

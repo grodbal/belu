@@ -6,7 +6,8 @@ export type PanelSection =
   | "favoritas"
   | "historial"
   | "pagos"
-  | "perfil";
+  | "perfil"
+  | "soporte";
 
 export type ServiceCategory = "lashes" | "nails";
 
