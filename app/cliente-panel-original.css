@@ -3,6 +3,341 @@
   box-sizing: border-box;
 }
 
+/* Correcciones puntuales de consistencia del panel cliente */
+.cliente-panel-section .cliente-panel-greeting h1,
+.cliente-panel-dashboard-greeting-standalone h1,
+.cliente-panel-dashboard-empty h2,
+.cliente-panel-dashboard-appointment-content h2,
+.cliente-panel-dashboard-card-head h2,
+.cliente-panel-dashboard-quick-card h2,
+.cliente-panel-dashboard-section-heading h2,
+.cliente-panel-dashboard-explore-title,
+.cliente-panel-dashboard-service-grid span,
+.cliente-panel-dashboard-service-grid strong,
+.cliente-panel-perfil-card h2,
+.cliente-panel-perfil-form-card h3 {
+  font-family: var(--font-heading, var(--font-poppins)), sans-serif;
+}
+
+.cliente-panel-section,
+.cliente-panel-section p,
+.cliente-panel-section label,
+.cliente-panel-section input,
+.cliente-panel-section select,
+.cliente-panel-section textarea,
+.cliente-panel-section small {
+  font-family: var(--font-sans, var(--font-nunito)), sans-serif;
+}
+
+.cliente-panel-section button,
+.cliente-panel-section .cliente-panel-dashboard-kicker {
+  font-family: var(--font-heading, var(--font-poppins)), sans-serif;
+}
+
+.cliente-panel-section .cliente-panel-greeting h1,
+.cliente-panel-dashboard-greeting-standalone h1 {
+  font-size: clamp(1.85rem, 3vw, 2.65rem);
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1.08;
+}
+
+.cliente-panel-section .cliente-panel-greeting p,
+.cliente-panel-dashboard-greeting-standalone p {
+  margin-top: 0.45rem;
+  color: #6b6661;
+  font-size: 0.92rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.cliente-panel-dashboard-empty,
+.cliente-panel-dashboard-appointment {
+  grid-template-columns: minmax(160px, 205px) minmax(0, 1fr);
+  min-height: 0;
+  max-height: 460px;
+  align-items: stretch;
+}
+
+.cliente-panel-dashboard-appointment-visual {
+  width: 100%;
+  min-height: 280px;
+  max-height: 340px;
+  aspect-ratio: 3 / 4;
+  justify-content: space-between;
+}
+
+.cliente-panel-urgencia-toggle:has(input:disabled) {
+  border-color: rgba(201, 25, 56, 0.35);
+  background: #fff0f4;
+  cursor: not-allowed;
+}
+
+.cliente-panel-urgencia-toggle input:disabled,
+.cliente-panel-urgencia-toggle:has(input:disabled) span {
+  cursor: not-allowed;
+  opacity: 1;
+}
+
+.cliente-panel-urgencia-auto-note {
+  display: block;
+  color: #8f1730;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.cliente-panel-session-block {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1.25rem;
+  border-top: 1px solid #ece5e0;
+  padding-top: 1.25rem;
+}
+
+.cliente-panel-session-block h3,
+.cliente-panel-session-block p {
+  margin: 0;
+}
+
+.cliente-panel-session-block p {
+  margin-top: 0.3rem;
+  color: #6b6661;
+  font-size: 0.84rem;
+}
+
+.cliente-panel-logout-button {
+  flex-shrink: 0;
+  border: 1px solid rgba(201, 25, 56, 0.28);
+  border-radius: 0.85rem;
+  background: #fff;
+  color: #a8142e;
+  padding: 0.72rem 1rem;
+  font-weight: 750;
+  cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+}
+
+.cliente-panel-logout-button:hover {
+  border-color: #c91938;
+  background: #fff0f4;
+  color: #8f1730;
+}
+
+.cliente-panel-logout-button:focus-visible {
+  outline: 3px solid rgba(201, 25, 56, 0.22);
+  outline-offset: 2px;
+}
+
+@media (max-width: 760px) {
+  .cliente-panel-dashboard-empty,
+  .cliente-panel-dashboard-appointment {
+    max-height: none;
+  }
+
+  .cliente-panel-dashboard-appointment-visual {
+    min-height: 110px;
+    max-height: 150px;
+    aspect-ratio: 16 / 5;
+  }
+
+  .cliente-panel-session-block {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .cliente-panel-logout-button {
+    width: 100%;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   AJUSTE FINAL: tipografia suave, hero editorial y catalogo desktop compacto
+-------------------------------------------------------------------------- */
+.cliente-panel-section,
+.cliente-panel-section p,
+.cliente-panel-section label,
+.cliente-panel-section input,
+.cliente-panel-section select,
+.cliente-panel-section textarea,
+.cliente-panel-section small,
+.cliente-panel-section span:not(.cliente-panel-nav-icon) {
+  font-family: var(--font-sans, var(--font-nunito)), sans-serif;
+}
+
+.cliente-panel-section h1,
+.cliente-panel-section h2,
+.cliente-panel-section h3,
+.cliente-panel-section h4,
+.cliente-panel-section button,
+.cliente-panel-section strong,
+.cliente-panel-dashboard-kicker,
+.cliente-panel-services-group-head > span {
+  font-family: var(--font-heading, var(--font-poppins)), sans-serif;
+}
+
+.cliente-panel-section .cliente-panel-greeting h1,
+.cliente-panel-dashboard-greeting-standalone h1 {
+  color: #2f2621;
+  font-size: clamp(1.75rem, 2.65vw, 2.4rem);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.14;
+}
+
+.cliente-panel-section .cliente-panel-greeting p,
+.cliente-panel-dashboard-greeting-standalone p,
+.cliente-panel-empty-state p,
+.cliente-panel-favoritas-empty p {
+  color: #746d68;
+  font-size: 0.94rem;
+  font-weight: 500;
+  line-height: 1.58;
+}
+
+.cliente-panel-section h2,
+.cliente-panel-section h3,
+.cliente-panel-favoritas-empty h2,
+.cliente-panel-empty-state h2 {
+  font-weight: 700;
+  letter-spacing: -0.018em;
+  line-height: 1.22;
+}
+
+.cliente-panel-section label,
+.cliente-panel-section input,
+.cliente-panel-section select,
+.cliente-panel-section textarea,
+.cliente-panel-section small {
+  font-weight: 600;
+}
+
+.cliente-panel-dashboard-greeting-standalone {
+  padding: 0;
+}
+
+.cliente-panel-dashboard-empty,
+.cliente-panel-dashboard-appointment {
+  grid-template-columns: minmax(136px, 172px) minmax(0, 1fr);
+  gap: clamp(1rem, 2vw, 1.5rem);
+  min-height: 250px;
+  max-height: 390px;
+  padding: 1rem;
+}
+
+.cliente-panel-dashboard-appointment-visual {
+  width: 100%;
+  min-height: 218px;
+  max-height: 286px;
+  aspect-ratio: 4 / 5;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 1.15rem;
+  background:
+    radial-gradient(circle at 82% 16%, rgba(255, 184, 201, 0.2), transparent 26%),
+    linear-gradient(155deg, #232020 0%, #111010 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  padding: 1rem;
+}
+
+.cliente-panel-dashboard-appointment-visual::after {
+  right: 0.65rem;
+  top: 0.45rem;
+  color: rgba(255, 184, 201, 0.18);
+  font-family: var(--font-heading, var(--font-poppins)), sans-serif;
+  font-size: 3.25rem;
+}
+
+.cliente-panel-dashboard-appointment-visual span {
+  color: #ffc4d2;
+  font-family: var(--font-heading, var(--font-poppins)), sans-serif;
+  font-size: 0.61rem;
+  font-weight: 700;
+  letter-spacing: 0.11em;
+}
+
+.cliente-panel-dashboard-appointment-visual strong {
+  color: #fff;
+  font-family: var(--font-heading, var(--font-poppins)), sans-serif;
+  font-size: clamp(1.2rem, 1.8vw, 1.65rem);
+  font-weight: 700;
+  line-height: 1.08;
+}
+
+.cliente-panel-dashboard-empty-copy,
+.cliente-panel-dashboard-appointment-content {
+  justify-content: center;
+}
+
+@media (min-width: 1024px) {
+  .cliente-panel-services-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .cliente-panel-services-card {
+    border-radius: 1.1rem;
+  }
+
+  .cliente-panel-services-card-image,
+  .cliente-panel-services-card-image img,
+  .cliente-panel-services-placeholder {
+    min-height: 150px;
+    max-height: 170px;
+  }
+
+  .cliente-panel-services-card-body {
+    gap: 0.5rem;
+    padding: 0.85rem;
+  }
+
+  .cliente-panel-services-card-body h3 {
+    font-size: 0.98rem;
+    line-height: 1.25;
+  }
+
+  .cliente-panel-services-card-body p {
+    min-height: 2.65em;
+    font-size: 0.78rem;
+    line-height: 1.38;
+  }
+
+  .cliente-panel-services-card-meta {
+    gap: 0.35rem;
+  }
+
+  .cliente-panel-services-card-meta strong,
+  .cliente-panel-services-card-meta span {
+    font-size: 0.73rem;
+  }
+
+  .cliente-panel-services-card-body button {
+    min-height: 38px;
+    padding: 0.62rem 0.8rem;
+    font-size: 0.76rem;
+  }
+}
+
+@media (max-width: 760px) {
+  .cliente-panel-dashboard-empty,
+  .cliente-panel-dashboard-appointment {
+    grid-template-columns: 1fr;
+    max-height: none;
+  }
+
+  .cliente-panel-dashboard-appointment-visual {
+    min-height: 108px;
+    max-height: 132px;
+    aspect-ratio: auto;
+    flex-direction: row;
+    align-items: flex-start;
+  }
+
+  .cliente-panel-dashboard-appointment-visual strong {
+    align-self: flex-end;
+  }
+}
+
 .cliente-panel-shell {
   --r: #e60023;
   --r2: #c4001d;
@@ -9086,4 +9421,245 @@
     background: #fff0f4;
     color: #e60023;
   }
+}
+
+/* Final specificity layer: soft type, editorial hero and compact desktop cards. */
+.cliente-panel-section,
+.cliente-panel-section p,
+.cliente-panel-section label,
+.cliente-panel-section input,
+.cliente-panel-section select,
+.cliente-panel-section textarea,
+.cliente-panel-section small {
+  font-family: var(--font-sans, var(--font-nunito)), sans-serif;
+}
+
+.cliente-panel-section h1,
+.cliente-panel-section h2,
+.cliente-panel-section h3,
+.cliente-panel-section h4,
+.cliente-panel-section button,
+.cliente-panel-section strong,
+.cliente-panel-dashboard-kicker {
+  font-family: var(--font-heading, var(--font-poppins)), sans-serif;
+}
+
+.cliente-panel-section .cliente-panel-greeting h1,
+.cliente-panel-dashboard-greeting-standalone h1 {
+  color: #2f2621;
+  font-size: clamp(1.75rem, 2.65vw, 2.4rem);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.14;
+}
+
+.cliente-panel-section .cliente-panel-greeting p,
+.cliente-panel-dashboard-greeting-standalone p,
+.cliente-panel-empty-state p,
+.cliente-panel-favoritas-empty p {
+  color: #746d68;
+  font-size: 0.94rem;
+  font-weight: 500;
+  line-height: 1.58;
+}
+
+.cliente-panel-section h2,
+.cliente-panel-section h3,
+.cliente-panel-favoritas-empty h2,
+.cliente-panel-empty-state h2 {
+  font-weight: 700;
+  letter-spacing: -0.018em;
+  line-height: 1.22;
+}
+
+.cliente-panel-dashboard-greeting-standalone {
+  padding: 0;
+}
+
+.cliente-panel-dashboard-empty,
+.cliente-panel-dashboard-appointment {
+  grid-template-columns: minmax(136px, 172px) minmax(0, 1fr);
+  gap: clamp(1rem, 2vw, 1.5rem);
+  min-height: 250px;
+  max-height: 390px;
+  padding: 1rem;
+}
+
+.cliente-panel-dashboard-appointment-visual {
+  width: 100%;
+  min-height: 218px;
+  max-height: 286px;
+  aspect-ratio: 4 / 5;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 1.15rem;
+  background: radial-gradient(circle at 82% 16%, rgba(255, 184, 201, 0.2), transparent 26%), linear-gradient(155deg, #232020 0%, #111010 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  padding: 1rem;
+  justify-content: space-between;
+}
+
+.cliente-panel-dashboard-appointment-visual::after {
+  right: 0.65rem;
+  top: 0.45rem;
+  color: rgba(255, 184, 201, 0.18);
+  font-family: var(--font-heading, var(--font-poppins)), sans-serif;
+  font-size: 3.25rem;
+}
+
+.cliente-panel-dashboard-appointment-visual span,
+.cliente-panel-dashboard-appointment-visual strong {
+  font-family: var(--font-heading, var(--font-poppins)), sans-serif;
+}
+
+@media (min-width: 1024px) {
+  .cliente-panel-services-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .cliente-panel-services-card-image,
+  .cliente-panel-services-card-image img,
+  .cliente-panel-services-placeholder {
+    min-height: 150px;
+    max-height: 170px;
+  }
+
+  .cliente-panel-services-card-body {
+    gap: 0.5rem;
+    padding: 0.85rem;
+  }
+
+  .cliente-panel-services-card-body h3 { font-size: 0.98rem; }
+  .cliente-panel-services-card-body p { min-height: 2.65em; font-size: 0.78rem; line-height: 1.38; }
+  .cliente-panel-services-card-meta strong,
+  .cliente-panel-services-card-meta span { font-size: 0.73rem; }
+  .cliente-panel-services-card-body button { min-height: 38px; padding: 0.62rem 0.8rem; font-size: 0.76rem; }
+}
+
+@media (max-width: 760px) {
+  .cliente-panel-dashboard-empty,
+  .cliente-panel-dashboard-appointment {
+    grid-template-columns: 1fr;
+    max-height: none;
+  }
+
+  .cliente-panel-dashboard-appointment-visual {
+    min-height: 108px;
+    max-height: 132px;
+    aspect-ratio: auto;
+    flex-direction: row;
+    align-items: flex-start;
+  }
+
+  .cliente-panel-dashboard-appointment-visual strong { align-self: flex-end; }
+}
+
+/* Nueva reserva: servicio seleccionado dentro del resumen lateral. */
+.cliente-panel-reserva-section .cliente-panel-summary-service-line {
+  display: grid;
+  min-width: 0;
+  gap: 0.28rem;
+  border: 1px solid rgba(230, 0, 35, 0.14);
+  border-radius: 14px;
+  background: #fff7f9;
+  margin-bottom: 0.5rem;
+  padding: 0.82rem;
+}
+
+.cliente-panel-reserva-section .cliente-panel-summary-service-label {
+  color: #b44158;
+  font-family: var(--font-sans, var(--font-nunito)), sans-serif;
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+.cliente-panel-reserva-section .cliente-panel-summary-service-name {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  color: #1a1a1a;
+  font-family: var(--font-heading, var(--font-poppins)), sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.3;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cliente-panel-reserva-section .cliente-panel-summary-service-description {
+  display: -webkit-box;
+  overflow: hidden;
+  margin: 0.08rem 0 0;
+  color: #746d68;
+  font-family: var(--font-sans, var(--font-nunito)), sans-serif;
+  font-size: 0.78rem;
+  font-weight: 500;
+  line-height: 1.4;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+/* Nueva reserva: desglose financiero ordenado antes del total. */
+.cliente-panel-summary-financial-breakdown {
+  display: grid;
+  min-width: 0;
+  margin-top: 0.45rem;
+  border-top: 1px solid #eee7e2;
+}
+
+.cliente-panel-summary-financial-line {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+  border-bottom: 1px solid #f2ebe6;
+  padding: 0.62rem 0;
+}
+
+.cliente-panel-summary-financial-line span {
+  min-width: 0;
+  overflow: hidden;
+  color: #655f5a;
+  font-family: var(--font-sans, var(--font-nunito)), sans-serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cliente-panel-summary-financial-line strong {
+  color: #2f2925;
+  font-family: var(--font-heading, var(--font-poppins)), sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.cliente-panel-summary-service-price-line span,
+.cliente-panel-summary-service-price-line strong {
+  color: #1a1a1a;
+  font-weight: 700;
+}
+
+.cliente-panel-summary-service-price-line strong {
+  font-size: 0.9rem;
+}
+
+.cliente-panel-summary-express-line span,
+.cliente-panel-summary-express-line strong {
+  color: #c91938;
+}
+
+.cliente-panel-reserva-section .cliente-panel-resumen-pago .cliente-panel-summary-express-info {
+  margin-top: 0.55rem;
+  padding: 0.7rem 0.78rem;
+}
+
+.cliente-panel-summary-express-info small {
+  display: block;
+  margin: 0;
 }

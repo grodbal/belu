@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { createBookingAction } from "@/app/actions/client/createBooking";
 import { cancelBookingAction } from "@/app/actions/client/cancelBooking";
 import { updateClientProfileAction } from "@/app/actions/client/updateClientProfile";
+import LogoutButton from "@/components/auth/LogoutButton";
 import {
   addonsLashes,
   addonsNails,
@@ -501,6 +502,7 @@ const toggleServiceSection = (section: ServiceCatalogSection) => {
   }));
 };
 const urgenciaAutomatica = isWithinNextTwoHours(fecha, hora);
+const urgenciaEfectiva = urgenciaAutomatica || urgencia;
 
 const beluersDisponibles = useMemo(() => {
   if (serviciosSeleccionados.length === 0) return realBeluers;
@@ -531,7 +533,9 @@ useEffect(() => {
 }, [selectedTimeHasPassed, nextAvailableTime, hora]);
 
 useEffect(() => {
-  setUrgencia(urgenciaAutomatica);
+  if (urgenciaAutomatica) {
+    setUrgencia(true);
+  }
 }, [urgenciaAutomatica]);
 
   const totalServicios = serviciosSeleccionados.reduce(
@@ -540,7 +544,7 @@ useEffect(() => {
   );
   const totalAddons = addonsActivos.reduce((acc, addon) => acc + addon.precio, 0);
   const cargoLogistico = serviciosSeleccionados.length > 0 ? 10 : 0;
-  const recargoExpress = urgencia && serviciosSeleccionados.length > 0 ? 20 : 0;
+  const recargoExpress = urgenciaEfectiva && serviciosSeleccionados.length > 0 ? 20 : 0;
   const subtotal = totalServicios + totalAddons + cargoLogistico;
   const total = subtotal + recargoExpress;
 
@@ -645,7 +649,7 @@ formData.append("selectedBeluerName", beluerSeleccionada);
   formData.append("address", direccionReserva.trim());
   formData.append("district", distritoReserva.trim());
   formData.append("notes", notasReserva.trim());
-  formData.append("isExpress", urgencia ? "true" : "false");
+  formData.append("isExpress", urgenciaEfectiva ? "true" : "false");
 
   const result = await createBookingAction(
     {
@@ -1190,17 +1194,24 @@ const selectedBookingService = serviciosSeleccionados[0] || null;
                 <label className="cliente-panel-urgencia-toggle">
                   <input
                     type="checkbox"
-                    checked={urgencia}
-                    onChange={(event) => setUrgencia(event.target.checked)}
+                    checked={urgenciaEfectiva}
+                    disabled={urgenciaAutomatica}
+                    onChange={(event) => {
+                      if (!urgenciaAutomatica) {
+                        setUrgencia(event.target.checked);
+                      }
+                    }}
                   />
                   <span>
-                    ⚡ Necesito este servicio con urgencia (máx. 2 horas)
+                    {urgenciaAutomatica
+                      ? "⚡ Belu Express obligatorio"
+                      : "⚡ Necesito este servicio con urgencia (máx. 2 horas)"}
                   </span>
                 </label>
                 {urgenciaAutomatica && (
                   <small className="cliente-panel-urgencia-auto-note">
-                    Se marcó como urgente porque tu cita está dentro de las
-                    próximas 2 horas.
+                    Belu Express se activó automáticamente porque tu cita está
+                    dentro de las próximas 2 horas.
                   </small>
                 )}
 
@@ -1307,13 +1318,21 @@ const selectedBookingService = serviciosSeleccionados[0] || null;
 
                 {serviciosSeleccionados.length > 0 && (
                   <div className="cliente-panel-resumen-pago">
-                    <div className="linea cliente-panel-summary-service-line">
-                      <span>Servicio</span>
-                      <strong>
-                        {serviciosSeleccionados
-                          .map((servicio) => servicio.nombre)
-                          .join(" + ")}
+                    <div className="cliente-panel-summary-service-line">
+                      <span className="cliente-panel-summary-service-label">
+                        Servicio
+                      </span>
+                      <strong
+                        className="cliente-panel-summary-service-name"
+                        title={serviciosSeleccionados[0].nombre}
+                      >
+                        {serviciosSeleccionados[0].nombre}
                       </strong>
+                      {serviciosSeleccionados[0].desc ? (
+                        <p className="cliente-panel-summary-service-description">
+                          {serviciosSeleccionados[0].desc}
+                        </p>
+                      ) : null}
                     </div>
 
                     {serviciosSeleccionados.length > 1 && (
@@ -1346,36 +1365,47 @@ const selectedBookingService = serviciosSeleccionados[0] || null;
                       </strong>
                     </div>
 
-                    {addonsActivos.length > 0 && (
-                      <div className="addons-wrapper">
-                        <div className="addons-title">
-                          Servicios adicionales
+                    <div className="cliente-panel-summary-financial-breakdown">
+                      {serviciosSeleccionados.map((servicio) => (
+                        <div
+                          className="cliente-panel-summary-financial-line cliente-panel-summary-service-price-line"
+                          key={servicio.id || servicio.nombre}
+                        >
+                          <span title={servicio.nombre}>{servicio.nombre}</span>
+                          <strong>S/ {servicio.precio}</strong>
                         </div>
-                        {addonsActivos.map((addon) => (
-                          <div className="linea-addon" key={addon.nombre}>
-                            <span>{addon.nombre}</span>
-                            <strong>+ S/ {addon.precio}</strong>
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                      ))}
 
-                    <div className="linea cliente-panel-summary-logistic-line">
-                      <span>Cargo logístico</span>
-                      <strong>S/ {cargoLogistico}</strong>
+                      {addonsActivos.map((addon) => (
+                        <div
+                          className="cliente-panel-summary-financial-line"
+                          key={addon.nombre}
+                        >
+                          <span title={addon.nombre}>{addon.nombre}</span>
+                          <strong>S/ {addon.precio}</strong>
+                        </div>
+                      ))}
+
+                      <div className="cliente-panel-summary-financial-line cliente-panel-summary-logistic-line">
+                        <span>Cargo logístico</span>
+                        <strong>S/ {cargoLogistico}</strong>
+                      </div>
+
+                      {urgenciaEfectiva && (
+                        <div className="cliente-panel-summary-financial-line cliente-panel-summary-express-line">
+                          <span>Belu Express</span>
+                          <strong>S/ {recargoExpress}</strong>
+                        </div>
+                      )}
                     </div>
 
                     <div className="linea total">
                       <span>Total</span>
-                      <strong>S/ {urgencia ? total : subtotal}</strong>
+                      <strong>S/ {urgenciaEfectiva ? total : subtotal}</strong>
                     </div>
 
-                    {urgencia && (
-                      <div className="express">
-                        <div className="linea cliente-panel-summary-express-line">
-                          <span>Belu Express</span>
-                          <strong>+ S/ {recargoExpress}</strong>
-                        </div>
+                    {urgenciaEfectiva && (
+                      <div className="express cliente-panel-summary-express-info">
                         <small>
                           Te confirmamos una beluer en máximo 30 minutos o te
                           reembolsamos el recargo.
@@ -1550,7 +1580,7 @@ activeSection !== "perfil" && (
           <strong>S/ 10</strong>
         </div>
 
-        {urgencia && (
+        {urgenciaEfectiva && (
           <div className="linea-pago express">
             <span>Belu Express</span>
             <strong>+ S/ 20</strong>
@@ -1959,33 +1989,8 @@ function DashboardSection({
           : `Tu servicio será realizado por ${assignedBeluerName}.`
       : "belu está asignando una especialista para tu servicio."
     : "Tu servicio ya está agendado. Te notificaremos por WhatsApp con los datos de tu Beluer.";
-  const dashboardLocation = nextBooking?.district
-    ? `Atención en ${nextBooking.district}`
-    : "";
-
   return (
     <section className="cliente-panel-section cliente-panel-dashboard active">
-      {/* Thin topbar strip: location dot + heart + UserPill */}
-      <div className="cliente-panel-dashboard-topbar">
-        <div className="cliente-panel-dashboard-topbar-location">
-          <span className="cliente-panel-dashboard-online-dot" />
-          {dashboardLocation || "Lima"}
-        </div>
-        <div className="cliente-panel-dashboard-topbar-actions">
-          <button
-            type="button"
-            className="cliente-panel-dashboard-heart-btn"
-            onClick={() => goToSection("favoritas")}
-            aria-label="Favoritas"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-            </svg>
-          </button>
-          <UserPill clientName={clientName} />
-        </div>
-      </div>
-
       {/* Standalone greeting — not inside a card */}
       <div className="cliente-panel-dashboard-greeting-standalone">
         <h1>
@@ -2350,6 +2355,7 @@ function HistorialSection({
     <section className="cliente-panel-section active">
       <div className="cliente-panel-top-bar">
         <div className="cliente-panel-greeting">
+          <span className="cliente-panel-dashboard-kicker">Tus reservas</span>
           <h1>Tu historial</h1>
           <p>Revisa tus servicios anteriores y repite tus reservas favoritas.</p>
         </div>
@@ -2565,6 +2571,7 @@ function PagosSection({
     <section className="cliente-panel-section active">
       <div className="cliente-panel-top-bar">
         <div className="cliente-panel-greeting">
+          <span className="cliente-panel-dashboard-kicker">Tus movimientos</span>
           <h1>Historial de pagos</h1>
           <p>Consulta tus pagos, métodos usados y comprobantes.</p>
         </div>
@@ -2705,6 +2712,7 @@ function PerfilSection({
     <section className="cliente-panel-section active">
       <div className="cliente-panel-top-bar">
         <div className="cliente-panel-greeting">
+          <span className="cliente-panel-dashboard-kicker">Tu cuenta</span>
           <h1>Mi perfil</h1>
           <p>Actualiza tus datos para que tu experiencia belu sea más precisa.</p>
         </div>
@@ -2833,6 +2841,14 @@ function PerfilSection({
           >
             {profileLoading ? "Guardando..." : "Guardar cambios"}
           </button>
+
+          <div className="cliente-panel-session-block">
+            <div>
+              <h3>Sesión</h3>
+              <p>Cierra tu sesión de forma segura en este dispositivo.</p>
+            </div>
+            <LogoutButton className="cliente-panel-logout-button" />
+          </div>
         </div>
       </div>
     </section>
@@ -2885,6 +2901,7 @@ function EspecialistasSection({
     <section className="cliente-panel-section active">
       <div className="cliente-panel-top-bar">
         <div className="cliente-panel-greeting">
+          <span className="cliente-panel-dashboard-kicker">Talento belu</span>
           <h1>Nuestras Especialistas</h1>
           <p>Beluers verificadas para lashes, nails y servicios mixtos.</p>
         </div>
@@ -2969,6 +2986,7 @@ function FavoritasSection({
     <section className="cliente-panel-section active">
       <div className="cliente-panel-top-bar">
         <div className="cliente-panel-greeting">
+          <span className="cliente-panel-dashboard-kicker">Tu selección</span>
           <h1>Tus beluers favoritas</h1>
           <p>
             Accede rápido a las especialistas que más te gustan y reserva con
