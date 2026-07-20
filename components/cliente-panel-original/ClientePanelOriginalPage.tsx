@@ -5,20 +5,14 @@ import { createBookingAction } from "@/app/actions/client/createBooking";
 import { cancelBookingAction } from "@/app/actions/client/cancelBooking";
 import { updateClientProfileAction } from "@/app/actions/client/updateClientProfile";
 import LogoutButton from "@/components/auth/LogoutButton";
-import {
-  addonsLashes,
-  addonsNails,
-  crearPlaceholder,
-} from "./clientePanelData";
+import { crearPlaceholder } from "./clientePanelData";
 import type {
-  Addon,
   AssignmentMode,
   Beluer,
   GestionReservaModal,
   PanelSection,
   PaymentMethod,
   Service,
-  ServiceCategory,
 } from "./clientePanelTypes";
 
 type ClientProfile = {
@@ -303,29 +297,8 @@ export default function ClientePanelOriginalPage({
 }: ClientePanelOriginalPageProps) {
   const [activeSection, setActiveSection] = useState<PanelSection>("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [activeServiceCategory, setActiveServiceCategory] =
-    useState<ServiceCategory>("lashes");
-  const [serviceCatalogFilter, setServiceCatalogFilter] =
-    useState<ServiceCatalogFilter>("all");
-  const [openServiceSections, setOpenServiceSections] = useState<
-    Record<ServiceCatalogSection, boolean>
-  >(() => {
-    const hasFeaturedServices = realServices.some((servicio) =>
-      Boolean(servicio.is_featured)
-    );
-
-    return {
-      featured: hasFeaturedServices,
-      lashes: !hasFeaturedServices,
-      nails: false,
-    };
-  });
-  const [serviceSearch, setServiceSearch] = useState("");
-  const [serviceDetail, setServiceDetail] = useState<Service | null>(null);
-
-  const [servicioLashes, setServicioLashes] = useState<Service | null>(null);
-  const [servicioNails, setServicioNails] = useState<Service | null>(null);
-  const [addonsSeleccionados, setAddonsSeleccionados] = useState<string[]>([]);
+  const [servicioSeleccionado, setServicioSeleccionado] =
+    useState<Service | null>(null);
 const [fecha, setFecha] = useState(getTodayLocalDate);
 const [hora, setHora] = useState("14:30");
 const [direccionReserva, setDireccionReserva] = useState("");
@@ -421,16 +394,6 @@ const horaHelpText = noAvailableTimesToday
     setSidebarOpen(false);
   };
 
-  const serviciosSeleccionados = useMemo(() => {
-    return [servicioLashes, servicioNails].filter(Boolean) as Service[];
-  }, [servicioLashes, servicioNails]);
-
-  const addonsActivos = useMemo(() => {
-    return [...addonsLashes, ...addonsNails].filter((addon) =>
-      addonsSeleccionados.includes(addon.nombre)
-    );
-  }, [addonsSeleccionados]);
-
 const normalizarTexto = (texto: string) =>
   texto
     .toLowerCase()
@@ -438,93 +401,26 @@ const normalizarTexto = (texto: string) =>
     .replace(/[\u0300-\u036f]/g, "")
     .trim();
 
-const normalizedServiceSearch = normalizarTexto(serviceSearch);
-const catalogServices = sortServicesForReservation(realServices);
-const filteredCatalogServices = catalogServices.filter((servicio) => {
-  if (serviceCatalogFilter === "featured" && !servicio.is_featured) {
-    return false;
-  }
-
-  if (
-    (serviceCatalogFilter === "lashes" || serviceCatalogFilter === "nails") &&
-    servicio.categoria !== serviceCatalogFilter
-  ) {
-    return false;
-  }
-
-  if (!normalizedServiceSearch) return true;
-
-  return normalizarTexto(
-    `${servicio.nombre} ${servicio.desc} ${servicio.categoria}`
-  ).includes(normalizedServiceSearch);
-});
-const getSelectedServiceForCategory = (category: ServiceCategory) =>
-  category === "lashes" ? servicioLashes : servicioNails;
-const allCatalogSections: {
-  id: ServiceCatalogSection;
-  title: string;
-  services: Service[];
-}[] = [
-  {
-    id: "featured",
-    title: "Destacados ✦",
-    services: filteredCatalogServices.filter((servicio) =>
-      Boolean(servicio.is_featured)
-    ),
-  },
-  {
-    id: "lashes",
-    title: "Lashes",
-    services: filteredCatalogServices.filter(
-      (servicio) => servicio.categoria === "lashes"
-    ),
-  },
-  {
-    id: "nails",
-    title: "Nails",
-    services: filteredCatalogServices.filter(
-      (servicio) => servicio.categoria === "nails"
-    ),
-  },
-];
-const catalogSections = allCatalogSections.filter((section) => {
-  if (section.services.length === 0) return false;
-  if (serviceCatalogFilter === "featured") return section.id === "featured";
-  if (serviceCatalogFilter === "lashes") return section.id === "lashes";
-  if (serviceCatalogFilter === "nails") return section.id === "nails";
-
-  return true;
-});
-const toggleServiceSection = (section: ServiceCatalogSection) => {
-  setOpenServiceSections((currentSections) => ({
-    ...currentSections,
-    [section]: !currentSections[section],
-  }));
-};
 const urgenciaAutomatica = isWithinNextTwoHours(fecha, hora);
 const urgenciaEfectiva = urgenciaAutomatica || urgencia;
 
 const beluersDisponibles = useMemo(() => {
-  if (serviciosSeleccionados.length === 0) return realBeluers;
+  if (!servicioSeleccionado) return realBeluers;
 
-  const requeridos = serviciosSeleccionados.map((servicio) =>
-    normalizarTexto(servicio.nombre)
-  );
+  const servicioRequerido = normalizarTexto(servicioSeleccionado.nombre);
 
   return realBeluers.filter((beluer) => {
     const serviciosBeluer = beluer.serviciosActivos.map((servicio) =>
       normalizarTexto(servicio)
     );
 
-    return requeridos.every((servicioRequerido) =>
-      serviciosBeluer.some(
-        (servicioBeluer) =>
-          servicioBeluer.includes(servicioRequerido) ||
-          servicioRequerido.includes(servicioBeluer)
-      )
+    return serviciosBeluer.some(
+      (servicioBeluer) =>
+        servicioBeluer.includes(servicioRequerido) ||
+        servicioRequerido.includes(servicioBeluer)
     );
   });
-}, [serviciosSeleccionados, realBeluers]);
+}, [servicioSeleccionado, realBeluers]);
 
 useEffect(() => {
   if (selectedTimeHasPassed && nextAvailableTime && nextAvailableTime !== hora) {
@@ -538,64 +434,26 @@ useEffect(() => {
   }
 }, [urgenciaAutomatica]);
 
-  const totalServicios = serviciosSeleccionados.reduce(
-    (acc, servicio) => acc + servicio.precio,
-    0
-  );
-  const totalAddons = addonsActivos.reduce((acc, addon) => acc + addon.precio, 0);
-  const cargoLogistico = serviciosSeleccionados.length > 0 ? 10 : 0;
-  const recargoExpress = urgenciaEfectiva && serviciosSeleccionados.length > 0 ? 20 : 0;
-  const subtotal = totalServicios + totalAddons + cargoLogistico;
+  const precioServicio = servicioSeleccionado?.precio ?? 0;
+  const cargoLogistico = servicioSeleccionado ? 10 : 0;
+  const recargoExpress = urgenciaEfectiva && servicioSeleccionado ? 20 : 0;
+  const subtotal = precioServicio + cargoLogistico;
   const total = subtotal + recargoExpress;
 
-  const toggleAddon = (addonNombre: string) => {
-    setAddonsSeleccionados((current) =>
-      current.includes(addonNombre)
-        ? current.filter((item) => item !== addonNombre)
-        : [...current, addonNombre]
-    );
-  };
-
   const handleServicioClick = (servicio: Service) => {
-    setActiveServiceCategory(servicio.categoria);
-
-    if (servicio.categoria === "lashes") {
-      setServicioLashes(servicio);
-      setServicioNails(null);
-    }
-
-    if (servicio.categoria === "nails") {
-      setServicioNails(servicio);
-      setServicioLashes(null);
-    }
-
-    setAddonsSeleccionados([]);
+    setServicioSeleccionado(servicio);
     setBeluerSeleccionada("");
-  };
-
-  const handleChooseServiceFromDetail = (servicio: Service) => {
-    handleServicioClick(servicio);
-    setServiceDetail(null);
   };
 
   const selectServiceForBooking = (servicio: Service) => {
     handleServicioClick(servicio);
-    setServiceDetail(null);
     setActiveSection("reserva");
     setSidebarOpen(false);
   };
 
 const handleConfirmarReserva = () => {
-  if (serviciosSeleccionados.length === 0) {
-    alert("Selecciona al menos un servicio.");
-    return;
-  }
-
-  if (serviciosSeleccionados.length > 1) {
-    // Fase 2: reservas combinadas requieren booking_items para persistir múltiples servicios con snapshots de precio, comisión y duración.
-    alert(
-      "Por ahora cada servicio se reserva por separado para asegurar disponibilidad y asignar correctamente a la Beluer. Elige un servicio para continuar y luego podrás reservar el siguiente."
-    );
+  if (!servicioSeleccionado) {
+    alert("Selecciona un servicio para continuar.");
     return;
   }
 
@@ -628,9 +486,7 @@ const handleConfirmarReserva = () => {
 };
 
 const handleConfirmarPago = async () => {
-  const servicioPrincipal = serviciosSeleccionados[0];
-
-  if (!servicioPrincipal) {
+  if (!servicioSeleccionado) {
     alert("Selecciona un servicio antes de confirmar.");
     return;
   }
@@ -638,10 +494,10 @@ const handleConfirmarPago = async () => {
   setBookingLoading(true);
 
   const formData = new FormData();
-  if (servicioPrincipal.id) {
-    formData.append("serviceId", servicioPrincipal.id);
+  if (servicioSeleccionado.id) {
+    formData.append("serviceId", servicioSeleccionado.id);
   }
-  formData.append("serviceName", servicioPrincipal.nombre);
+  formData.append("serviceName", servicioSeleccionado.nombre);
   formData.append("bookingMode", modoAsignacion);
 formData.append("selectedBeluerName", beluerSeleccionada);
   formData.append("scheduledDate", fecha);
@@ -723,7 +579,7 @@ const handleCancelarReserva = async () => {
 const clientName = clientProfile?.full_name || "Clienta";
 const clientFirstName = clientProfile?.full_name?.split(" ")[0] || "Clienta";
 const hasRealBooking = Boolean(nextBooking);
-const selectedBookingService = serviciosSeleccionados[0] || null;
+const selectedBookingService = servicioSeleccionado;
 
   return (
     <div className="cliente-panel-shell">
@@ -803,8 +659,7 @@ const selectedBookingService = serviciosSeleccionados[0] || null;
 <DashboardSection
   goToSection={goToSection}
   reservaConfirmada={reservaConfirmada || hasRealBooking}
-  serviciosSeleccionados={serviciosSeleccionados}
-  addonsActivos={addonsActivos}
+  servicioSeleccionado={servicioSeleccionado}
   fecha={fecha}
   hora={hora}
   total={total}
@@ -839,7 +694,7 @@ const selectedBookingService = serviciosSeleccionados[0] || null;
 
               <div
                 className={`cliente-panel-reserva-card ${
-                  serviciosSeleccionados.length === 0 ? "no-service" : ""
+                  !servicioSeleccionado ? "no-service" : ""
                 }`}
               >
                 <div className="cliente-panel-booking-left">
@@ -853,12 +708,12 @@ const selectedBookingService = serviciosSeleccionados[0] || null;
                       </p>
                     </div>
 
-                    {serviciosSeleccionados.length > 0 ? (
+                    {servicioSeleccionado ? (
                       <div className="cliente-panel-selected-service-card">
-                        {serviciosSeleccionados[0].image_url ? (
+                        {servicioSeleccionado.image_url ? (
                           <img
-                            src={serviciosSeleccionados[0].foto}
-                            alt={serviciosSeleccionados[0].nombre}
+                            src={servicioSeleccionado.foto}
+                            alt={servicioSeleccionado.nombre}
                           />
                         ) : (
                           <span
@@ -866,7 +721,7 @@ const selectedBookingService = serviciosSeleccionados[0] || null;
                             aria-hidden="true"
                           >
                             <b>
-                              {serviciosSeleccionados[0].nombre
+                              {servicioSeleccionado.nombre
                                 .slice(0, 1)
                                 .toUpperCase()}
                             </b>
@@ -876,20 +731,20 @@ const selectedBookingService = serviciosSeleccionados[0] || null;
 
                         <div className="cliente-panel-selected-service-copy">
                           <span className="cliente-panel-servicio-category">
-                            {serviciosSeleccionados[0].categoria === "lashes"
+                            {servicioSeleccionado.categoria === "lashes"
                               ? "Lashes"
                               : "Nails"}
                           </span>
-                          <h3>{serviciosSeleccionados[0].nombre}</h3>
-                          {serviciosSeleccionados[0].desc ? (
-                            <p>{serviciosSeleccionados[0].desc}</p>
+                          <h3>{servicioSeleccionado.nombre}</h3>
+                          {servicioSeleccionado.desc ? (
+                            <p>{servicioSeleccionado.desc}</p>
                           ) : null}
                           <div className="cliente-panel-selected-service-meta">
                             <strong>
-                              {formatSoles(serviciosSeleccionados[0].precio)}
+                              {formatSoles(servicioSeleccionado.precio)}
                             </strong>
                             <span>
-                              {getServiceDuration(serviciosSeleccionados[0]) ||
+                              {getServiceDuration(servicioSeleccionado) ||
                                 "Duración por confirmar"}
                             </span>
                           </div>
@@ -906,10 +761,10 @@ const selectedBookingService = serviciosSeleccionados[0] || null;
                     ) : (
                       <div className="cliente-panel-selected-service-empty">
                         <span>&#10022;</span>
-                        <h3>Elige primero el servicio que quieres reservar</h3>
+                        <h3>Elige el servicio que quieres reservar</h3>
                         <p>
-                          Explora lashes y nails, mira fotos reales y vuelve
-                          aquí para agendar.
+                          Explora Lashes y Nails, revisa los detalles y
+                          selecciona una opción para continuar.
                         </p>
                         <button
                           type="button"
@@ -922,167 +777,6 @@ const selectedBookingService = serviciosSeleccionados[0] || null;
                     )}
 
                   </div>
-
-                  {false && (
-                  <div className="cliente-panel-booking-block cliente-panel-service-picker">
-                    <div className="cliente-panel-reserva-block-title">
-                      <span>1 · Elige tu servicio</span>
-                      <h2>Servicio para tu cita</h2>
-                      <p>
-                        Explora por categoría, revisa destacados o usa la lista
-                        completa para encontrar opciones rápido.
-                      </p>
-                    </div>
-
-                    <div className="cliente-panel-catalog-head">
-                      <div>
-                        <h3>Elige tu servicio</h3>
-                        <p>Busca por categoria, precio o tipo de resultado.</p>
-                      </div>
-
-                      <span>{filteredCatalogServices.length} opciones</span>
-                    </div>
-
-                    <div className="cliente-panel-catalog-tools">
-                      <label className="cliente-panel-service-search cliente-panel-catalog-search">
-                        <span>Buscar servicio</span>
-                        <input
-                          type="search"
-                          value={serviceSearch}
-                          onChange={(event) =>
-                            setServiceSearch(event.target.value)
-                          }
-                          placeholder="Buscar por nombre, resultado o categoria..."
-                        />
-                      </label>
-
-                      <div
-                        className="cliente-panel-catalog-chips"
-                        aria-label="Filtros de servicios"
-                      >
-                        <button
-                          type="button"
-                          className={serviceCatalogFilter === "all" ? "active" : ""}
-                          onClick={() => setServiceCatalogFilter("all")}
-                        >
-                          Todos
-                        </button>
-                        <button
-                          type="button"
-                          className={serviceCatalogFilter === "featured" ? "active" : ""}
-                          onClick={() => {
-                            setServiceCatalogFilter("featured");
-                            setOpenServiceSections((currentSections) => ({
-                              ...currentSections,
-                              featured: true,
-                            }));
-                          }}
-                        >
-                          Destacados
-                        </button>
-                        <button
-                          type="button"
-                          className={serviceCatalogFilter === "lashes" ? "active" : ""}
-                          onClick={() => {
-                            setServiceCatalogFilter("lashes");
-                            setActiveServiceCategory("lashes");
-                            setOpenServiceSections((currentSections) => ({
-                              ...currentSections,
-                              lashes: true,
-                            }));
-                          }}
-                        >
-                          Lashes
-                        </button>
-                        <button
-                          type="button"
-                          className={serviceCatalogFilter === "nails" ? "active" : ""}
-                          onClick={() => {
-                            setServiceCatalogFilter("nails");
-                            setActiveServiceCategory("nails");
-                            setOpenServiceSections((currentSections) => ({
-                              ...currentSections,
-                              nails: true,
-                            }));
-                          }}
-                        >
-                          Nails
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="cliente-panel-service-accordion-list">
-                      {catalogSections.map((section) => {
-                        const sectionOpen = openServiceSections[section.id];
-
-                        return (
-                          <section
-                            className="cliente-panel-service-accordion"
-                            key={section.id}
-                          >
-                            <button
-                              type="button"
-                              className="cliente-panel-service-accordion-head"
-                              onClick={() => toggleServiceSection(section.id)}
-                              aria-expanded={sectionOpen}
-                            >
-                              <span>
-                                <strong>{section.title}</strong>
-                                <small>
-                                  {section.services.length} servicio
-                                  {section.services.length === 1 ? "" : "s"}
-                                </small>
-                              </span>
-                              <i aria-hidden="true">{sectionOpen ? "⌃" : "⌄"}</i>
-                            </button>
-
-                            {sectionOpen ? (
-                              <div className="cliente-panel-service-accordion-body">
-                                {section.services.map((servicio) => (
-                                  <ServiceCompactCard
-                                    key={`${section.id}-${servicio.id || servicio.nombre}`}
-                                    servicio={servicio}
-                                    selected={
-                                      getSelectedServiceForCategory(
-                                        servicio.categoria
-                                      )?.nombre === servicio.nombre
-                                    }
-                                    onClick={() => setServiceDetail(servicio)}
-                                  />
-                                ))}
-                              </div>
-                            ) : null}
-                          </section>
-                        );
-                      })}
-                    </div>
-
-                    {catalogSections.length === 0 && (
-                      <div className="cliente-panel-service-empty">
-                        No encontramos servicios con ese filtro.
-                      </div>
-                    )}
-
-                    {activeServiceCategory === "lashes" && servicioLashes && (
-                      <AddonsSection
-                        label="Servicios adicionales (100% para tu Beluer)"
-                        addons={addonsLashes}
-                        selectedAddons={addonsSeleccionados}
-                        onToggle={toggleAddon}
-                      />
-                    )}
-
-                    {activeServiceCategory === "nails" && servicioNails && (
-                      <AddonsSection
-                        label="Servicios adicionales de uñas (100% para tu Beluer)"
-                        addons={addonsNails}
-                        selectedAddons={addonsSeleccionados}
-                        onToggle={toggleAddon}
-                      />
-                    )}
-                  </div>
-                  )}
-
                   <div className="cliente-panel-booking-block cliente-panel-details-block">
                     <div className="cliente-panel-reserva-block-title">
                       <span>2 · Fecha, lugar y detalles</span>
@@ -1278,8 +972,8 @@ const selectedBookingService = serviciosSeleccionados[0] || null;
                     </div>
 
                     <small>
-                      Solo se muestran las beluers que realizan los servicios
-                      seleccionados.
+                      Solo se muestran las beluers que realizan el servicio
+                      seleccionado.
                     </small>
                   </div>
                 )}
@@ -1307,7 +1001,7 @@ const selectedBookingService = serviciosSeleccionados[0] || null;
                   </p>
                 </div>
 
-                {serviciosSeleccionados.length === 0 && (
+                {!servicioSeleccionado && (
                   <div className="cliente-panel-resumen-pago cliente-panel-resumen-empty">
                     <strong>Elige un servicio para ver el resumen de tu reserva.</strong>
                     <span>
@@ -1316,7 +1010,7 @@ const selectedBookingService = serviciosSeleccionados[0] || null;
                   </div>
                 )}
 
-                {serviciosSeleccionados.length > 0 && (
+                {servicioSeleccionado && (
                   <div className="cliente-panel-resumen-pago">
                     <div className="cliente-panel-summary-service-line">
                       <span className="cliente-panel-summary-service-label">
@@ -1324,24 +1018,16 @@ const selectedBookingService = serviciosSeleccionados[0] || null;
                       </span>
                       <strong
                         className="cliente-panel-summary-service-name"
-                        title={serviciosSeleccionados[0].nombre}
+                        title={servicioSeleccionado.nombre}
                       >
-                        {serviciosSeleccionados[0].nombre}
+                        {servicioSeleccionado.nombre}
                       </strong>
-                      {serviciosSeleccionados[0].desc ? (
+                      {servicioSeleccionado.desc ? (
                         <p className="cliente-panel-summary-service-description">
-                          {serviciosSeleccionados[0].desc}
+                          {servicioSeleccionado.desc}
                         </p>
                       ) : null}
                     </div>
-
-                    {serviciosSeleccionados.length > 1 && (
-                      <div className="cliente-panel-reserva-single-note">
-                        Por ahora cada servicio se reserva por separado. Elige
-                        un servicio para continuar y luego podrás reservar el
-                        siguiente.
-                      </div>
-                    )}
 
                     <div className="linea cliente-panel-summary-date-line">
                       <span>Fecha</span>
@@ -1366,25 +1052,12 @@ const selectedBookingService = serviciosSeleccionados[0] || null;
                     </div>
 
                     <div className="cliente-panel-summary-financial-breakdown">
-                      {serviciosSeleccionados.map((servicio) => (
-                        <div
-                          className="cliente-panel-summary-financial-line cliente-panel-summary-service-price-line"
-                          key={servicio.id || servicio.nombre}
-                        >
-                          <span title={servicio.nombre}>{servicio.nombre}</span>
-                          <strong>S/ {servicio.precio}</strong>
-                        </div>
-                      ))}
-
-                      {addonsActivos.map((addon) => (
-                        <div
-                          className="cliente-panel-summary-financial-line"
-                          key={addon.nombre}
-                        >
-                          <span title={addon.nombre}>{addon.nombre}</span>
-                          <strong>S/ {addon.precio}</strong>
-                        </div>
-                      ))}
+                      <div className="cliente-panel-summary-financial-line cliente-panel-summary-service-price-line">
+                        <span title={servicioSeleccionado.nombre}>
+                          {servicioSeleccionado.nombre}
+                        </span>
+                        <strong>S/ {precioServicio}</strong>
+                      </div>
 
                       <div className="cliente-panel-summary-financial-line cliente-panel-summary-logistic-line">
                         <span>Cargo logístico</span>
@@ -1401,7 +1074,7 @@ const selectedBookingService = serviciosSeleccionados[0] || null;
 
                     <div className="linea total">
                       <span>Total</span>
-                      <strong>S/ {urgenciaEfectiva ? total : subtotal}</strong>
+                      <strong>S/ {total}</strong>
                     </div>
 
                     {urgenciaEfectiva && (
@@ -1435,7 +1108,7 @@ const selectedBookingService = serviciosSeleccionados[0] || null;
           {activeSection === "servicios" && (
             <ServiciosSection
               services={realServices}
-              selectedService={serviciosSeleccionados[0] || null}
+              selectedService={servicioSeleccionado}
               onSelectServiceForBooking={selectServiceForBooking}
               clientName={clientName}
             />
@@ -1446,7 +1119,7 @@ const selectedBookingService = serviciosSeleccionados[0] || null;
     beluers={realBeluers}
     favoritas={beluersFavoritas}
     onToggleFavorita={toggleBeluerFavorita}
-    goToReserva={() => goToSection("reserva")}
+    goToReserva={() => goToSection("servicios")}
     clientName={clientName}
   />
 )}
@@ -1534,17 +1207,6 @@ activeSection !== "perfil" && (
           aria-label="Cerrar menú"
         />
       )}
-      {serviceDetail && (
-        <ServiceDetailModal
-          servicio={serviceDetail}
-          selected={
-            getSelectedServiceForCategory(serviceDetail.categoria)?.nombre ===
-            serviceDetail.nombre
-          }
-          onChoose={() => handleChooseServiceFromDetail(serviceDetail)}
-          onClose={() => setServiceDetail(null)}
-        />
-      )}
       {pagoOpen && (
   <div className="cliente-panel-modal-overlay">
     <div className="cliente-panel-modal">
@@ -1563,17 +1225,14 @@ activeSection !== "perfil" && (
         <div>
   <span>Servicio</span>
   <strong>
-    {nextBooking?.services?.name ||
-      serviciosSeleccionados.map((servicio) => servicio.nombre).join(" + ")}
+    {nextBooking?.services?.name || servicioSeleccionado?.nombre}
   </strong>
 </div>
 
-        {addonsActivos.map((addon) => (
-          <div className="linea-pago addon" key={addon.nombre}>
-            <span>{addon.nombre}</span>
-            <strong>+ S/ {addon.precio}</strong>
-          </div>
-        ))}
+        <div className="linea-pago">
+          <span>{servicioSeleccionado?.nombre || "Servicio"}</span>
+          <strong>S/ {precioServicio}</strong>
+        </div>
 
         <div className="linea-pago">
           <span>Cargo logístico</span>
@@ -1652,16 +1311,8 @@ activeSection !== "perfil" && (
       <div className="cliente-panel-detalle-reserva">
         <p>
           <strong>Servicio:</strong>{" "}
-          {serviciosSeleccionados
-            .map((servicio) => servicio.nombre)
-            .join(" + ")}
+          {servicioSeleccionado?.nombre}
         </p>
-
-        {addonsActivos.map((addon) => (
-          <p className="addon-line" key={addon.nombre}>
-            + {addon.nombre} · S/ {addon.precio}
-          </p>
-        ))}
 
         <p>
           <strong>Fecha:</strong> {formatDisplayDate(fecha)}
@@ -1926,8 +1577,7 @@ function MobileBottomNav({
 function DashboardSection({
   goToSection,
   reservaConfirmada,
-  serviciosSeleccionados,
-  addonsActivos,
+  servicioSeleccionado,
   fecha,
   hora,
   total,
@@ -1943,8 +1593,7 @@ function DashboardSection({
 }: {
   goToSection: (section: PanelSection) => void;
   reservaConfirmada: boolean;
-  serviciosSeleccionados: Service[];
-  addonsActivos: Addon[];
+  servicioSeleccionado: Service | null;
   fecha: string;
   hora: string;
   total: number;
@@ -1973,7 +1622,7 @@ function DashboardSection({
   };
   const appointmentService =
     nextBooking?.services?.name ||
-    serviciosSeleccionados.map((servicio) => servicio.nombre).join(" + ") ||
+    servicioSeleccionado?.nombre ||
     "Servicio belu";
   const appointmentBeluer =
     assignedBeluerName ||
@@ -3086,7 +2735,7 @@ function BeluerCard({
             className="cliente-panel-btn-ghost"
             onClick={goToReserva}
           >
-            Reservar con ella →
+            Ver servicios →
           </button>
         </div>
       </div>
@@ -3639,45 +3288,6 @@ function normalizeServiceCatalogText(text: string) {
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .trim();
-}
-
-function AddonsSection({
-  label,
-  addons,
-  selectedAddons,
-  onToggle,
-}: {
-  label: string;
-  addons: Addon[];
-  selectedAddons: string[];
-  onToggle: (addonNombre: string) => void;
-}) {
-  return (
-    <div className="cliente-panel-addons-section">
-      <label>{label}</label>
-
-      <div className="cliente-panel-addons-grid">
-        {addons.map((addon) => (
-          <button
-            key={addon.nombre}
-            type="button"
-            className={`cliente-panel-addon-item ${
-              selectedAddons.includes(addon.nombre) ? "selected" : ""
-            }`}
-            onClick={() => onToggle(addon.nombre)}
-          >
-            <span className="addon-check">
-              {selectedAddons.includes(addon.nombre) ? "✓" : ""}
-            </span>
-            <span className="addon-info">
-              <strong>{addon.nombre}</strong>
-              <small>+ S/ {addon.precio}</small>
-            </span>
-          </button>
-        ))}
-      </div>
-    </div>
-  );
 }
 
 function getSectionTitle(section: PanelSection) {
