@@ -3,7 +3,6 @@ export type PanelSection =
   | "reserva"
   | "servicios"
   | "beluers"
-  | "favoritas"
   | "historial"
   | "pagos"
   | "perfil";
@@ -13,12 +12,6 @@ export type ServiceCategory = "lashes" | "nails";
 export type AssignmentMode = "gestionado" | "libre";
 
 export type PaymentMethod = "tarjeta" | "yape" | "plin";
-
-export type GestionReservaModal =
-  | "reprogramar"
-  | "cambiarBeluer"
-  | "cancelar"
-  | null;
 
 export type Service = {
   id?: string;

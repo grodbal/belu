@@ -235,7 +235,10 @@ export default async function ClientePanelPage() {
               ? servicios.slice(0, 2).join(" + ")
               : "Especialista belu",
           categoria: normalizeBeluerCategory(categorias),
-          rating: Number(beluer.rating_average || 5).toFixed(1),
+          rating:
+            beluer.rating_average == null
+              ? "Sin calificación"
+              : Number(beluer.rating_average).toFixed(1),
           citas: Number(beluer.total_bookings || 0),
           serviciosActivos: servicios,
         };
