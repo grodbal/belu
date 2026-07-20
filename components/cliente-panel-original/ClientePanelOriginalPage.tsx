@@ -2,14 +2,12 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { createBookingAction } from "@/app/actions/client/createBooking";
-import { cancelBookingAction } from "@/app/actions/client/cancelBooking";
 import { updateClientProfileAction } from "@/app/actions/client/updateClientProfile";
 import LogoutButton from "@/components/auth/LogoutButton";
 import { crearPlaceholder } from "./clientePanelData";
 import type {
   AssignmentMode,
   Beluer,
-  GestionReservaModal,
   PanelSection,
   PaymentMethod,
   Service,
@@ -237,11 +235,6 @@ const icons = {
       <path d="M16 3.13a4 4 0 0 1 0 7.75" />
     </svg>
   ),
-  favoritas: (
-    <svg viewBox="0 0 24 24">
-      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l7.78-7.78a5.5 5.5 0 0 0 1.06-8.84z" />
-    </svg>
-  ),
   historial: (
     <svg viewBox="0 0 24 24">
       <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
@@ -270,7 +263,6 @@ const navItems: {
   { id: "reserva", label: "Nueva Reserva", icon: icons.reserva },
   { id: "servicios", label: "Servicios", icon: icons.servicios },
   { id: "beluers", label: "Especialistas", icon: icons.beluers },
-  { id: "favoritas", label: "Favoritas", icon: icons.favoritas },
   { id: "historial", label: "Historial", icon: icons.historial },
   { id: "pagos", label: "Pagos", icon: icons.pagos },
   { id: "perfil", label: "Mi Perfil", icon: icons.perfil },
@@ -302,7 +294,7 @@ export default function ClientePanelOriginalPage({
 const [fecha, setFecha] = useState(getTodayLocalDate);
 const [hora, setHora] = useState("14:30");
 const [direccionReserva, setDireccionReserva] = useState("");
-const [distritoReserva, setDistritoReserva] = useState("Miraflores");
+const [distritoReserva, setDistritoReserva] = useState("");
 const [notasReserva, setNotasReserva] = useState("");
 const [bookingLoading, setBookingLoading] = useState(false);
 const [urgencia, setUrgencia] = useState(false);
@@ -313,14 +305,6 @@ const [urgencia, setUrgencia] = useState(false);
 const [confirmacionOpen, setConfirmacionOpen] = useState(false);
 const [metodoPago, setMetodoPago] = useState<PaymentMethod>("tarjeta");
 const [reservaConfirmada, setReservaConfirmada] = useState(false);
-const [cancelLoading, setCancelLoading] = useState(false);
-const [beluersFavoritas] = useState<string[]>([]);
-const [modalGestion, setModalGestion] =
-  useState<GestionReservaModal>(null);
-
-const [nuevaFecha, setNuevaFecha] = useState(fecha);
-const [nuevaHora, setNuevaHora] = useState(hora);
-const [nuevaBeluer, setNuevaBeluer] = useState("");
 const distritoSugerencias = [
   "Miraflores",
   "San Isidro",
@@ -531,51 +515,6 @@ const handleIrDashboard = () => {
   setConfirmacionOpen(false);
   setActiveSection("dashboard");
 };
-const toggleBeluerFavorita = (nombre: string) => {
-  alert(
-    `Favoritas se activará pronto. Por ahora, contáctanos por WhatsApp si quieres solicitar a ${nombre}.`
-  );
-};
-const handleReprogramarReserva = () => {
-  setModalGestion(null);
-  alert(
-    "Para reprogramar esta reserva, contáctanos por WhatsApp. Pronto podrás hacerlo desde tu panel."
-  );
-};
-
-const handleCambiarBeluer = () => {
-  setModalGestion(null);
-  alert(
-    "El cambio de Beluer será gestionado por belu para asegurar disponibilidad. Contáctanos por WhatsApp."
-  );
-};
-
-const handleCancelarReserva = async () => {
-  if (!nextBooking?.id) {
-    setReservaConfirmada(false);
-    setModalGestion(null);
-    alert("Tu reserva ha sido cancelada.");
-    return;
-  }
-
-  setCancelLoading(true);
-
-  const result = await cancelBookingAction(nextBooking.id);
-
-  setCancelLoading(false);
-
-  if (!result.success) {
-    alert(result.message);
-    return;
-  }
-
-  setReservaConfirmada(false);
-  setModalGestion(null);
-  alert(result.message);
-
-  window.location.reload();
-};
-
 const clientName = clientProfile?.full_name || "Clienta";
 const clientFirstName = clientProfile?.full_name?.split(" ")[0] || "Clienta";
 const hasRealBooking = Boolean(nextBooking);
@@ -633,19 +572,6 @@ const selectedBookingService = servicioSeleccionado;
             ))}
           </nav>
 
-          <div className="cliente-panel-sidebar-footer">
-            <div className="cliente-panel-sidebar-help-card">
-              <span>¿Necesitas ayuda?</span>
-              <a
-                href="https://wa.me/51999999999"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="cliente-panel-sidebar-help-btn"
-              >
-                Escribir por WhatsApp
-              </a>
-            </div>
-          </div>
         </aside>
 
         <main className="cliente-panel-main">
@@ -665,13 +591,12 @@ const selectedBookingService = servicioSeleccionado;
   total={total}
   modoAsignacion={modoAsignacion}
   beluerSeleccionada={beluerSeleccionada}
-  onOpenGestion={setModalGestion}
   clientFirstName={clientFirstName}
   nextBooking={nextBooking}
   clientName={clientName}
   realBeluers={realBeluers}
+  realServices={realServices}
   bookingCount={bookingHistory.length}
-  favoritesCount={beluersFavoritas.length}
 />
 )}
 
@@ -1096,10 +1021,6 @@ const selectedBookingService = servicioSeleccionado;
                   Confirmar reserva
                 </button>
 
-                <p className="cliente-panel-reserva-mvp-note">
-                  En esta etapa, la confirmación y coordinación final se realiza
-                  por WhatsApp belu.
-                </p>
                 </aside>
               </div>
             </section>
@@ -1117,21 +1038,7 @@ const selectedBookingService = servicioSeleccionado;
           {activeSection === "beluers" && (
   <EspecialistasSection
     beluers={realBeluers}
-    favoritas={beluersFavoritas}
-    onToggleFavorita={toggleBeluerFavorita}
     goToReserva={() => goToSection("servicios")}
-    clientName={clientName}
-  />
-)}
-
-
-{activeSection === "favoritas" && (
-  <FavoritasSection
-    beluers={realBeluers}
-    favoritas={beluersFavoritas}
-    onToggleFavorita={toggleBeluerFavorita}
-    goToReserva={() => goToSection("reserva")}
-    goToEspecialistas={() => goToSection("beluers")}
     clientName={clientName}
   />
 )}
@@ -1151,7 +1058,6 @@ const selectedBookingService = servicioSeleccionado;
     clientName={clientName}
     clientProfile={clientProfile}
     bookingCount={bookingHistory.length}
-    favoritesCount={beluersFavoritas.length}
   />
 )}
 
@@ -1159,7 +1065,6 @@ const selectedBookingService = servicioSeleccionado;
   activeSection !== "reserva" &&
   activeSection !== "servicios" &&
   activeSection !== "beluers" &&
-  activeSection !== "favoritas" &&
   activeSection !== "historial" &&
 activeSection !== "pagos" &&
 activeSection !== "perfil" && (
@@ -1356,165 +1261,6 @@ activeSection !== "perfil" && (
     </div>
   </div>
 )}
-    {modalGestion === "reprogramar" && (
-  <div className="cliente-panel-modal-overlay">
-    <div className="cliente-panel-gestion-modal">
-      <button
-        className="cliente-panel-modal-close"
-        type="button"
-        onClick={() => setModalGestion(null)}
-        aria-label="Cerrar modal"
-      >
-        ×
-      </button>
-
-      <h3>📅 Reprogramar cita</h3>
-      <p className="subtitulo">
-        Para reprogramar esta reserva, contáctanos por WhatsApp.
-      </p>
-
-      <div className="cliente-panel-gestion-aviso">
-        Pronto podrás hacerlo desde tu panel. En esta fase, el equipo belu
-        gestionará el cambio manualmente para validar disponibilidad.
-      </div>
-
-      <div className="cliente-panel-form-group">
-        <label>Nueva fecha</label>
-        <input
-          type="date"
-          value={nuevaFecha}
-          onChange={(event) => setNuevaFecha(event.target.value)}
-          disabled
-        />
-      </div>
-
-      <div className="cliente-panel-form-group">
-        <label>Nueva hora</label>
-        <input
-          type="text"
-          value={formatDisplayTime(nuevaHora)}
-          readOnly
-          disabled
-        />
-      </div>
-
-      <button
-        className="cliente-panel-btn-r cliente-panel-full-btn"
-        type="button"
-        onClick={handleReprogramarReserva}
-      >
-        Solicitar reprogramación por WhatsApp
-      </button>
-    </div>
-  </div>
-)}
-
-{modalGestion === "cambiarBeluer" && (
-  <div className="cliente-panel-modal-overlay">
-    <div className="cliente-panel-gestion-modal">
-      <button
-        className="cliente-panel-modal-close"
-        type="button"
-        onClick={() => setModalGestion(null)}
-        aria-label="Cerrar modal"
-      >
-        ×
-      </button>
-
-      <h3>👩‍🎨 Cambiar tu Beluer</h3>
-      <p className="subtitulo">
-        El cambio de Beluer será gestionado por belu para asegurar disponibilidad.
-      </p>
-
-      <div className="cliente-panel-gestion-aviso">
-        Contáctanos por WhatsApp y el equipo belu revisará disponibilidad antes
-        de confirmar cualquier cambio.
-      </div>
-
-      <div className="cliente-panel-beluer-selection-grid">
-        {beluersDisponibles.length > 0 ? (
-          beluersDisponibles.map((beluer) => (
-            <button
-              key={beluer.nombre}
-              type="button"
-              className={`cliente-panel-beluer-mini-card ${
-                nuevaBeluer === beluer.nombre ? "selected" : ""
-              }`}
-              onClick={() => setNuevaBeluer(beluer.nombre)}
-              disabled
-            >
-              <img src={beluer.foto} alt={beluer.nombre} />
-              <h4>{beluer.nombre}</h4>
-              <span>
-                ⭐ {beluer.rating} · {beluer.citas} citas
-              </span>
-            </button>
-          ))
-        ) : (
-          <p className="cliente-panel-empty-grid">
-            No hay Beluers disponibles para este servicio.
-          </p>
-        )}
-      </div>
-
-      <button
-        className="cliente-panel-btn-r cliente-panel-full-btn"
-        type="button"
-        onClick={handleCambiarBeluer}
-      >
-        Solicitar cambio por WhatsApp
-      </button>
-    </div>
-  </div>
-)}
-
-{modalGestion === "cancelar" && (
-  <div className="cliente-panel-modal-overlay">
-    <div className="cliente-panel-gestion-modal">
-      <button
-        className="cliente-panel-modal-close"
-        type="button"
-        onClick={() => setModalGestion(null)}
-        aria-label="Cerrar modal"
-      >
-        ×
-      </button>
-
-      <h3>❌ Cancelar reserva</h3>
-      <p className="subtitulo">
-        ¿Estás segura de que deseas cancelar tu cita?
-      </p>
-
-      <div className="cliente-panel-gestion-aviso danger">
-        <strong>Política de cancelación:</strong>
-        <br />
-        • Hasta 4h antes: reembolso completo.
-        <br />
-        • Entre 4h y 1h antes: reembolso del 50%.
-        <br />• Menos de 1h antes: sin reembolso.
-      </div>
-
-      <div className="cliente-panel-gestion-actions">
-        <button
-          className="cliente-panel-btn-ghost"
-          type="button"
-          onClick={() => setModalGestion(null)}
-        >
-          Mantener mi cita
-        </button>
-
-        <button
-  className="cliente-panel-btn-r cliente-panel-btn-muted"
-  type="button"
-  onClick={handleCancelarReserva}
-  disabled={cancelLoading}
->
-  {cancelLoading ? "Cancelando..." : "Sí, cancelar"}
-</button>
-      </div>
-    </div>
-  </div>
-)}
     </div>
   );
 }
@@ -1583,13 +1329,12 @@ function DashboardSection({
   total,
   modoAsignacion,
   beluerSeleccionada,
-  onOpenGestion,
   clientFirstName,
   nextBooking,
   clientName,
   realBeluers,
+  realServices,
   bookingCount,
-  favoritesCount,
 }: {
   goToSection: (section: PanelSection) => void;
   reservaConfirmada: boolean;
@@ -1599,15 +1344,12 @@ function DashboardSection({
   total: number;
   modoAsignacion: AssignmentMode;
   beluerSeleccionada: string;
-  onOpenGestion: (
-    modal: "reprogramar" | "cambiarBeluer" | "cancelar"
-  ) => void;
   clientFirstName: string;
   nextBooking: ClientBooking | null;
   clientName: string;
   realBeluers: Beluer[];
+  realServices: Service[];
   bookingCount: number;
-  favoritesCount: number;
 }) {
   const assignedBeluerName = nextBooking?.beluer_profiles?.public_name || "";
   const greeting = getLimaGreeting();
@@ -1629,15 +1371,6 @@ function DashboardSection({
     (modoAsignacion === "libre" && beluerSeleccionada
       ? beluerSeleccionada
       : "Beluer pendiente de asignación");
-  const assignmentMessage = nextBooking
-    ? assignedBeluerName
-      ? nextBooking.status === "confirmed"
-        ? `Tu reserva fue confirmada por ${assignedBeluerName}.`
-        : nextBooking.status === "assigned"
-          ? `Tu servicio será realizado por ${assignedBeluerName}. Pendiente de confirmación.`
-          : `Tu servicio será realizado por ${assignedBeluerName}.`
-      : "belu está asignando una especialista para tu servicio."
-    : "Tu servicio ya está agendado. Te notificaremos por WhatsApp con los datos de tu Beluer.";
   return (
     <section className="cliente-panel-section cliente-panel-dashboard active">
       {/* Standalone greeting — not inside a card */}
@@ -1761,33 +1494,7 @@ function DashboardSection({
                   Ver detalle
                 </button>
 
-                <button
-                  type="button"
-                  onClick={() => onOpenGestion("reprogramar")}
-                >
-                  Reprogramar
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => onOpenGestion("cambiarBeluer")}
-                >
-                  Cambiar Beluer
-                </button>
-
-                <button
-                  type="button"
-                  className="cliente-panel-dashboard-cancel-link"
-                  onClick={() => onOpenGestion("cancelar")}
-                >
-                  Cancelar
-                </button>
               </div>
-
-              <p className="cliente-panel-dashboard-manual-note">
-                ✦ Reprogramaciones y cambios se coordinan por WhatsApp en
-                esta etapa.
-              </p>
             </div>
           </article>
         )}
@@ -1862,21 +1569,6 @@ function DashboardSection({
               </div>
             </div>
 
-            <div className="cliente-panel-dashboard-trust-row">
-              <span className="cliente-panel-dashboard-trust-icon">✦</span>
-              <div>
-                <strong>Pago protegido</strong>
-                <p>Tu pago se confirma solo cuando el servicio queda agendado.</p>
-              </div>
-            </div>
-
-            <div className="cliente-panel-dashboard-trust-row">
-              <span className="cliente-panel-dashboard-trust-icon">✦</span>
-              <div>
-                <strong>Soporte por WhatsApp</strong>
-                <p>Acompañamiento directo antes, durante y después de tu cita.</p>
-              </div>
-            </div>
           </div>
         </div>
 
@@ -1884,10 +1576,6 @@ function DashboardSection({
           <div className="cliente-panel-dashboard-stat-box">
             <strong>{bookingCount}</strong>
             <span>Reservas realizadas</span>
-          </div>
-          <div className="cliente-panel-dashboard-stat-box">
-            <strong>{favoritesCount}</strong>
-            <span>Beluers favoritas</span>
           </div>
         </div>
         </div>
@@ -1907,21 +1595,34 @@ function DashboardSection({
         </button>
       </div>
 
-      <div className="cliente-panel-dashboard-service-grid">
-        <button type="button" onClick={() => goToSection("servicios")}>
-          <span>Lashes</span>
-          <strong>Classic Full Set</strong>
-          <small>desde S/80 · 90 min</small>
-          <em>Extensiones una a una para una mirada natural e intensa.</em>
-        </button>
+      {realServices.length > 0 ? (
+        <div className="cliente-panel-dashboard-service-grid">
+          {realServices.slice(0, 2).map((service) => {
+            const duration = getServiceDuration(service);
 
-        <button type="button" onClick={() => goToSection("servicios")}>
-          <span>Nails</span>
-          <strong>Esmaltado semipermanente</strong>
-          <small>desde S/55 · 60 min</small>
-          <em>Uñas con acabado duradero y brillo de gel premium.</em>
-        </button>
-      </div>
+            return (
+              <button
+                key={service.id || service.nombre}
+                type="button"
+                onClick={() => goToSection("servicios")}
+              >
+                <span>
+                  {service.categoria === "lashes" ? "Lashes" : "Nails"}
+                </span>
+                <strong>{service.nombre}</strong>
+                <small>
+                  {formatSoles(service.precio)}
+                  {duration ? ` · ${duration}` : ""}
+                </small>
+                <em>
+                  {service.desc ||
+                    "Consulta los detalles de este servicio en el catálogo."}
+                </em>
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
 
       {realBeluers.length > 0 && (
         <>
@@ -1952,7 +1653,9 @@ function DashboardSection({
                 <strong>{beluer.nombre}</strong>
                 <small>{beluer.espec}</small>
                 <span className="cliente-panel-dashboard-beluer-mini-rating">
-                  ★ {beluer.rating}
+                  {beluer.rating === "Sin calificación"
+                    ? beluer.rating
+                    : `★ ${beluer.rating}`}
                 </span>
               </button>
             ))}
@@ -2006,7 +1709,7 @@ function HistorialSection({
         <div className="cliente-panel-greeting">
           <span className="cliente-panel-dashboard-kicker">Tus reservas</span>
           <h1>Tu historial</h1>
-          <p>Revisa tus servicios anteriores y repite tus reservas favoritas.</p>
+          <p>Consulta el detalle de tus reservas registradas.</p>
         </div>
 
         <UserPill clientName={clientName} />
@@ -2078,7 +1781,7 @@ function HistorialSection({
                   className="cliente-panel-btn-r"
                   onClick={goToReserva}
                 >
-                  Repetir reserva ✦
+                  Nueva reserva
                 </button>
 
                 <button
@@ -2213,16 +1916,13 @@ function PagosSection({
     ? paymentStatusLabels[bookingHistory[0].payment_status] ||
       bookingHistory[0].payment_status
     : "Sin pagos";
-  const comprobanteMessage =
-    "Comprobante disponible cuando se conecte la pasarela de pagos.";
-
   return (
     <section className="cliente-panel-section active">
       <div className="cliente-panel-top-bar">
         <div className="cliente-panel-greeting">
           <span className="cliente-panel-dashboard-kicker">Tus movimientos</span>
           <h1>Historial de pagos</h1>
-          <p>Consulta tus pagos, métodos usados y comprobantes.</p>
+          <p>Consulta los montos y estados de pago de tus reservas.</p>
         </div>
 
         <UserPill clientName={clientName} />
@@ -2294,23 +1994,6 @@ function PagosSection({
               </span>
             </div>
 
-            <div className="cliente-panel-pago-actions">
-              <button
-                type="button"
-                className="cliente-panel-btn-ghost"
-                onClick={() => alert(comprobanteMessage)}
-              >
-                Ver comprobante
-              </button>
-
-              <button
-                type="button"
-                className="cliente-panel-btn-ghost"
-                onClick={() => alert(comprobanteMessage)}
-              >
-                Descargar
-              </button>
-            </div>
           </article>
             );
           })
@@ -2323,30 +2006,25 @@ function PerfilSection({
   clientName,
   clientProfile,
   bookingCount,
-  favoritesCount,
 }: {
   clientName: string;
   clientProfile: ClientProfile | null;
   bookingCount: number;
-  favoritesCount: number;
 }) {
   const nombre = clientName;
   const email = clientProfile?.email || "";
-  const [whatsapp, setWhatsapp] = useState(clientProfile?.phone || "");
+  const [phone, setPhone] = useState(clientProfile?.phone || "");
   const [profileLoading, setProfileLoading] = useState(false);
-  const distrito = "Miraflores";
-  const direccion = "Av. Comandante Espinar 456, Miraflores";
   const [preferencia, setPreferencia] = useState(
-    clientProfile?.beauty_preference || "Lashes naturales"
+    clientProfile?.beauty_preference || ""
   );
-  const notificaciones = true;
   
 
   const handleGuardarPerfil = async () => {
     setProfileLoading(true);
 
     const formData = new FormData();
-    formData.append("phone", whatsapp);
+    formData.append("phone", phone);
     formData.append("beautyPreference", preferencia);
 
     const result = await updateClientProfileAction(formData);
@@ -2381,23 +2059,6 @@ function PerfilSection({
               <span>Reservas</span>
             </div>
 
-            <div>
-              <strong>{favoritesCount}</strong>
-              <span>Favoritas</span>
-            </div>
-
-            <div>
-              <strong>✦</strong>
-              <span>belu</span>
-            </div>
-          </div>
-
-          <div className="cliente-panel-perfil-note">
-            <strong>Recordatorio día 21</strong>
-            <span>
-              Activaremos tu recordatorio automático de retoque después de cada
-              servicio completado.
-            </span>
           </div>
         </aside>
 
@@ -2424,36 +2085,13 @@ function PerfilSection({
             </div>
 
             <div className="cliente-panel-form-group">
-              <label>WhatsApp</label>
+              <label>Teléfono</label>
               <input
                 type="tel"
-                value={whatsapp}
-                onChange={(event) => setWhatsapp(event.target.value)}
+                value={phone}
+                onChange={(event) => setPhone(event.target.value)}
               />
             </div>
-
-            <div className="cliente-panel-form-group">
-              <label>Distrito</label>
-              <select
-                value={distrito}
-                disabled
-              >
-                <option value="Miraflores">Miraflores</option>
-                <option value="San Isidro">San Isidro</option>
-                <option value="Surco">Surco</option>
-                <option value="La Molina">La Molina</option>
-                <option value="Barranco">Barranco</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="cliente-panel-form-group">
-            <label>Dirección principal</label>
-            <input
-              type="text"
-              value={direccion}
-              readOnly
-            />
           </div>
 
           <div className="cliente-panel-form-group">
@@ -2462,6 +2100,9 @@ function PerfilSection({
               value={preferencia}
               onChange={(event) => setPreferencia(event.target.value)}
             >
+              <option value="" disabled>
+                Selecciona una preferencia
+              </option>
               <option value="Lashes naturales">Lashes naturales</option>
               <option value="Lashes con volumen">Lashes con volumen</option>
               <option value="Nails minimalistas">Nails minimalistas</option>
@@ -2470,23 +2111,11 @@ function PerfilSection({
             </select>
           </div>
 
-          <label className="cliente-panel-perfil-toggle">
-            <input
-              type="checkbox"
-              checked={notificaciones}
-              disabled
-            />
-            <span>
-              Quiero recibir recordatorios por WhatsApp, incluyendo mi retoque
-              del día 21.
-            </span>
-          </label>
-
           <button
             className="cliente-panel-btn-r cliente-panel-full-btn"
             type="button"
             onClick={handleGuardarPerfil}
-            disabled={profileLoading}
+            disabled={profileLoading || !preferencia}
           >
             {profileLoading ? "Guardando..." : "Guardar cambios"}
           </button>
@@ -2526,14 +2155,10 @@ function UserPill({ clientName = "Clienta belu" }: { clientName?: string }) {
 
 function EspecialistasSection({
   beluers,
-  favoritas,
-  onToggleFavorita,
   goToReserva,
   clientName,
 }: {
   beluers: Beluer[];
-  favoritas: string[];
-  onToggleFavorita: (nombre: string) => void;
   goToReserva: () => void;
   clientName: string;
 }) {
@@ -2602,8 +2227,6 @@ function EspecialistasSection({
           <BeluerCard
             key={beluer.nombre}
             beluer={beluer}
-            esFavorita={favoritas.includes(beluer.nombre)}
-            onToggleFavorita={() => onToggleFavorita(beluer.nombre)}
             goToReserva={goToReserva}
           />
           ))
@@ -2612,98 +2235,17 @@ function EspecialistasSection({
     </section>
   );
 }
-function FavoritasSection({
-  beluers,
-  favoritas,
-  onToggleFavorita,
-  goToReserva,
-  goToEspecialistas,
-  clientName,
-}: {
-  beluers: Beluer[];
-  favoritas: string[];
-  onToggleFavorita: (nombre: string) => void;
-  goToReserva: () => void;
-  goToEspecialistas: () => void;
-  clientName: string;
-}) {
-  const beluersFavoritas = beluers.filter((beluer) =>
-    favoritas.includes(beluer.nombre)
-  );
-
-  return (
-    <section className="cliente-panel-section active">
-      <div className="cliente-panel-top-bar">
-        <div className="cliente-panel-greeting">
-          <span className="cliente-panel-dashboard-kicker">Tu selección</span>
-          <h1>Tus beluers favoritas</h1>
-          <p>
-            Accede rápido a las especialistas que más te gustan y reserva con
-            ellas en menos pasos.
-          </p>
-        </div>
-
-        <UserPill clientName={clientName} />
-      </div>
-
-      {beluersFavoritas.length === 0 ? (
-        <div className="cliente-panel-favoritas-empty">
-          <div className="cliente-panel-empty-heart">♥</div>
-          <h2>Aún no tienes Beluers favoritas.</h2>
-          <p>
-            Marca con corazón a tus Beluers preferidas para encontrarlas más
-            rápido la próxima vez.
-          </p>
-
-          <button
-            className="cliente-panel-btn-r"
-            type="button"
-            onClick={goToEspecialistas}
-          >
-            Ver especialistas ✦
-          </button>
-        </div>
-      ) : (
-        <div className="cliente-panel-beluers-grid">
-          {beluersFavoritas.map((beluer) => (
-            <BeluerCard
-              key={beluer.nombre}
-              beluer={beluer}
-              esFavorita={favoritas.includes(beluer.nombre)}
-              onToggleFavorita={() => onToggleFavorita(beluer.nombre)}
-              goToReserva={goToReserva}
-            />
-          ))}
-        </div>
-      )}
-    </section>
-  );
-}
-
 function BeluerCard({
   beluer,
-  esFavorita,
-  onToggleFavorita,
   goToReserva,
 }: {
   beluer: Beluer;
-  esFavorita: boolean;
-  onToggleFavorita: () => void;
   goToReserva: () => void;
 }) {
   return (
     <article className="cliente-panel-beluer-card">
       <div className="cliente-panel-beluer-card-header">
         <img src={beluer.foto} alt={beluer.nombre} />
-
-        <button
-          type="button"
-          className={`cliente-panel-fav-btn ${esFavorita ? "active" : ""}`}
-          onClick={onToggleFavorita}
-          aria-label="Marcar como favorita"
-        >
-          ♥
-        </button>
       </div>
 
       <div className="cliente-panel-beluer-card-body">
@@ -2715,7 +2257,11 @@ function BeluerCard({
         <p>{beluer.espec}</p>
 
         <div className="cliente-panel-beluer-meta">
-          <span>⭐ {beluer.rating}</span>
+          <span>
+            {beluer.rating === "Sin calificación"
+              ? beluer.rating
+              : `⭐ ${beluer.rating}`}
+          </span>
           <span>{beluer.citas} citas</span>
         </div>
 
@@ -3296,7 +2842,6 @@ function getSectionTitle(section: PanelSection) {
     reserva: "Agendar nueva cita",
     servicios: "Servicios",
     beluers: "Nuestras Especialistas",
-    favoritas: "Tus beluers favoritas",
     historial: "Tu historial",
     pagos: "Historial de pagos",
     perfil: "Mi perfil",

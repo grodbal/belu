@@ -2398,7 +2398,7 @@
 
 .cliente-panel-perfil-stats {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: 1fr;
   gap: 0.6rem;
   margin-bottom: 1.4rem;
 }
@@ -2552,41 +2552,10 @@
   margin-bottom: 1.2rem;
 }
 
-.cliente-panel-gestion-aviso.danger {
-  background: rgba(0, 0, 0, 0.035);
-  border-left-color: #888;
-}
-
-.cliente-panel-gestion-actions {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.7rem;
-  margin-top: 1.2rem;
-}
-
-.cliente-panel-gestion-actions .cliente-panel-btn-ghost,
-.cliente-panel-gestion-actions .cliente-panel-btn-r {
-  margin-top: 0;
-  width: 100%;
-}
-
-.cliente-panel-btn-muted {
-  background: #777 !important;
-  box-shadow: none !important;
-}
-
-.cliente-panel-btn-muted:hover {
-  background: #555 !important;
-}
-
 @media (max-width: 900px) {
   .cliente-panel-shell .cliente-panel-gestion-modal {
     border-radius: 1.5rem !important;
     padding: 1.5rem !important;
-  }
-
-  .cliente-panel-gestion-actions {
-    grid-template-columns: 1fr;
   }
 }
 /* ================================
@@ -2914,26 +2883,6 @@
 .cliente-panel-ra-acciones button:last-child {
   border-color: rgba(230, 0, 35, 0.18);
   color: var(--r);
-}
-
-.cliente-panel-ra-acciones button {
-  font-size: 0;
-}
-
-.cliente-panel-ra-acciones button::before {
-  font-size: 0.86rem;
-}
-
-.cliente-panel-ra-acciones button:nth-child(1)::before {
-  content: "Reprogramar";
-}
-
-.cliente-panel-ra-acciones button:nth-child(2)::before {
-  content: "Cambiar Beluer";
-}
-
-.cliente-panel-ra-acciones button:nth-child(3)::before {
-  content: "Cancelar";
 }
 
 .cliente-panel-servicio-card {
@@ -8869,21 +8818,6 @@
   color: #fff !important;
 }
 
-.cliente-panel-dashboard-cancel-link {
-  border-color: transparent !important;
-  background: transparent !important;
-  color: rgba(201, 25, 56, 0.65) !important;
-  padding-inline: 0.32rem !important;
-  font-size: 0.71rem !important;
-  text-decoration: underline;
-  text-underline-offset: 2px;
-}
-
-.cliente-panel-dashboard-cancel-link:hover {
-  color: #c91938 !important;
-  background: transparent !important;
-}
-
 /* ── Quick shortcuts: pink icon box + arrow ──────────────────────────── */
 .cliente-panel-dashboard-quick-list button {
   display: flex;
@@ -9146,10 +9080,10 @@
   line-height: 1.42;
 }
 
-/* Stats: 2 StatBox reales (reservas, favoritas) */
+/* Stats reales del MVP */
 .cliente-panel-dashboard-stats-card {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   gap: 0.75rem;
 }
 
