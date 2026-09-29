@@ -4,6 +4,13 @@ import { useEffect, useMemo, useState } from "react";
 import { createBookingAction } from "@/app/actions/client/createBooking";
 import { updateClientProfileAction } from "@/app/actions/client/updateClientProfile";
 import LogoutButton from "@/components/auth/LogoutButton";
+import {
+  ClientBottomNav,
+  ClientHeader,
+  ClientShell,
+  ClientSidebar,
+  type ClientNavigationItem,
+} from "@/components/belu";
 import { crearPlaceholder } from "./clientePanelData";
 import type {
   AssignmentMode,
@@ -203,28 +210,10 @@ function getLimaGreeting() {
 }
 
 const icons = {
-  dashboard: (
-    <svg viewBox="0 0 24 24">
-      <rect x="3" y="3" width="7" height="7" rx="1" />
-      <rect x="14" y="3" width="7" height="7" rx="1" />
-      <rect x="3" y="14" width="7" height="7" rx="1" />
-      <rect x="14" y="14" width="7" height="7" rx="1" />
-    </svg>
-  ),
   reserva: (
     <svg viewBox="0 0 24 24">
       <circle cx="12" cy="12" r="10" />
       <polyline points="12 6 12 12 16 14" />
-    </svg>
-  ),
-  servicios: (
-    <svg viewBox="0 0 24 24">
-      <path d="M4 7h16" />
-      <path d="M4 12h16" />
-      <path d="M4 17h16" />
-      <circle cx="7" cy="7" r="1" />
-      <circle cx="7" cy="12" r="1" />
-      <circle cx="7" cy="17" r="1" />
     </svg>
   ),
   beluers: (
@@ -254,30 +243,25 @@ const icons = {
   ),
 };
 
-const navItems: {
-  id: PanelSection;
-  label: string;
-  icon: React.ReactNode;
-}[] = [
-  { id: "dashboard", label: "Inicio", icon: icons.dashboard },
-  { id: "reserva", label: "Nueva Reserva", icon: icons.reserva },
-  { id: "servicios", label: "Servicios", icon: icons.servicios },
-  { id: "beluers", label: "Especialistas", icon: icons.beluers },
-  { id: "historial", label: "Historial", icon: icons.historial },
-  { id: "pagos", label: "Pagos", icon: icons.pagos },
-  { id: "perfil", label: "Mi Perfil", icon: icons.perfil },
+const primaryNavItems: ClientNavigationItem<PanelSection>[] = [
+  { id: "dashboard", label: "Inicio", icon: "home" },
+  { id: "servicios", label: "Servicios", icon: "sparkles" },
+  { id: "reserva", label: "Reservar", icon: "calendar" },
+  { id: "historial", label: "Historial", icon: "clock" },
+  { id: "perfil", label: "Mi perfil", icon: "user" },
 ];
 
-const mobileNavItems: {
-  id: PanelSection;
-  label: string;
-  icon: React.ReactNode;
-}[] = [
-  { id: "dashboard", label: "Inicio", icon: icons.dashboard },
-  { id: "servicios", label: "Servicios", icon: icons.servicios },
-  { id: "reserva", label: "Reserva", icon: icons.reserva },
-  { id: "historial", label: "Historial", icon: icons.historial },
-  { id: "perfil", label: "Perfil", icon: icons.perfil },
+const secondaryNavItems: ClientNavigationItem<PanelSection>[] = [
+  { id: "beluers", label: "Especialistas", icon: "user" },
+  { id: "pagos", label: "Pagos", icon: "card" },
+];
+
+const mobileNavItems: ClientNavigationItem<PanelSection>[] = [
+  { id: "dashboard", label: "Inicio", icon: "home" },
+  { id: "servicios", label: "Servicios", icon: "sparkles" },
+  { id: "reserva", label: "Reserva", icon: "calendar", prominent: true },
+  { id: "historial", label: "Historial", icon: "clock" },
+  { id: "perfil", label: "Perfil", icon: "user" },
 ];
 
 export default function ClientePanelOriginalPage({
@@ -288,7 +272,7 @@ export default function ClientePanelOriginalPage({
   realServices,
 }: ClientePanelOriginalPageProps) {
   const [activeSection, setActiveSection] = useState<PanelSection>("dashboard");
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [, setSidebarOpen] = useState(false);
   const [servicioSeleccionado, setServicioSeleccionado] =
     useState<Service | null>(null);
 const [fecha, setFecha] = useState(getTodayLocalDate);
@@ -521,66 +505,36 @@ const hasRealBooking = Boolean(nextBooking);
 const selectedBookingService = servicioSeleccionado;
 
   return (
-    <div className="cliente-panel-shell">
-      <button
-        className="cliente-panel-menu-btn"
-        type="button"
-        onClick={() => setSidebarOpen(true)}
-        aria-label="Abrir menú"
-      >
-        <svg viewBox="0 0 24 24">
-          <line x1="3" y1="6" x2="21" y2="6" />
-          <line x1="3" y1="12" x2="21" y2="12" />
-          <line x1="3" y1="18" x2="21" y2="18" />
-        </svg>
-      </button>
-
-      <div className="cliente-panel-app">
-        <aside
-          className={`cliente-panel-sidebar ${
-            sidebarOpen ? "cliente-panel-sidebar-open" : ""
-          }`}
-        >
-          <div className="cliente-panel-sidebar-logo">
-            <img src="/logo-belu-red.png" alt="belu" />
-          </div>
-
-          <nav className="cliente-panel-sidebar-nav">
-            <p className="cliente-panel-sidebar-section-label">Principal</p>
-            {navItems.slice(0, 4).map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                className={activeSection === item.id ? "active" : ""}
-                onClick={() => goToSection(item.id)}
-              >
-                <span className="cliente-panel-nav-icon">{item.icon}</span>
-                {item.label}
-              </button>
-            ))}
-            <p className="cliente-panel-sidebar-section-label">Cuenta</p>
-            {navItems.slice(4).map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                className={activeSection === item.id ? "active" : ""}
-                onClick={() => goToSection(item.id)}
-              >
-                <span className="cliente-panel-nav-icon">{item.icon}</span>
-                {item.label}
-              </button>
-            ))}
-          </nav>
-
-        </aside>
-
-        <main className="cliente-panel-main">
-          <ClientAppHeader
-            clientFirstName={clientFirstName}
-            district={distritoReserva}
-            clientName={clientName}
-          />
-
+    <ClientShell
+      sidebar={
+        <ClientSidebar
+          items={primaryNavItems}
+          secondaryItems={secondaryNavItems}
+          activeItem={activeSection}
+          onNavigate={goToSection}
+          onLogoClick={() => goToSection("dashboard")}
+          note={<><span aria-hidden="true">✦</span><p>Belleza experta,<br/>donde tú estés.</p></>}
+          logout={<LogoutButton />}
+        />
+      }
+      header={
+        <ClientHeader
+          clientName={clientName}
+          avatarText={getInitials(clientName) || "B"}
+          eyebrow="Tu espacio belu"
+          onLogoClick={() => goToSection("dashboard")}
+          onProfileClick={() => goToSection("perfil")}
+        />
+      }
+      bottomNav={
+        <ClientBottomNav
+          items={mobileNavItems}
+          activeItem={activeSection}
+          onNavigate={goToSection}
+        />
+      }
+    >
+      <div className="cliente-panel-shell">
           {activeSection === "dashboard" && (
 <DashboardSection
   goToSection={goToSection}
@@ -1087,9 +1041,6 @@ activeSection !== "perfil" && (
       </div>
     </section>
           )}
-        </main>
-      </div>
-
       {selectedBookingService &&
       (activeSection === "dashboard" || activeSection === "servicios") ? (
         <button
@@ -1102,16 +1053,6 @@ activeSection !== "perfil" && (
         </button>
       ) : null}
 
-      <MobileBottomNav activeSection={activeSection} goToSection={goToSection} />
-
-      {sidebarOpen && (
-        <button
-          className="cliente-panel-backdrop"
-          type="button"
-          onClick={() => setSidebarOpen(false)}
-          aria-label="Cerrar menú"
-        />
-      )}
       {pagoOpen && (
   <div className="cliente-panel-modal-overlay">
     <div className="cliente-panel-modal">
@@ -1261,62 +1202,8 @@ activeSection !== "perfil" && (
     </div>
   </div>
 )}
-    </div>
-  );
-}
-
-function ClientAppHeader({
-  clientFirstName,
-  district,
-  clientName,
-}: {
-  clientFirstName: string;
-  district: string;
-  clientName: string;
-}) {
-  const initials = clientName
-    .split(" ")
-    .map((part) => part[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-
-  return (
-    <header className="cliente-panel-app-header">
-      <div>
-        <span>Hola, {clientFirstName}</span>
-        <h1>Luce increíble, cuando quieras ✦</h1>
-        <p>{district ? `Atención en ${district}` : "Lashes y nails a domicilio"}</p>
       </div>
-
-      <div className="cliente-panel-app-header-avatar" aria-label={clientName}>
-        {initials || "B"}
-      </div>
-    </header>
-  );
-}
-
-function MobileBottomNav({
-  activeSection,
-  goToSection,
-}: {
-  activeSection: PanelSection;
-  goToSection: (section: PanelSection) => void;
-}) {
-  return (
-    <nav className="cliente-panel-bottom-nav" aria-label="Navegacion principal">
-      {mobileNavItems.map((item) => (
-        <button
-          key={item.id}
-          type="button"
-          className={activeSection === item.id ? "active" : ""}
-          onClick={() => goToSection(item.id)}
-        >
-          <span className="cliente-panel-nav-icon">{item.icon}</span>
-          <small>{item.label}</small>
-        </button>
-      ))}
-    </nav>
+    </ClientShell>
   );
 }
 
