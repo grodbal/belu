@@ -167,26 +167,6 @@
 .heroContent > p:not(.heroKicker) { max-width: 420px; margin: 17px 0 0; color: rgba(255,255,255,.83); font-size: .98rem; line-height: 1.55; }
 .heroActions { display: flex; align-items: center; gap: 13px; margin-top: 28px; }
 
-.primaryButton,
-.secondaryButton {
-  display: inline-flex;
-  min-height: 48px;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  border: 1px solid transparent;
-  border-radius: 12px;
-  padding: 0 20px;
-  font: 600 .82rem/1 var(--font-poppins), Poppins, sans-serif;
-  transition: transform 180ms ease, background-color 180ms ease, border-color 180ms ease;
-}
-.primaryButton { background: var(--red); color: white; }
-.primaryButton:hover { background: var(--red-dark); transform: translateY(-2px); }
-.primaryButton:hover .icon { transform: translateX(2px); }
-.primaryButton .icon { transition: transform 180ms ease; }
-.secondaryButton { border-color: rgba(255,255,255,.48); background: rgba(255,255,255,.1); color: white; backdrop-filter: blur(8px); }
-.secondaryButton:hover { border-color: white; background: rgba(255,255,255,.18); }
-
 .contentSection { margin-top: 52px; scroll-margin-top: 30px; }
 .sectionHeader { display: flex; align-items: baseline; justify-content: space-between; gap: 24px; margin-bottom: 21px; }
 .sectionHeader h2 { margin: 0; font-size: clamp(1.45rem, 2.1vw, 1.9rem); font-weight: 500; letter-spacing: -.035em; }
@@ -215,8 +195,6 @@
 .beluerCard:hover .beluerVisual img { transform: scale(1.035); }
 .availability { position: absolute; left: 12px; bottom: 12px; display: inline-flex; align-items: center; gap: 7px; border-radius: 999px; background: rgba(255,255,255,.92); padding: 7px 10px; color: #2d5f42; font-size: .68rem; font-weight: 800; backdrop-filter: blur(6px); }
 .availability i { width: 7px; height: 7px; border-radius: 50%; background: #36a269; box-shadow: 0 0 0 3px rgba(54,162,105,.14); }
-.favoriteButton { position: absolute; top: 12px; right: 12px; display: grid; width: 42px; height: 42px; place-items: center; border: 0; border-radius: 50%; background: rgba(255,255,255,.9); color: #433b38; backdrop-filter: blur(6px); }
-.favoriteButton:hover { color: var(--red); }
 .beluerInfo { padding: 17px 17px 18px; }
 .verified { margin: 0 0 6px; color: #9f777f; font-size: .62rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; }
 .beluerNameRow { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
@@ -287,7 +265,6 @@
   .hero h1 br { display: none; }
   .heroContent > p:not(.heroKicker) { margin-top: 12px; font-size: .88rem; }
   .heroActions { margin-top: 20px; }
-  .primaryButton, .secondaryButton { min-height: 46px; padding-inline: 16px; font-size: .75rem; }
   .contentSection { margin-top: 34px; }
   .sectionHeader { margin: 0 18px 17px; }
   .sectionHeader h2 { font-size: 1.34rem; }
@@ -345,7 +322,6 @@
 
 @media (max-width: 370px) {
   .heroActions { align-items: stretch; flex-direction: column; }
-  .primaryButton, .secondaryButton { width: 100%; }
 }
 
 @media (min-width: 1600px) {
