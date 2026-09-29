@@ -1,58 +1,89 @@
+"use client";
+
 import Image from "next/image";
+import { useState, type ReactNode } from "react";
 import {
   BeluIcon,
+  ClientBottomNav,
+  ClientHeader,
+  ClientShell,
+  ClientSidebar,
   PrimaryButton,
   SecondaryButton,
   type BeluIconName,
+  type ClientNavigationItem,
 } from "@/components/belu";
 import styles from "./cliente-home-v2.module.css";
 
-const desktopNav: { label: string; icon: BeluIconName; active?: boolean }[] = [
-  { label: "Inicio", icon: "home", active: true },
-  { label: "Servicios", icon: "sparkles" },
-  { label: "Reservar", icon: "calendar" },
-  { label: "Historial", icon: "clock" },
-  { label: "Mi perfil", icon: "user" },
+type GoldenNavigationId = "home" | "services" | "booking" | "history" | "profile";
+
+const desktopNav: ClientNavigationItem<GoldenNavigationId>[] = [
+  { id: "home", label: "Inicio", icon: "home" },
+  { id: "services", label: "Servicios", icon: "sparkles" },
+  { id: "booking", label: "Reservar", icon: "calendar" },
+  { id: "history", label: "Historial", icon: "clock" },
+  { id: "profile", label: "Mi perfil", icon: "user" },
 ];
 
-export function ClientSidebar() {
-  return (
-    <aside className={styles.sidebar}>
-      <div className={styles.sidebarInner}>
-        <a className={styles.logo} href="#top" aria-label="belu, inicio">
-          <Image src="/logo-belu-red.png" alt="belu" width={104} height={45} priority />
-        </a>
-        <nav className={styles.sideNav} aria-label="Navegación principal">
-          {desktopNav.map((item) => (
-            <a key={item.label} className={item.active ? styles.sideNavActive : styles.sideNavLink} href={item.active ? "#top" : "#"} aria-current={item.active ? "page" : undefined}>
-              <BeluIcon className={styles.icon} name={item.icon}/><span>{item.label}</span>
-            </a>
-          ))}
-        </nav>
-        <div className={styles.sidebarNote}>
-          <span className={styles.brandMark}>✦</span>
-          <p>Belleza experta,<br/>donde tú estés.</p>
-        </div>
-        <button className={styles.logoutButton} type="button"><BeluIcon className={styles.icon} name="arrow"/><span>Cerrar sesión</span></button>
-      </div>
-    </aside>
-  );
-}
+const mobileNav: ClientNavigationItem<GoldenNavigationId>[] = [
+  { id: "home", label: "Inicio", icon: "home" },
+  { id: "services", label: "Servicios", icon: "sparkles" },
+  { id: "booking", label: "Reserva", icon: "calendar", prominent: true },
+  { id: "history", label: "Historial", icon: "clock" },
+  { id: "profile", label: "Perfil", icon: "user" },
+];
 
-export function ClientHeader() {
+const navigationTargets: Partial<Record<GoldenNavigationId, string>> = {
+  home: "top",
+  services: "servicios",
+  booking: "servicios",
+};
+
+export function GoldenClientShell({ children }: { children: ReactNode }) {
+  const [activeItem, setActiveItem] = useState<GoldenNavigationId>("home");
+
+  function handleNavigate(itemId: GoldenNavigationId) {
+    setActiveItem(itemId);
+    const target = navigationTargets[itemId];
+
+    if (target) {
+      document.getElementById(target)?.scrollIntoView();
+    }
+  }
+
   return (
-    <header className={styles.header}>
-      <a className={styles.mobileLogo} href="#top" aria-label="belu, inicio"><Image src="/logo-belu-red.png" alt="belu" width={82} height={36} priority /></a>
-      <div className={styles.desktopGreeting}>
-        <span className={styles.eyebrow}>Tu espacio belu</span>
-        <p>Hola, Luciana <span aria-hidden="true">✦</span></p>
-      </div>
-      <button className={styles.avatarButton} type="button" aria-label="Abrir perfil de Luciana">
-        <span className={styles.avatar}>L</span>
-        <span className={styles.avatarName}>Luciana</span>
-        <svg aria-hidden="true" width="13" height="13" viewBox="0 0 12 12" fill="none"><path d="m3 4.5 3 3 3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-      </button>
-    </header>
+    <ClientShell
+      id="top"
+      sidebar={
+        <ClientSidebar
+          items={desktopNav}
+          activeItem={activeItem}
+          onNavigate={handleNavigate}
+          onLogoClick={() => handleNavigate("home")}
+          note={<><span aria-hidden="true">✦</span><p>Belleza experta,<br/>donde tú estés.</p></>}
+          logout={<button type="button"><BeluIcon name="arrow"/><span>Cerrar sesión</span></button>}
+        />
+      }
+      header={
+        <ClientHeader
+          clientName="Luciana"
+          avatarText="L"
+          eyebrow="Tu espacio belu"
+          greeting={<>Hola, Luciana <span aria-hidden="true">✦</span></>}
+          onLogoClick={() => handleNavigate("home")}
+          onProfileClick={() => handleNavigate("profile")}
+        />
+      }
+      bottomNav={
+        <ClientBottomNav
+          items={mobileNav}
+          activeItem={activeItem}
+          onNavigate={handleNavigate}
+        />
+      }
+    >
+      {children}
+    </ClientShell>
   );
 }
 
@@ -155,21 +186,5 @@ export function TrustStrip() {
         {trustItems.map((item) => <div className={styles.trustItem} key={item.title}><span><BeluIcon className={styles.icon} name={item.icon}/></span><div><h3>{item.title}</h3><p>{item.body}</p></div></div>)}
       </div>
     </section>
-  );
-}
-
-const mobileNav: { label: string; icon: BeluIconName; primary?: boolean; active?: boolean }[] = [
-  { label: "Inicio", icon: "home", active: true },
-  { label: "Servicios", icon: "sparkles" },
-  { label: "Reserva", icon: "calendar", primary: true },
-  { label: "Historial", icon: "clock" },
-  { label: "Perfil", icon: "user" },
-];
-
-export function ClientBottomNav() {
-  return (
-    <nav className={styles.bottomNav} aria-label="Navegación móvil">
-      {mobileNav.map((item) => <a key={item.label} className={`${styles.bottomNavItem} ${item.active ? styles.bottomNavActive : ""} ${item.primary ? styles.bottomNavPrimary : ""}`} href={item.active ? "#top" : "#"} aria-current={item.active ? "page" : undefined}><span><BeluIcon className={styles.icon} name={item.icon}/></span><em>{item.label}</em></a>)}
-    </nav>
   );
 }

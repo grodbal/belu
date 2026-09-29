@@ -2,9 +2,7 @@ import type { Metadata } from "next";
 import {
   BeluerCard,
   BookingHero,
-  ClientBottomNav,
-  ClientHeader,
-  ClientSidebar,
+  GoldenClientShell,
   SectionHeader,
   ServiceCard,
   TrustStrip,
@@ -31,33 +29,26 @@ const beluers = [
 
 export default function ClienteHomeV2Page() {
   return (
-    <div className={styles.prototype} id="top">
-      <ClientSidebar />
-      <div className={styles.pageColumn}>
-        <ClientHeader />
-        <main className={styles.main}>
-          <h1 className={styles.mobileGreeting}>Hola, Luciana <span aria-hidden="true">✦</span></h1>
-          <BookingHero />
+    <GoldenClientShell>
+      <h1 className={styles.mobileGreeting}>Hola, Luciana <span aria-hidden="true">✦</span></h1>
+      <BookingHero />
 
-          <section className={styles.contentSection} id="servicios" aria-label="Explora servicios">
-            <SectionHeader title="Explora servicios" linkLabel="Ver todos" />
-            <div className={styles.serviceRail}>
-              {services.map((service) => <ServiceCard key={service.title} {...service} />)}
-            </div>
-          </section>
+      <section className={styles.contentSection} id="servicios" aria-label="Explora servicios">
+        <SectionHeader title="Explora servicios" linkLabel="Ver todos" />
+        <div className={styles.serviceRail}>
+          {services.map((service) => <ServiceCard key={service.title} {...service} />)}
+        </div>
+      </section>
 
-          <section className={styles.contentSection} aria-label="Beluers para ti">
-            <SectionHeader title="Beluers para ti" linkLabel="Conocer más" />
-            <div className={styles.beluerRail}>
-              {beluers.map((beluer) => <BeluerCard key={beluer.name} {...beluer} />)}
-            </div>
-          </section>
+      <section className={styles.contentSection} aria-label="Beluers para ti">
+        <SectionHeader title="Beluers para ti" linkLabel="Conocer más" />
+        <div className={styles.beluerRail}>
+          {beluers.map((beluer) => <BeluerCard key={beluer.name} {...beluer} />)}
+        </div>
+      </section>
 
-          <TrustStrip />
-          <footer className={styles.footer}><span>belu</span><p>luce increíble, cuando quieras</p></footer>
-        </main>
-      </div>
-      <ClientBottomNav />
-    </div>
+      <TrustStrip />
+      <footer className={styles.footer}><span>belu</span><p>luce increíble, cuando quieras</p></footer>
+    </GoldenClientShell>
   );
 }
