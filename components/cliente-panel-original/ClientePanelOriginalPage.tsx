@@ -5,11 +5,15 @@ import { createBookingAction } from "@/app/actions/client/createBooking";
 import { updateClientProfileAction } from "@/app/actions/client/updateClientProfile";
 import LogoutButton from "@/components/auth/LogoutButton";
 import {
+  ClientHome,
   ClientBottomNav,
   ClientHeader,
   ClientShell,
   ClientSidebar,
+  type BeluerCardData,
+  type BookingHeroData,
   type ClientNavigationItem,
+  type ServiceCardData,
 } from "@/components/belu";
 import { crearPlaceholder } from "./clientePanelData";
 import type {
@@ -194,54 +198,6 @@ function isPastTimeForSelectedDate(dateValue: string, timeValue: string) {
 
   return selectedDate <= new Date();
 }
-
-function getLimaGreeting() {
-  const limaHour = Number(
-    new Intl.DateTimeFormat("en-US", {
-      hour: "numeric",
-      hour12: false,
-      timeZone: "America/Lima",
-    }).format(new Date())
-  );
-
-  if (limaHour < 12) return "Buenos días";
-  if (limaHour < 19) return "Buenas tardes";
-  return "Buenas noches";
-}
-
-const icons = {
-  reserva: (
-    <svg viewBox="0 0 24 24">
-      <circle cx="12" cy="12" r="10" />
-      <polyline points="12 6 12 12 16 14" />
-    </svg>
-  ),
-  beluers: (
-    <svg viewBox="0 0 24 24">
-      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-      <circle cx="9" cy="7" r="4" />
-      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-    </svg>
-  ),
-  historial: (
-    <svg viewBox="0 0 24 24">
-      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-    </svg>
-  ),
-  pagos: (
-    <svg viewBox="0 0 24 24">
-      <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
-      <line x1="1" y1="10" x2="23" y2="10" />
-    </svg>
-  ),
-  perfil: (
-    <svg viewBox="0 0 24 24">
-      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-      <circle cx="12" cy="7" r="4" />
-    </svg>
-  ),
-};
 
 const primaryNavItems: ClientNavigationItem<PanelSection>[] = [
   { id: "dashboard", label: "Inicio", icon: "home" },
@@ -547,10 +503,8 @@ const selectedBookingService = servicioSeleccionado;
   beluerSeleccionada={beluerSeleccionada}
   clientFirstName={clientFirstName}
   nextBooking={nextBooking}
-  clientName={clientName}
   realBeluers={realBeluers}
   realServices={realServices}
-  bookingCount={bookingHistory.length}
 />
 )}
 
@@ -1218,10 +1172,8 @@ function DashboardSection({
   beluerSeleccionada,
   clientFirstName,
   nextBooking,
-  clientName,
   realBeluers,
   realServices,
-  bookingCount,
 }: {
   goToSection: (section: PanelSection) => void;
   reservaConfirmada: boolean;
@@ -1233,14 +1185,9 @@ function DashboardSection({
   beluerSeleccionada: string;
   clientFirstName: string;
   nextBooking: ClientBooking | null;
-  clientName: string;
   realBeluers: Beluer[];
   realServices: Service[];
-  bookingCount: number;
 }) {
-  const assignedBeluerName = nextBooking?.beluer_profiles?.public_name || "";
-  const greeting = getLimaGreeting();
-  const reservationStatus = nextBooking?.status || "pending";
   const reservationStatusLabels: Record<string, string> = {
     pending: "Pendiente",
     assigned: "Asignada",
@@ -1249,309 +1196,71 @@ function DashboardSection({
     completed: "Completada",
     cancelled: "Cancelada",
   };
-  const appointmentService =
-    nextBooking?.services?.name ||
-    servicioSeleccionado?.nombre ||
-    "Servicio belu";
-  const appointmentBeluer =
-    assignedBeluerName ||
-    (modoAsignacion === "libre" && beluerSeleccionada
-      ? beluerSeleccionada
-      : "Beluer pendiente de asignación");
+  const hasBooking = Boolean(nextBooking || reservaConfirmada);
+  const booking: BookingHeroData | null = hasBooking
+    ? {
+        service:
+          nextBooking?.services?.name ||
+          servicioSeleccionado?.nombre ||
+          "Servicio belu",
+        status:
+          reservationStatusLabels[nextBooking?.status || "confirmed"] ||
+          nextBooking?.status ||
+          "Confirmada",
+        date: formatDisplayDate(nextBooking?.scheduled_date || fecha),
+        time: formatDisplayTime(nextBooking?.scheduled_time || hora),
+        district: nextBooking?.district || undefined,
+        beluer:
+          nextBooking?.beluer_profiles?.public_name ||
+          (modoAsignacion === "libre" && beluerSeleccionada
+            ? beluerSeleccionada
+            : undefined),
+        total: formatSoles(
+          nextBooking ? getClientBookingTotal(nextBooking).total : total
+        ),
+      }
+    : null;
+  const services: ServiceCardData[] = sortServicesForReservation(realServices)
+    .slice(0, 3)
+    .map((service, index) => ({
+      id: service.id || `${service.nombre}-${index}`,
+      name: service.nombre,
+      category: service.categoria === "lashes" ? "Lashes" : "Nails",
+      price: formatSoles(service.precio),
+      imageUrl: service.image_url ? service.foto : undefined,
+    }));
+  const beluers: BeluerCardData[] = realBeluers.slice(0, 3).map((beluer, index) => {
+    const numericRating = Number(beluer.rating);
+
+    return {
+      id: `${beluer.nombre}-${index}`,
+      name: beluer.nombre,
+      specialty: beluer.espec,
+      imageUrl:
+        beluer.foto && beluer.foto !== "/beluer-placeholder.jpg"
+          ? beluer.foto
+          : undefined,
+      isNew:
+        beluer.rating === "Sin calificación" ||
+        Number.isNaN(numericRating) ||
+        numericRating <= 0,
+    };
+  });
+
   return (
-    <section className="cliente-panel-section cliente-panel-dashboard active">
-      {/* Standalone greeting — not inside a card */}
-      <div className="cliente-panel-dashboard-greeting-standalone">
-        <h1>
-          {greeting}, {clientFirstName} ✦
-        </h1>
-        <p>
-          {reservaConfirmada
-            ? "Tu próximo momento belu ya está agendado. El talento va a ti."
-            : "Descubre servicios de belleza premium a domicilio en Lima."}
-        </p>
-      </div>
-
-      <div className="cliente-panel-dashboard-main-grid">
-        {!reservaConfirmada ? (
-          <div className="cliente-panel-dashboard-empty">
-            <div className="cliente-panel-dashboard-appointment-visual">
-              <span>Próxima cita</span>
-              <strong>belu</strong>
-            </div>
-
-            <div className="cliente-panel-dashboard-empty-copy">
-              <span className="cliente-panel-dashboard-kicker">
-                Próxima cita
-              </span>
-              <h2>Aún no tienes una cita activa</h2>
-              <p>
-                Agenda tu próximo servicio y belu coordinará la atención
-                contigo.
-              </p>
-
-              <button
-                className="cliente-panel-btn-r cliente-panel-dashboard-primary"
-                type="button"
-                onClick={() => goToSection("servicios")}
-              >
-                Explorar servicios
-              </button>
-
-              <button
-                className="cliente-panel-app-secondary-action"
-                type="button"
-                onClick={() => goToSection("reserva")}
-              >
-                Nueva reserva
-              </button>
-            </div>
-          </div>
-        ) : (
-          <article className="cliente-panel-reserva-activa-card cliente-panel-dashboard-appointment">
-            {/* Pink left column: status badge top + service name bottom */}
-            <div className="cliente-panel-dashboard-appointment-visual">
-              <span
-                className="belu-badge cliente-panel-dashboard-apt-status"
-                data-status={reservationStatus}
-              >
-                {reservationStatusLabels[reservationStatus] || reservationStatus}
-              </span>
-              {nextBooking?.is_express ? (
-                <span className="belu-badge cliente-panel-express-pill">
-                  Belu Express
-                </span>
-              ) : null}
-              <strong>{appointmentService}</strong>
-            </div>
-
-            {/* Right column */}
-            <div className="cliente-panel-dashboard-appointment-content">
-              <span className="cliente-panel-dashboard-kicker">Próxima cita</span>
-              <h2>{appointmentService}</h2>
-
-              <div className="cliente-panel-dashboard-beluer-row">
-                <span className="cliente-panel-dashboard-beluer-avatar">
-                  {appointmentBeluer.charAt(0)}
-                </span>
-                <span>{appointmentBeluer}</span>
-              </div>
-
-              <hr className="cliente-panel-dashboard-divider" />
-
-              <div className="cliente-panel-dashboard-facts">
-                <div>
-                  <span>Fecha</span>
-                  <strong>
-                    {formatDisplayDate(nextBooking?.scheduled_date || fecha)}
-                  </strong>
-                </div>
-                <div>
-                  <span>Hora</span>
-                  <strong>
-                    {formatDisplayTime(nextBooking?.scheduled_time || hora)}
-                  </strong>
-                </div>
-                <div>
-                  <span>Ubicación</span>
-                  <strong>
-                    {nextBooking
-                      ? nextBooking.district
-                      : "Por confirmar"}
-                  </strong>
-                </div>
-                <div>
-                  <span>Total</span>
-                  <strong>
-                    {formatSoles(
-                      nextBooking
-                        ? getClientBookingTotal(nextBooking).total
-                        : total
-                    )}
-                  </strong>
-                </div>
-              </div>
-
-              <div className="cliente-panel-ra-acciones">
-                <button
-                  type="button"
-                  className="cliente-panel-dashboard-btn-primary"
-                  onClick={() => goToSection("historial")}
-                >
-                  Ver detalle
-                </button>
-
-              </div>
-            </div>
-          </article>
-        )}
-
-        {/* Right column: quick shortcuts + trust + stats (visual only) */}
-        <div className="cliente-panel-dashboard-side-stack">
-        <aside className="cliente-panel-dashboard-quick-card">
-          <span className="cliente-panel-dashboard-kicker">Atajos</span>
-          <h2>Accesos rápidos</h2>
-
-          <div className="cliente-panel-dashboard-quick-list">
-            <button type="button" onClick={() => goToSection("reserva")}>
-              <span className="cliente-panel-dashboard-quick-icon">
-                {icons.reserva}
-              </span>
-              <span className="cliente-panel-dashboard-quick-label">
-                Nueva reserva
-              </span>
-              <span className="cliente-panel-dashboard-quick-arrow">→</span>
-            </button>
-
-            <button type="button" onClick={() => goToSection("beluers")}>
-              <span className="cliente-panel-dashboard-quick-icon">
-                {icons.beluers}
-              </span>
-              <span className="cliente-panel-dashboard-quick-label">
-                Especialistas
-              </span>
-              <span className="cliente-panel-dashboard-quick-arrow">→</span>
-            </button>
-
-            <button type="button" onClick={() => goToSection("historial")}>
-              <span className="cliente-panel-dashboard-quick-icon">
-                {icons.historial}
-              </span>
-              <span className="cliente-panel-dashboard-quick-label">
-                Historial
-              </span>
-              <span className="cliente-panel-dashboard-quick-arrow">→</span>
-            </button>
-
-            <button type="button" onClick={() => goToSection("pagos")}>
-              <span className="cliente-panel-dashboard-quick-icon">
-                {icons.pagos}
-              </span>
-              <span className="cliente-panel-dashboard-quick-label">Pagos</span>
-              <span className="cliente-panel-dashboard-quick-arrow">→</span>
-            </button>
-
-            <button type="button" onClick={() => goToSection("perfil")}>
-              <span className="cliente-panel-dashboard-quick-icon">
-                {icons.perfil}
-              </span>
-              <span className="cliente-panel-dashboard-quick-label">
-                Mi perfil
-              </span>
-              <span className="cliente-panel-dashboard-quick-arrow">→</span>
-            </button>
-          </div>
-        </aside>
-
-        <div className="cliente-panel-dashboard-trust-card">
-          <span className="cliente-panel-dashboard-kicker">Por qué belu</span>
-          <h2>Seguridad en cada cita</h2>
-
-          <div className="cliente-panel-dashboard-trust-list">
-            <div className="cliente-panel-dashboard-trust-row">
-              <span className="cliente-panel-dashboard-trust-icon">✦</span>
-              <div>
-                <strong>Beluers verificadas</strong>
-                <p>Perfiles revisados por el equipo belu antes de atenderte.</p>
-              </div>
-            </div>
-
-          </div>
-        </div>
-
-        <div className="cliente-panel-dashboard-stats-card">
-          <div className="cliente-panel-dashboard-stat-box">
-            <strong>{bookingCount}</strong>
-            <span>Reservas realizadas</span>
-          </div>
-        </div>
-        </div>
-      </div>
-
-      {/* Explore services */}
-      <div className="cliente-panel-dashboard-explore-header">
-        <h2 className="cliente-panel-dashboard-explore-title">
-          Explora servicios
-        </h2>
-        <button
-          type="button"
-          className="cliente-panel-dashboard-explore-link"
-          onClick={() => goToSection("servicios")}
-        >
-          Ver todo →
-        </button>
-      </div>
-
-      {realServices.length > 0 ? (
-        <div className="cliente-panel-dashboard-service-grid">
-          {realServices.slice(0, 2).map((service) => {
-            const duration = getServiceDuration(service);
-
-            return (
-              <button
-                key={service.id || service.nombre}
-                type="button"
-                onClick={() => goToSection("servicios")}
-              >
-                <span>
-                  {service.categoria === "lashes" ? "Lashes" : "Nails"}
-                </span>
-                <strong>{service.nombre}</strong>
-                <small>
-                  {formatSoles(service.precio)}
-                  {duration ? ` · ${duration}` : ""}
-                </small>
-                <em>
-                  {service.desc ||
-                    "Consulta los detalles de este servicio en el catálogo."}
-                </em>
-              </button>
-            );
-          })}
-        </div>
-      ) : null}
-
-      {realBeluers.length > 0 && (
-        <>
-          <div className="cliente-panel-dashboard-explore-header">
-            <h2 className="cliente-panel-dashboard-explore-title">
-              Beluers destacadas
-            </h2>
-            <button
-              type="button"
-              className="cliente-panel-dashboard-explore-link"
-              onClick={() => goToSection("beluers")}
-            >
-              Ver todas →
-            </button>
-          </div>
-
-          <div className="cliente-panel-dashboard-beluers-scroll">
-            {realBeluers.slice(0, 6).map((beluer) => (
-              <button
-                key={beluer.nombre}
-                type="button"
-                className="cliente-panel-dashboard-beluer-mini-card"
-                onClick={() => goToSection("beluers")}
-              >
-                <span className="cliente-panel-dashboard-beluer-mini-avatar">
-                  {beluer.nombre.charAt(0).toUpperCase()}
-                </span>
-                <strong>{beluer.nombre}</strong>
-                <small>{beluer.espec}</small>
-                <span className="cliente-panel-dashboard-beluer-mini-rating">
-                  {beluer.rating === "Sin calificación"
-                    ? beluer.rating
-                    : `★ ${beluer.rating}`}
-                </span>
-              </button>
-            ))}
-          </div>
-        </>
-      )}
-    </section>
+    <ClientHome
+      clientFirstName={clientFirstName}
+      booking={booking}
+      services={services}
+      beluers={beluers}
+      onBook={() => goToSection("reserva")}
+      onExploreServices={() => goToSection("servicios")}
+      onViewHistory={() => goToSection("historial")}
+      onViewBeluers={() => goToSection("beluers")}
+    />
   );
 }
+
 function HistorialSection({
   bookingHistory,
   goToReserva,
