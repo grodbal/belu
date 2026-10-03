@@ -11,6 +11,16 @@ import {
   ClientShell,
   ClientSidebar,
   BeluersCatalog,
+  BookingChoice,
+  BookingChoiceGrid,
+  BookingField,
+  BookingFields,
+  BookingFlow,
+  BookingNotice,
+  BookingOption,
+  BookingStep,
+  BookingSummary,
+  BookingToggle,
   ServicesCatalog,
   type BeluerCatalogItem,
   type BeluerCardData,
@@ -495,6 +505,7 @@ const selectedBookingService = servicioSeleccionado;
         className={
           activeSection === "servicios" ||
           activeSection === "beluers" ||
+          activeSection === "reserva" ||
           activeSection === "perfil"
             ? "cliente-panel-shell cliente-panel-shell--canvas-direct"
             : "cliente-panel-shell"
@@ -518,429 +529,269 @@ const selectedBookingService = servicioSeleccionado;
 )}
 
           {activeSection === "reserva" && (
-            <section className="cliente-panel-section cliente-panel-reserva-section active">
-              <div className="cliente-panel-top-bar cliente-panel-reserva-topbar">
-                <div className="cliente-panel-greeting">
-                  <span className="cliente-panel-dashboard-kicker">
-                    Nueva reserva
-                  </span>
-                  <h1>Agenda tu nueva cita</h1>
-                  <p>
-                    Elige tu servicio, fecha y dirección. belu coordina el
-                    resto.
-                  </p>
-                </div>
-
-                <UserPill clientName={clientName} />
-              </div>
-
-              <div
-                className={`cliente-panel-reserva-card ${
-                  !servicioSeleccionado ? "no-service" : ""
-                }`}
+            <BookingFlow
+              eyebrow="Nueva reserva"
+              title="Agenda tu nueva cita"
+              description="Elige tu servicio, fecha y dirección. belu coordina el resto."
+              summary={
+                <BookingSummary
+                  serviceName={servicioSeleccionado?.nombre}
+                  serviceDescription={servicioSeleccionado?.desc || undefined}
+                  servicePrice={servicioSeleccionado ? `S/ ${precioServicio}` : undefined}
+                  date={formatDisplayDate(fecha)}
+                  time={formatDisplayTime(hora)}
+                  district={distritoReserva}
+                  address={direccionReserva.trim()}
+                  logisticFee={servicioSeleccionado ? `S/ ${cargoLogistico}` : undefined}
+                  expressFee={urgenciaEfectiva && servicioSeleccionado ? `S/ ${recargoExpress}` : undefined}
+                  total={servicioSeleccionado ? `S/ ${total}` : undefined}
+                  expressNote={
+                    urgenciaEfectiva && servicioSeleccionado
+                      ? "Te confirmamos una beluer en máximo 30 minutos o te reembolsamos el recargo."
+                      : undefined
+                  }
+                  onConfirm={handleConfirmarReserva}
+                />
+              }
+            >
+              <BookingStep
+                number="01"
+                eyebrow="Servicio"
+                title="Servicio para tu cita"
+                description="Una reserva corresponde a un único servicio. Puedes cambiarlo desde el catálogo."
               >
-                <div className="cliente-panel-booking-left">
-                  <div className="cliente-panel-booking-block cliente-panel-selected-service-block">
-                    <div className="cliente-panel-reserva-block-title">
-                      <span>1 · Servicio</span>
-                      <h2>Servicio para tu cita</h2>
-                      <p>
-                        Elige con calma desde Servicios y vuelve aquí para
-                        completar fecha, dirección y pago.
-                      </p>
-                    </div>
-
-                    {servicioSeleccionado ? (
-                      <div className="cliente-panel-selected-service-card">
-                        {servicioSeleccionado.image_url ? (
-                          <img
-                            src={servicioSeleccionado.foto}
-                            alt={servicioSeleccionado.nombre}
-                          />
-                        ) : (
-                          <span
-                            className="cliente-panel-selected-service-placeholder"
-                            aria-hidden="true"
-                          >
-                            <b>
-                              {servicioSeleccionado.nombre
-                                .slice(0, 1)
-                                .toUpperCase()}
-                            </b>
-                            <small>✦</small>
-                          </span>
-                        )}
-
-                        <div className="cliente-panel-selected-service-copy">
-                          <span className="cliente-panel-servicio-category">
-                            {servicioSeleccionado.categoria === "lashes"
-                              ? "Lashes"
-                              : "Nails"}
-                          </span>
-                          <h3>{servicioSeleccionado.nombre}</h3>
-                          {servicioSeleccionado.desc ? (
-                            <p>{servicioSeleccionado.desc}</p>
-                          ) : null}
-                          <div className="cliente-panel-selected-service-meta">
-                            <strong>
-                              {formatSoles(servicioSeleccionado.precio)}
-                            </strong>
-                            <span>
-                              {getServiceDuration(servicioSeleccionado) ||
-                                "Duración por confirmar"}
-                            </span>
-                          </div>
-                        </div>
-
-                        <button
-                          type="button"
-                          className="cliente-panel-change-service-btn"
-                          onClick={() => goToSection("servicios")}
-                        >
-                          Cambiar servicio
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="cliente-panel-selected-service-empty">
-                        <span>&#10022;</span>
-                        <h3>Elige el servicio que quieres reservar</h3>
-                        <p>
-                          Explora Lashes y Nails, revisa los detalles y
-                          selecciona una opción para continuar.
-                        </p>
-                        <button
-                          type="button"
-                          className="cliente-panel-btn-r"
-                          onClick={() => goToSection("servicios")}
-                        >
-                          Ver servicios
-                        </button>
-                      </div>
-                    )}
-
-                  </div>
-                  <div className="cliente-panel-booking-block cliente-panel-details-block">
-                    <div className="cliente-panel-reserva-block-title">
-                      <span>2 · Fecha, lugar y detalles</span>
-                      <h2>Detalles de tu cita</h2>
-                      <p>
-                        Define cuándo y dónde quieres recibir a tu Beluer.
-                        Mantén la dirección lo más clara posible.
-                      </p>
-                    </div>
-
-                    <div className="cliente-panel-booking-form-grid">
-                <div className="cliente-panel-form-group">
-                  <label>Fecha deseada</label>
-                  <input
-                    type="date"
-                    value={fecha}
-                    min={getTodayLocalDate()}
-                    onChange={(event) => setFecha(event.target.value)}
+                {servicioSeleccionado ? (
+                  <BookingOption
+                    media={
+                      servicioSeleccionado.image_url ? (
+                        <img
+                          src={servicioSeleccionado.foto}
+                          alt={servicioSeleccionado.nombre}
+                        />
+                      ) : (
+                        <span aria-hidden="true">
+                          <b>{servicioSeleccionado.nombre.slice(0, 1).toUpperCase()}</b>
+                          <small>✦</small>
+                        </span>
+                      )
+                    }
+                    eyebrow={servicioSeleccionado.categoria === "lashes" ? "Lashes" : "Nails"}
+                    title={servicioSeleccionado.nombre}
+                    description={servicioSeleccionado.desc || undefined}
+                    meta={
+                      <>
+                        <strong>{formatSoles(servicioSeleccionado.precio)}</strong>
+                        <span>{getServiceDuration(servicioSeleccionado) || "Duración por confirmar"}</span>
+                      </>
+                    }
+                    actionLabel="Cambiar servicio"
+                    onAction={() => goToSection("servicios")}
                   />
-                  <small>Elige el día ideal para tu atención.</small>
-                </div>
+                ) : (
+                  <BookingOption
+                    title="Elige el servicio que quieres reservar"
+                    description="Explora Lashes y Nails, revisa los detalles y selecciona una opción para continuar."
+                    actionLabel="Ver servicios"
+                    onAction={() => goToSection("servicios")}
+                    empty
+                  />
+                )}
+              </BookingStep>
 
-                <div className="cliente-panel-form-group">
-                  <label>Hora</label>
-                  <div className="cliente-panel-time-picker">
-                    <select
-                      value={horaPicker.time12}
-                      onChange={(event) => {
-                        const nextTime = toTwentyFourHourTime(
-                          event.target.value,
-                          horaPicker.meridiem
-                        );
+              <BookingStep
+                number="02"
+                eyebrow="Cuándo"
+                title="Fecha y hora"
+                description="Elige un horario disponible para tu atención."
+              >
+                <BookingFields>
+                  <BookingField label="Fecha deseada" hint="Elige el día ideal para tu atención.">
+                    <input
+                      type="date"
+                      value={fecha}
+                      min={getTodayLocalDate()}
+                      onChange={(event) => setFecha(event.target.value)}
+                    />
+                  </BookingField>
 
-                        if (!isPastTimeForSelectedDate(fecha, nextTime)) {
-                          setHora(nextTime);
-                        }
-                      }}
-                      aria-label="Hora"
-                    >
-                      {horaOpciones12.map((timeOption) => (
-                        <option
-                          key={timeOption}
-                          value={timeOption}
-                          disabled={getHoraOptionDisabled(
-                            timeOption,
+                  <BookingField label="Hora" hint={horaHelpText}>
+                    <div className="cliente-panel-time-picker">
+                      <select
+                        value={horaPicker.time12}
+                        onChange={(event) => {
+                          const nextTime = toTwentyFourHourTime(
+                            event.target.value,
                             horaPicker.meridiem
-                          )}
-                        >
-                          {timeOption}
-                        </option>
+                          );
+
+                          if (!isPastTimeForSelectedDate(fecha, nextTime)) {
+                            setHora(nextTime);
+                          }
+                        }}
+                        aria-label="Hora"
+                      >
+                        {horaOpciones12.map((timeOption) => (
+                          <option
+                            key={timeOption}
+                            value={timeOption}
+                            disabled={getHoraOptionDisabled(timeOption, horaPicker.meridiem)}
+                          >
+                            {timeOption}
+                          </option>
+                        ))}
+                      </select>
+                      <select
+                        value={horaPicker.meridiem}
+                        onChange={(event) => {
+                          const nextTime = toTwentyFourHourTime(
+                            horaPicker.time12,
+                            event.target.value
+                          );
+
+                          if (!isPastTimeForSelectedDate(fecha, nextTime)) {
+                            setHora(nextTime);
+                          }
+                        }}
+                        aria-label="AM o PM"
+                      >
+                        {meridiemOptions.map((meridiem) => (
+                          <option
+                            key={meridiem}
+                            value={meridiem}
+                            disabled={getMeridiemDisabled(meridiem)}
+                          >
+                            {meridiem}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </BookingField>
+                </BookingFields>
+              </BookingStep>
+
+              <BookingStep
+                number="03"
+                eyebrow="Dónde"
+                title="Ubicación"
+                description="Indica dónde quieres recibir a tu Beluer."
+              >
+                <BookingFields>
+                  <BookingField
+                    label="Distrito"
+                    hint="Escribe tu distrito. belu validará cobertura antes de confirmar."
+                  >
+                    <input
+                      type="text"
+                      list="cliente-panel-distritos"
+                      value={distritoReserva}
+                      onChange={(event) => setDistritoReserva(event.target.value)}
+                      placeholder="Ej: Miraflores, Magdalena, Jesús María..."
+                    />
+                    <datalist id="cliente-panel-distritos">
+                      {distritoSugerencias.map((distrito) => (
+                        <option key={distrito} value={distrito} />
                       ))}
-                    </select>
-                    <select
-                      value={horaPicker.meridiem}
-                      onChange={(event) => {
-                        const nextTime = toTwentyFourHourTime(
-                          horaPicker.time12,
-                          event.target.value
-                        );
+                    </datalist>
+                  </BookingField>
 
-                        if (!isPastTimeForSelectedDate(fecha, nextTime)) {
-                          setHora(nextTime);
-                        }
-                      }}
-                      aria-label="AM o PM"
-                    >
-                      {meridiemOptions.map((meridiem) => (
-                        <option
-                          key={meridiem}
-                          value={meridiem}
-                          disabled={getMeridiemDisabled(meridiem)}
-                        >
-                          {meridiem}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <small>{horaHelpText}</small>
-                </div>
+                  <BookingField
+                    label="Dirección del servicio"
+                    hint="Ingresa la dirección donde quieres recibir a tu Beluer."
+                  >
+                    <input
+                      type="text"
+                      value={direccionReserva}
+                      onChange={(event) => setDireccionReserva(event.target.value)}
+                      placeholder="Ej: Av. Santa Cruz 950, dpto 402"
+                    />
+                  </BookingField>
+                </BookingFields>
+              </BookingStep>
 
-                <div className="cliente-panel-form-group">
-  <label>Distrito</label>
-  <input
-    type="text"
-    list="cliente-panel-distritos"
-    value={distritoReserva}
-    onChange={(event) => setDistritoReserva(event.target.value)}
-    placeholder="Ej: Miraflores, Magdalena, Jesús María..."
-  />
-  <datalist id="cliente-panel-distritos">
-    {distritoSugerencias.map((distrito) => (
-      <option key={distrito} value={distrito} />
-    ))}
-  </datalist>
-  <small>Escribe tu distrito. belu validará cobertura antes de confirmar.</small>
-</div>
-
-<div className="cliente-panel-form-group">
-  <label>Dirección del servicio</label>
-  <input
-    type="text"
-    value={direccionReserva}
-    onChange={(event) => setDireccionReserva(event.target.value)}
-    placeholder="Ej: Av. Santa Cruz 950, dpto 402"
-  />
-  <small>Ingresa la dirección donde quieres recibir a tu Beluer.</small>
-</div>
-
-                <label className="cliente-panel-urgencia-toggle">
-                  <input
-                    type="checkbox"
+              <BookingStep
+                number="04"
+                eyebrow="Preferencias"
+                title="Express y asignación"
+                description="Define la modalidad y agrega indicaciones para tu cita."
+              >
+                <BookingFields>
+                  <BookingToggle
                     checked={urgenciaEfectiva}
                     disabled={urgenciaAutomatica}
-                    onChange={(event) => {
-                      if (!urgenciaAutomatica) {
-                        setUrgencia(event.target.checked);
-                      }
+                    title={
+                      urgenciaAutomatica
+                        ? "Belu Express obligatorio"
+                        : "Necesito este servicio con urgencia (máx. 2 horas)"
+                    }
+                    description={
+                      urgenciaAutomatica
+                        ? "Belu Express se activó automáticamente porque tu cita está dentro de las próximas 2 horas."
+                        : undefined
+                    }
+                    onChange={(checked) => {
+                      if (!urgenciaAutomatica) setUrgencia(checked);
                     }}
                   />
-                  <span>
-                    {urgenciaAutomatica
-                      ? "⚡ Belu Express obligatorio"
-                      : "⚡ Necesito este servicio con urgencia (máx. 2 horas)"}
-                  </span>
-                </label>
-                {urgenciaAutomatica && (
-                  <small className="cliente-panel-urgencia-auto-note">
-                    Belu Express se activó automáticamente porque tu cita está
-                    dentro de las próximas 2 horas.
-                  </small>
-                )}
 
-                <div className="cliente-panel-form-group">
-                  <label>Modo de asignación</label>
-                  <select
-                    value={modoAsignacion}
-                    onChange={(event) => {
-                      setModoAsignacion(event.target.value as AssignmentMode);
-                      setBeluerSeleccionada("");
-                    }}
-                  >
-                    <option value="gestionado">
-                      Gestionado (belu elige por ti)
-                    </option>
-                    <option value="libre">
-                      Libre (tú eliges a tu beluer)
-                    </option>
-                  </select>
-                </div>
+                  <BookingField label="Modo de asignación" fullWidth>
+                    <select
+                      value={modoAsignacion}
+                      onChange={(event) => {
+                        setModoAsignacion(event.target.value as AssignmentMode);
+                        setBeluerSeleccionada("");
+                      }}
+                    >
+                      <option value="gestionado">Gestionado (belu elige por ti)</option>
+                      <option value="libre">Libre (tú eliges a tu beluer)</option>
+                    </select>
+                  </BookingField>
 
-                {modoAsignacion === "gestionado" && (
-                  <div className="cliente-panel-info-box">
-                    <p>¿Cómo funciona el Modo Gestionado?</p>
-                    <span>
-                      Publicamos tu solicitud en nuestro canal interno. La
-                      primera beluer disponible en tu zona aceptará y recibirás
-                      confirmación inmediata.
-                    </span>
-                    <small>Precio fijo garantizado. Sin sorpresas.</small>
-                  </div>
-                )}
+                  {modoAsignacion === "gestionado" ? (
+                    <BookingNotice
+                      title="¿Cómo funciona el Modo Gestionado?"
+                      footer="Precio fijo garantizado. Sin sorpresas."
+                    >
+                      Publicamos tu solicitud en nuestro canal interno. La primera beluer
+                      disponible en tu zona aceptará y recibirás confirmación inmediata.
+                    </BookingNotice>
+                  ) : null}
 
-                {modoAsignacion === "libre" && (
-                  <div className="cliente-panel-libre-box">
-                    <p>Elige a tu beluer (precio fijo para todas):</p>
-
-                    <div className="cliente-panel-beluer-selection-grid">
+                  {modoAsignacion === "libre" ? (
+                    <BookingChoiceGrid
+                      title="Elige a tu beluer (precio fijo para todas):"
+                      hint="Solo se muestran las beluers que realizan el servicio seleccionado."
+                    >
                       {beluersDisponibles.length > 0 ? (
                         beluersDisponibles.map((beluer) => (
-                          <button
+                          <BookingChoice
                             key={beluer.nombre}
-                            type="button"
-                            className={`cliente-panel-beluer-mini-card ${
-                              beluerSeleccionada === beluer.nombre
-                                ? "selected"
-                                : ""
-                            }`}
-                            onClick={() => setBeluerSeleccionada(beluer.nombre)}
-                          >
-                            <img src={beluer.foto} alt={beluer.nombre} />
-                            <h4>{beluer.nombre}</h4>
-                            <span>
-                              ⭐ {beluer.rating} · {beluer.citas} citas
-                            </span>
-                          </button>
+                            media={<img src={beluer.foto} alt={beluer.nombre} />}
+                            title={beluer.nombre}
+                            meta={`⭐ ${beluer.rating} · ${beluer.citas} citas`}
+                            selected={beluerSeleccionada === beluer.nombre}
+                            onSelect={() => setBeluerSeleccionada(beluer.nombre)}
+                          />
                         ))
                       ) : (
-                        <p className="cliente-panel-empty-grid">
-                          No hay beluers disponibles para estos servicios en
-                          este momento.
-                        </p>
+                        <p>No hay beluers disponibles para estos servicios en este momento.</p>
                       )}
-                    </div>
+                    </BookingChoiceGrid>
+                  ) : null}
 
-                    <small>
-                      Solo se muestran las beluers que realizan el servicio
-                      seleccionado.
-                    </small>
-                  </div>
-                )}
-
-                <div className="cliente-panel-form-group">
-  <label>Instrucciones adicionales</label>
-  <textarea
-    value={notasReserva}
-    onChange={(event) => setNotasReserva(event.target.value)}
-    placeholder="Ej: prefiero diseño francés, color rojo intenso..."
-  />
-  <small>Opcional: agrega preferencias o indicaciones de acceso.</small>
-</div>
-                    </div>
-                </div>
-                </div>
-
-                <aside className="cliente-panel-booking-summary">
-                <div className="cliente-panel-reserva-block-title cliente-panel-reserva-summary-title">
-                  <span>Resumen</span>
-                  <h2>Tu reserva ✦</h2>
-                  <p>
-                    Revisa los datos principales antes de continuar con la
-                    confirmación.
-                  </p>
-                </div>
-
-                {!servicioSeleccionado && (
-                  <div className="cliente-panel-resumen-pago cliente-panel-resumen-empty">
-                    <strong>Elige un servicio para ver el resumen de tu reserva.</strong>
-                    <span>
-                      Aquí aparecerán servicio, fecha, hora, distrito y total.
-                    </span>
-                  </div>
-                )}
-
-                {servicioSeleccionado && (
-                  <div className="cliente-panel-resumen-pago">
-                    <div className="cliente-panel-summary-service-line">
-                      <span className="cliente-panel-summary-service-label">
-                        Servicio
-                      </span>
-                      <strong
-                        className="cliente-panel-summary-service-name"
-                        title={servicioSeleccionado.nombre}
-                      >
-                        {servicioSeleccionado.nombre}
-                      </strong>
-                      {servicioSeleccionado.desc ? (
-                        <p className="cliente-panel-summary-service-description">
-                          {servicioSeleccionado.desc}
-                        </p>
-                      ) : null}
-                    </div>
-
-                    <div className="linea cliente-panel-summary-date-line">
-                      <span>Fecha</span>
-                      <strong>{formatDisplayDate(fecha)}</strong>
-                    </div>
-
-                    <div className="linea cliente-panel-summary-date-line">
-                      <span>Hora</span>
-                      <strong>{formatDisplayTime(hora)}</strong>
-                    </div>
-
-                    <div className="linea cliente-panel-summary-location-line">
-                      <span>Distrito</span>
-                      <strong>{distritoReserva}</strong>
-                    </div>
-
-                    <div className="linea cliente-panel-summary-address-line">
-                      <span>Dirección</span>
-                      <strong>
-                        {direccionReserva.trim() || "Pendiente de completar"}
-                      </strong>
-                    </div>
-
-                    <div className="cliente-panel-summary-financial-breakdown">
-                      <div className="cliente-panel-summary-financial-line cliente-panel-summary-service-price-line">
-                        <span title={servicioSeleccionado.nombre}>
-                          {servicioSeleccionado.nombre}
-                        </span>
-                        <strong>S/ {precioServicio}</strong>
-                      </div>
-
-                      <div className="cliente-panel-summary-financial-line cliente-panel-summary-logistic-line">
-                        <span>Cargo logístico</span>
-                        <strong>S/ {cargoLogistico}</strong>
-                      </div>
-
-                      {urgenciaEfectiva && (
-                        <div className="cliente-panel-summary-financial-line cliente-panel-summary-express-line">
-                          <span>Belu Express</span>
-                          <strong>S/ {recargoExpress}</strong>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="linea total">
-                      <span>Total</span>
-                      <strong>S/ {total}</strong>
-                    </div>
-
-                    {urgenciaEfectiva && (
-                      <div className="express cliente-panel-summary-express-info">
-                        <small>
-                          Te confirmamos una beluer en máximo 30 minutos o te
-                          reembolsamos el recargo.
-                        </small>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                <button
-                  className="cliente-panel-btn-r cliente-panel-full-btn"
-                  type="button"
-                  onClick={handleConfirmarReserva}
-                >
-                  Confirmar reserva
-                </button>
-
-                </aside>
-              </div>
-            </section>
+                  <BookingField
+                    label="Instrucciones adicionales"
+                    hint="Opcional: agrega preferencias o indicaciones de acceso."
+                    fullWidth
+                  >
+                    <textarea
+                      value={notasReserva}
+                      onChange={(event) => setNotasReserva(event.target.value)}
+                      placeholder="Ej: prefiero diseño francés, color rojo intenso..."
+                    />
+                  </BookingField>
+                </BookingFields>
+              </BookingStep>
+            </BookingFlow>
           )}
 
           {activeSection === "servicios" && (
