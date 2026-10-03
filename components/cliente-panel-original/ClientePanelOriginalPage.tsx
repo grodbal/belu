@@ -10,9 +10,13 @@ import {
   ClientHeader,
   ClientShell,
   ClientSidebar,
+  BeluersCatalog,
+  ServicesCatalog,
+  type BeluerCatalogItem,
   type BeluerCardData,
   type BookingHeroData,
   type ClientNavigationItem,
+  type ServiceCatalogItem,
   type ServiceCardData,
 } from "@/components/belu";
 import { crearPlaceholder } from "./clientePanelData";
@@ -60,9 +64,6 @@ type ClientePanelOriginalPageProps = {
   realBeluers: Beluer[];
   realServices: Service[];
 };
-
-type ServiceCatalogFilter = "all" | "featured" | "lashes" | "nails";
-type ServiceCatalogSection = "featured" | "lashes" | "nails";
 
 function getTodayLocalDate() {
   const today = new Date();
@@ -490,7 +491,15 @@ const selectedBookingService = servicioSeleccionado;
         />
       }
     >
-      <div className="cliente-panel-shell">
+      <div
+        className={
+          activeSection === "servicios" ||
+          activeSection === "beluers" ||
+          activeSection === "perfil"
+            ? "cliente-panel-shell cliente-panel-shell--canvas-direct"
+            : "cliente-panel-shell"
+        }
+      >
           {activeSection === "dashboard" && (
 <DashboardSection
   goToSection={goToSection}
@@ -939,7 +948,6 @@ const selectedBookingService = servicioSeleccionado;
               services={realServices}
               selectedService={servicioSeleccionado}
               onSelectServiceForBooking={selectServiceForBooking}
-              clientName={clientName}
             />
           )}
 
@@ -947,7 +955,6 @@ const selectedBookingService = servicioSeleccionado;
   <EspecialistasSection
     beluers={realBeluers}
     goToReserva={() => goToSection("servicios")}
-    clientName={clientName}
   />
 )}
 
@@ -1752,143 +1759,37 @@ function UserPill({ clientName = "Clienta belu" }: { clientName?: string }) {
 function EspecialistasSection({
   beluers,
   goToReserva,
-  clientName,
 }: {
   beluers: Beluer[];
   goToReserva: () => void;
-  clientName: string;
 }) {
-  const [filtroCategoria, setFiltroCategoria] = useState<
-    "todas" | "lashes" | "nails" | "mixta"
-  >("todas");
+  const catalogBeluers: BeluerCatalogItem[] = beluers.map((beluer, index) => {
+    const numericRating = Number(beluer.rating);
 
-  const beluersFiltradas = beluers.filter((beluer) => {
-    if (filtroCategoria === "todas") return true;
-    return beluer.categoria === filtroCategoria;
+    return {
+      id: `${beluer.nombre}-${index}`,
+      name: beluer.nombre,
+      specialty: beluer.espec,
+      imageUrl:
+        beluer.foto && beluer.foto !== "/beluer-placeholder.jpg"
+          ? beluer.foto
+          : undefined,
+      isNew:
+        beluer.rating === "Sin calificación" ||
+        Number.isNaN(numericRating) ||
+        numericRating <= 0,
+      level: "Verificada",
+      services: beluer.serviciosActivos,
+      categoryKey: beluer.categoria,
+    };
   });
 
   return (
-    <section className="cliente-panel-section active">
-      <div className="cliente-panel-top-bar">
-        <div className="cliente-panel-greeting">
-          <span className="cliente-panel-dashboard-kicker">Talento belu</span>
-          <h1>Nuestras Especialistas</h1>
-          <p>Beluers verificadas para lashes, nails y servicios mixtos.</p>
-        </div>
-
-        <UserPill clientName={clientName} />
-      </div>
-
-      <div className="cliente-panel-beluers-toolbar">
-        <button
-          type="button"
-          className={filtroCategoria === "todas" ? "active" : ""}
-          onClick={() => setFiltroCategoria("todas")}
-        >
-          Todas
-        </button>
-
-        <button
-          type="button"
-          className={filtroCategoria === "lashes" ? "active" : ""}
-          onClick={() => setFiltroCategoria("lashes")}
-        >
-          Lashes
-        </button>
-
-        <button
-          type="button"
-          className={filtroCategoria === "nails" ? "active" : ""}
-          onClick={() => setFiltroCategoria("nails")}
-        >
-          Nails
-        </button>
-
-        <button
-          type="button"
-          className={filtroCategoria === "mixta" ? "active" : ""}
-          onClick={() => setFiltroCategoria("mixta")}
-        >
-          Mixtas
-        </button>
-      </div>
-
-      <div className="cliente-panel-beluers-grid">
-        {beluersFiltradas.length === 0 ? (
-          <div className="cliente-panel-card">
-            <p>Aún no hay especialistas disponibles.</p>
-          </div>
-        ) : (
-          beluersFiltradas.map((beluer) => (
-          <BeluerCard
-            key={beluer.nombre}
-            beluer={beluer}
-            goToReserva={goToReserva}
-          />
-          ))
-        )}
-      </div>
-    </section>
+    <BeluersCatalog
+      beluers={catalogBeluers}
+      onViewServices={goToReserva}
+    />
   );
-}
-function BeluerCard({
-  beluer,
-  goToReserva,
-}: {
-  beluer: Beluer;
-  goToReserva: () => void;
-}) {
-  return (
-    <article className="cliente-panel-beluer-card">
-      <div className="cliente-panel-beluer-card-header">
-        <img src={beluer.foto} alt={beluer.nombre} />
-      </div>
-
-      <div className="cliente-panel-beluer-card-body">
-        <div className="cliente-panel-beluer-badge">
-          {getBeluerBadge(beluer.categoria)}
-        </div>
-
-        <h3>{beluer.nombre}</h3>
-        <p>{beluer.espec}</p>
-
-        <div className="cliente-panel-beluer-meta">
-          <span>
-            {beluer.rating === "Sin calificación"
-              ? beluer.rating
-              : `⭐ ${beluer.rating}`}
-          </span>
-          <span>{beluer.citas} citas</span>
-        </div>
-
-        <div className="cliente-panel-beluer-services">
-          {beluer.serviciosActivos.slice(0, 5).map((servicio) => (
-            <span key={servicio}>{servicio}</span>
-          ))}
-
-          {beluer.serviciosActivos.length > 5 && (
-            <span>+{beluer.serviciosActivos.length - 5} más</span>
-          )}
-        </div>
-
-        <div className="cliente-panel-beluer-actions">
-          <button
-            type="button"
-            className="cliente-panel-btn-ghost"
-            onClick={goToReserva}
-          >
-            Ver servicios →
-          </button>
-        </div>
-      </div>
-    </article>
-  );
-}
-
-function getBeluerBadge(categoria: Beluer["categoria"]) {
-  if (categoria === "lashes") return "Beluer Lashes";
-  if (categoria === "nails") return "Beluer Nails";
-  return "Beluer Mixta ✦";
 }
 
 function DashboardCard({
@@ -2188,82 +2089,12 @@ function ServiciosSection({
   services,
   selectedService,
   onSelectServiceForBooking,
-  clientName,
 }: {
   services: Service[];
   selectedService: Service | null;
   onSelectServiceForBooking: (servicio: Service) => void;
-  clientName: string;
 }) {
-  const [filter, setFilter] = useState<ServiceCatalogFilter>("all");
-  const [search, setSearch] = useState("");
   const [detailService, setDetailService] = useState<Service | null>(null);
-
-  const normalizedSearch = normalizeServiceCatalogText(search);
-  const sortedServices = sortServicesForReservation(services);
-  const filteredServices = sortedServices.filter((servicio) => {
-    if (filter === "featured" && !servicio.is_featured) return false;
-
-    if (
-      (filter === "lashes" || filter === "nails") &&
-      servicio.categoria !== filter
-    ) {
-      return false;
-    }
-
-    if (!normalizedSearch) return true;
-
-    return normalizeServiceCatalogText(
-      `${servicio.nombre} ${servicio.desc} ${servicio.categoria}`
-    ).includes(normalizedSearch);
-  });
-
-  const allSections: {
-    id: ServiceCatalogSection;
-    title: string;
-    eyebrow: string;
-    services: Service[];
-  }[] = [
-    {
-      id: "featured",
-      title: "Destacados ✦",
-      eyebrow: "Seleccion belu",
-      services: filteredServices.filter((servicio) =>
-        Boolean(servicio.is_featured)
-      ),
-    },
-    {
-      id: "lashes",
-      title: "Lashes",
-      eyebrow: "Pestañas",
-      services: filteredServices.filter(
-        (servicio) => servicio.categoria === "lashes"
-      ),
-    },
-    {
-      id: "nails",
-      title: "Nails",
-      eyebrow: "Manos",
-      services: filteredServices.filter(
-        (servicio) => servicio.categoria === "nails"
-      ),
-    },
-  ];
-  const sections = allSections.filter((section) => {
-    if (section.services.length === 0) return false;
-    if (filter === "featured") return section.id === "featured";
-    if (filter === "lashes") return section.id === "lashes";
-    if (filter === "nails") return section.id === "nails";
-
-    return true;
-  });
-
-  const filters: { id: ServiceCatalogFilter; label: string }[] = [
-    { id: "all", label: "Todos" },
-    { id: "featured", label: "Destacados ✦" },
-    { id: "lashes", label: "Lashes" },
-    { id: "nails", label: "Nails" },
-  ];
 
   const isServiceSelected = (servicio: Service) =>
     Boolean(
@@ -2273,84 +2104,43 @@ function ServiciosSection({
           : selectedService.nombre === servicio.nombre)
     );
 
+  const catalogEntries = sortServicesForReservation(services).map(
+    (servicio, index) => {
+      const id = servicio.id || `${servicio.nombre}-${index}`;
+      const viewModel: ServiceCatalogItem = {
+        id,
+        name: servicio.nombre,
+        category: servicio.categoria === "lashes" ? "Lashes" : "Nails",
+        categoryKey: servicio.categoria,
+        price: formatSoles(servicio.precio),
+        imageUrl: servicio.image_url ? servicio.foto : undefined,
+        description: servicio.desc || undefined,
+        duration: getServiceDuration(servicio) || undefined,
+        isFeatured: Boolean(servicio.is_featured),
+        isSelected: isServiceSelected(servicio),
+      };
+
+      return { id, servicio, viewModel };
+    }
+  );
+  const catalogServices = catalogEntries.map((entry) => entry.viewModel);
+
+  const handleViewService = (serviceId: string) => {
+    const entry = catalogEntries.find((item) => item.id === serviceId);
+    if (entry) setDetailService(entry.servicio);
+  };
+
   const handleReserveFromDetail = (servicio: Service) => {
     setDetailService(null);
     onSelectServiceForBooking(servicio);
   };
 
   return (
-    <section className="cliente-panel-section cliente-panel-services-section active">
-      <div className="cliente-panel-top-bar cliente-panel-services-topbar">
-        <div className="cliente-panel-greeting">
-          <span className="cliente-panel-dashboard-kicker">Catálogo ✦</span>
-          <h1>Explora servicios</h1>
-          <p>Lashes y nails a domicilio, cuando quieras.</p>
-        </div>
-
-        <UserPill clientName={clientName} />
-      </div>
-
-      <div className="cliente-panel-services-tools">
-        <label className="cliente-panel-service-search cliente-panel-services-search">
-          <span>Buscar servicio</span>
-          <input
-            type="search"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Buscar servicio"
-          />
-        </label>
-
-        <div
-          className="cliente-panel-services-chips"
-          aria-label="Filtros de servicios"
-        >
-          {filters.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              className={filter === item.id ? "active" : ""}
-              onClick={() => setFilter(item.id)}
-            >
-              {item.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="cliente-panel-services-summary">
-        <span>{filteredServices.length} servicios activos</span>
-        <small>Explora con calma. Elige un servicio y agenda en Nueva Reserva.</small>
-      </div>
-
-      <div className="cliente-panel-services-sections">
-        {sections.map((section) => (
-          <section className="cliente-panel-services-group" key={section.id}>
-            <div className="cliente-panel-services-group-head">
-              <span>{section.eyebrow}</span>
-              <h2>{section.title}</h2>
-            </div>
-
-            <div className="cliente-panel-services-grid">
-              {section.services.map((servicio) => (
-                <ServiceCatalogCard
-                  key={`${section.id}-${servicio.id || servicio.nombre}`}
-                  servicio={servicio}
-                  selected={isServiceSelected(servicio)}
-                  onViewDetail={() => setDetailService(servicio)}
-                />
-              ))}
-            </div>
-          </section>
-        ))}
-      </div>
-
-      {sections.length === 0 ? (
-        <div className="cliente-panel-services-empty">
-          <strong>No encontramos servicios con ese filtro.</strong>
-          <span>Prueba otro término o cambia de categoría.</span>
-        </div>
-      ) : null}
+    <>
+      <ServicesCatalog
+        services={catalogServices}
+        onViewService={handleViewService}
+      />
 
       {detailService ? (
         <ServiceDetailModal
@@ -2361,75 +2151,8 @@ function ServiciosSection({
           onClose={() => setDetailService(null)}
         />
       ) : null}
-    </section>
+    </>
   );
-}
-
-function ServiceCatalogCard({
-  servicio,
-  selected,
-  onViewDetail,
-}: {
-  servicio: Service;
-  selected: boolean;
-  onViewDetail: () => void;
-}) {
-  const duration = getServiceDuration(servicio);
-
-  return (
-    <article
-      className={`cliente-panel-services-card ${selected ? "selected" : ""}`}
-    >
-      <div className="cliente-panel-services-card-image">
-        {servicio.image_url ? (
-          <img src={servicio.foto} alt={servicio.nombre} />
-        ) : (
-          <span className="cliente-panel-services-placeholder" aria-hidden="true">
-            <b>{servicio.nombre.slice(0, 1).toUpperCase()}</b>
-            <small>✦</small>
-          </span>
-        )}
-
-        {servicio.is_featured ? (
-          <span className="cliente-panel-services-featured">Destacado ✦</span>
-        ) : null}
-
-        {selected ? (
-          <span className="cliente-panel-services-selected">
-            Seleccionado para tu reserva
-          </span>
-        ) : null}
-      </div>
-
-      <div className="cliente-panel-services-card-body">
-        <span className="cliente-panel-services-category">
-          {servicio.categoria === "lashes" ? "Lashes" : "Nails"}
-        </span>
-        <h3>{servicio.nombre}</h3>
-        <p>
-          {servicio.desc ||
-            "Servicio belu realizado por una especialista verificada."}
-        </p>
-
-        <div className="cliente-panel-services-card-meta">
-          <strong>Desde {formatSoles(servicio.precio)}</strong>
-          <span>{duration || "Duración por confirmar"}</span>
-        </div>
-
-        <button type="button" onClick={onViewDetail}>
-          {selected ? "Ver servicio" : "Ver detalle"}
-        </button>
-      </div>
-    </article>
-  );
-}
-
-function normalizeServiceCatalogText(text: string) {
-  return text
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .trim();
 }
 
 function getSectionTitle(section: PanelSection) {

@@ -9206,6 +9206,13 @@
   background: #fbfaf8;
 }
 
+/* Servicios y Perfil viven directamente sobre el canvas del ClientShell.
+   Se conserva el shell legacy para sus variables y estilos funcionales. */
+.cliente-panel-shell.cliente-panel-shell--canvas-direct {
+  min-height: 0;
+  background: transparent;
+}
+
 .cliente-panel-shell::before,
 .cliente-panel-shell:has(.cliente-panel-dashboard)::before {
   display: none;

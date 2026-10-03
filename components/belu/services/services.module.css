@@ -8,6 +8,10 @@
   min-width: 0;
 }
 
+.catalogCard {
+  height: 100%;
+}
+
 .card > button {
   display: block;
   width: 100%;
@@ -28,6 +32,10 @@
   background: #e5dcd7;
 }
 
+.catalogCard .visual {
+  aspect-ratio: 1.42;
+}
+
 .visual > img {
   width: 100%;
   height: 100%;
@@ -36,27 +44,67 @@
 }
 
 .fallback {
+  position: relative;
   display: flex;
   width: 100%;
   height: 100%;
   align-items: flex-end;
   justify-content: space-between;
   background:
-    radial-gradient(circle at 78% 24%, rgba(255, 255, 255, 0.62), transparent 24%),
-    linear-gradient(145deg, #ffd6e2, #eadbd5);
+    radial-gradient(circle at 78% 20%, rgba(255, 255, 255, 0.76), transparent 25%),
+    linear-gradient(145deg, #ffd6e2 0%, #f5d9df 58%, #eadbd5 100%);
   padding: 18px;
   color: #8d2940;
+  isolation: isolate;
 }
 
-.fallback b {
-  font: 500 clamp(2.8rem, 7vw, 5rem) / 1 var(--font-poppins), Poppins,
-    sans-serif;
-  opacity: 0.65;
+.fallback::before {
+  position: absolute;
+  z-index: -1;
+  width: 42%;
+  aspect-ratio: 1;
+  border: 1px solid rgba(141, 41, 64, 0.14);
+  border-radius: 50%;
+  content: "";
+  right: 12%;
+  top: 13%;
+}
+
+.fallback::after {
+  position: absolute;
+  z-index: -1;
+  width: 32%;
+  aspect-ratio: 0.72;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.32);
+  content: "";
+  right: 24%;
+  top: 4%;
+  transform: rotate(28deg);
 }
 
 .fallback small {
-  font: 700 0.72rem/1 var(--font-poppins), Poppins, sans-serif;
-  letter-spacing: 0.08em;
+  font: 900 0.64rem/1 var(--font-nunito), Nunito, sans-serif;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.fallbackMark {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.fallbackMark i {
+  margin-bottom: 2px;
+  color: #e60023;
+  font: 400 1rem/1 var(--font-poppins), Poppins, sans-serif;
+}
+
+.fallbackMark b {
+  font: 500 clamp(1.35rem, 3vw, 2.15rem) / 0.9 var(--font-poppins), Poppins,
+    sans-serif;
+  opacity: 0.48;
 }
 
 .card:hover .visual > img {
@@ -76,6 +124,33 @@
   color: #1a1a1a;
   backdrop-filter: blur(6px);
   transition: background-color 180ms ease, color 180ms ease, transform 180ms ease;
+}
+
+.featured,
+.selected {
+  position: absolute;
+  top: 13px;
+  left: 13px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.94);
+  padding: 7px 10px;
+  color: #8d2940;
+  font: 800 0.67rem/1 var(--font-nunito), Nunito, sans-serif;
+  backdrop-filter: blur(6px);
+}
+
+.selected {
+  top: auto;
+  bottom: 13px;
+  border: 1px solid rgba(230, 0, 35, 0.22);
+  background: rgba(255, 255, 255, 0.9);
+  padding: 6px 9px;
+  color: #a41537;
+  font-size: 0.63rem;
+}
+
+.selectedCard .visual {
+  box-shadow: inset 0 0 0 2px rgba(230, 0, 35, 0.58);
 }
 
 .card:hover .arrow {
@@ -111,6 +186,27 @@
   font: 600 0.83rem/1.4 var(--font-nunito), Nunito, sans-serif;
 }
 
+.description {
+  display: -webkit-box;
+  min-height: 2.9em;
+  margin: 2px 0 8px;
+  overflow: hidden;
+  color: #716966 !important;
+  font: 400 0.82rem/1.45 var(--font-nunito), Nunito, sans-serif !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.duration {
+  margin-top: 3px;
+  color: #8f8682 !important;
+  font: 600 0.74rem/1.4 var(--font-nunito), Nunito, sans-serif !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+
 .card > button:focus-visible {
   border-radius: 16px;
   outline: 3px solid #e60023;
@@ -141,6 +237,18 @@
   .visual {
     aspect-ratio: 1.28;
   }
+
+  .catalogCard .visual {
+    aspect-ratio: 1.3;
+  }
+
+  .catalogCard {
+    width: 100%;
+  }
+
+  .catalogCard .info {
+    padding-top: 13px;
+  }
 }
 
 @media (hover: none) {
@@ -153,5 +261,280 @@
   .visual > img,
   .arrow {
     transition-duration: 0.01ms;
+  }
+}
+
+.catalog {
+  width: 100%;
+  max-width: 1320px;
+  min-width: 0;
+  box-sizing: border-box;
+  color: #1a1a1a;
+}
+
+.catalogHeader {
+  max-width: 720px;
+  padding: 12px 0 34px;
+}
+
+.catalogHeader > p,
+.groupHeader p {
+  margin: 0 0 9px;
+  color: #e60023;
+  font: 900 0.7rem/1.3 var(--font-nunito), Nunito, sans-serif;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.catalogHeader h1 {
+  margin: 0;
+  font: 500 clamp(2rem, 3.3vw, 3rem) / 1.08 var(--font-poppins), Poppins,
+    sans-serif;
+  letter-spacing: -0.05em;
+}
+
+.catalogHeader > span {
+  display: block;
+  margin-top: 12px;
+  color: #716966;
+  font: 400 0.96rem/1.55 var(--font-nunito), Nunito, sans-serif;
+}
+
+.catalogTools {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.75fr) 1.25fr;
+  min-width: 0;
+  gap: 24px;
+  align-items: end;
+  border-block: 1px solid #e8dfda;
+  padding: 20px 0;
+}
+
+.searchField {
+  display: grid;
+  gap: 7px;
+  color: #716966;
+  font: 800 0.72rem/1.2 var(--font-nunito), Nunito, sans-serif;
+}
+
+.searchField input {
+  min-height: 48px;
+  width: 100%;
+  border: 1px solid #e8dfda;
+  border-radius: 12px;
+  background: #fff;
+  padding: 0 15px;
+  color: #1a1a1a;
+  font: 500 0.88rem/1 var(--font-nunito), Nunito, sans-serif;
+  outline: none;
+}
+
+.searchField input:focus-visible {
+  border-color: #e60023;
+  outline: 3px solid rgba(230, 0, 35, 0.18);
+  outline-offset: 1px;
+}
+
+.filterRail {
+  display: flex;
+  min-width: 0;
+  gap: 8px;
+  justify-content: flex-end;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.filterRail::-webkit-scrollbar {
+  display: none;
+}
+
+.filterRail button {
+  min-height: 44px;
+  flex: 0 0 auto;
+  border: 1px solid #e8dfda;
+  border-radius: 999px;
+  background: transparent;
+  padding: 0 15px;
+  color: #716966;
+  cursor: pointer;
+  font: 700 0.78rem/1 var(--font-nunito), Nunito, sans-serif;
+}
+
+.filterRail button:hover,
+.filterRail .activeFilter {
+  border-color: #1a1a1a;
+  background: #1a1a1a;
+  color: #fff;
+}
+
+.filterRail button:focus-visible,
+.emptyState button:focus-visible {
+  outline: 3px solid #e60023;
+  outline-offset: 3px;
+}
+
+.catalogSummary {
+  display: flex;
+  grid-column: 1 / -1;
+  align-items: center;
+  gap: 8px;
+  border-top: 1px solid rgba(232, 223, 218, 0.76);
+  padding-top: 12px;
+  color: #716966;
+  font: 400 0.75rem/1.4 var(--font-nunito), Nunito, sans-serif;
+}
+
+.catalogSummary strong {
+  color: #1a1a1a;
+  font-weight: 800;
+}
+
+.catalogSections {
+  display: grid;
+  gap: 44px;
+  margin-top: 30px;
+}
+
+.catalogGroup {
+  min-width: 0;
+}
+
+.groupHeader {
+  margin-bottom: 17px;
+}
+
+.groupHeader h2 {
+  margin: 0;
+  font: 500 clamp(1.45rem, 2.1vw, 1.9rem) / 1.2 var(--font-poppins),
+    Poppins, sans-serif;
+  letter-spacing: -0.035em;
+}
+
+.catalogGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px 20px;
+}
+
+@media (min-width: 1181px) {
+  .catalogCard .info {
+    padding-top: 12px;
+  }
+}
+
+@media (min-width: 901px) {
+  .filterRail {
+    flex-wrap: wrap;
+    overflow-x: visible;
+  }
+}
+
+.emptyState {
+  display: flex;
+  min-height: 280px;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  margin-top: 32px;
+  border-block: 1px solid #e8dfda;
+  padding: 48px 20px;
+  text-align: center;
+}
+
+.emptyState > span {
+  margin-bottom: 14px;
+  color: #e60023;
+  font-size: 1.4rem;
+}
+
+.emptyState strong {
+  font: 600 1.15rem/1.35 var(--font-poppins), Poppins, sans-serif;
+}
+
+.emptyState p {
+  margin: 8px 0 20px;
+  color: #716966;
+  font: 400 0.86rem/1.5 var(--font-nunito), Nunito, sans-serif;
+}
+
+.emptyState button {
+  min-height: 44px;
+  border: 0;
+  border-radius: 999px;
+  background: #e60023;
+  padding: 0 18px;
+  color: #fff;
+  cursor: pointer;
+  font: 600 0.78rem/1 var(--font-poppins), Poppins, sans-serif;
+}
+
+.emptyState button:hover {
+  background: #bf001d;
+}
+
+@media (max-width: 1180px) {
+  .catalogGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .catalogTools {
+    grid-template-columns: 1fr;
+  }
+
+  .filterRail {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 767px) {
+  .catalogHeader {
+    padding: 8px 18px 26px;
+  }
+
+  .catalogHeader h1 {
+    font-size: clamp(1.85rem, 8.7vw, 2.35rem);
+  }
+
+  .catalogTools {
+    gap: 16px;
+    padding: 18px 0;
+  }
+
+  .searchField {
+    margin-inline: 18px;
+  }
+
+  .filterRail {
+    padding: 0 18px 4px;
+    scroll-padding-left: 18px;
+  }
+
+  .catalogSummary {
+    padding: 16px 18px 0;
+  }
+
+  .catalogSummary > span {
+    display: none;
+  }
+
+  .catalogSections {
+    gap: 42px;
+    margin-top: 30px;
+  }
+
+  .groupHeader {
+    margin: 0 18px 17px;
+  }
+
+  .catalogGrid {
+    grid-template-columns: 1fr;
+    gap: 28px;
+    padding-inline: 18px;
+  }
+
+  .emptyState {
+    margin-inline: 18px;
   }
 }
