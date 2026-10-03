@@ -11,6 +11,7 @@ import {
   ClientShell,
   ClientSidebar,
   BeluersCatalog,
+  BookingHistoryList,
   BookingChoice,
   BookingChoiceGrid,
   BookingField,
@@ -21,15 +22,19 @@ import {
   BookingStep,
   BookingSummary,
   BookingToggle,
+  PaymentHistory,
   ServicesCatalog,
   type BeluerCatalogItem,
   type BeluerCardData,
   type BookingHeroData,
+  type BookingHistoryDetailData,
+  type BookingHistoryItemData,
   type ClientNavigationItem,
   type ServiceCatalogItem,
   type ServiceCardData,
+  type PaymentHistoryItemData,
+  type StatusBadgeData,
 } from "@/components/belu";
-import { crearPlaceholder } from "./clientePanelData";
 import type {
   AssignmentMode,
   Beluer,
@@ -74,6 +79,36 @@ type ClientePanelOriginalPageProps = {
   realBeluers: Beluer[];
   realServices: Service[];
 };
+
+const bookingStatusPresentation: Record<string, StatusBadgeData> = {
+  pending: { label: "Pendiente", tone: "warning" },
+  assigned: { label: "Asignada", tone: "info" },
+  confirmed: { label: "Confirmada", tone: "success" },
+  in_progress: { label: "En curso", tone: "accent" },
+  completed: { label: "Completada", tone: "success" },
+  cancelled: { label: "Cancelada", tone: "danger" },
+  redo_requested: { label: "Revisión solicitada", tone: "warning" },
+  redo_approved: { label: "Revisión aprobada", tone: "info" },
+};
+
+const paymentStatusPresentation: Record<string, StatusBadgeData> = {
+  pending: { label: "Pago pendiente", tone: "warning" },
+  paid: { label: "Pago confirmado", tone: "success" },
+  failed: { label: "Pago fallido", tone: "danger" },
+  refunded: { label: "Reembolsado", tone: "neutral" },
+};
+
+function getBookingStatusPresentation(status: string): StatusBadgeData {
+  return (
+    bookingStatusPresentation[status] || { label: status, tone: "neutral" }
+  );
+}
+
+function getPaymentStatusPresentation(status: string): StatusBadgeData {
+  return (
+    paymentStatusPresentation[status] || { label: status, tone: "neutral" }
+  );
+}
 
 function getTodayLocalDate() {
   const today = new Date();
@@ -507,6 +542,8 @@ const selectedBookingService = servicioSeleccionado;
           activeSection === "servicios" ||
           activeSection === "beluers" ||
           activeSection === "reserva" ||
+          activeSection === "historial" ||
+          activeSection === "pagos" ||
           activeSection === "perfil"
             ? "cliente-panel-shell cliente-panel-shell--canvas-direct"
             : "cliente-panel-shell"
@@ -814,11 +851,10 @@ const selectedBookingService = servicioSeleccionado;
   <HistorialSection
     bookingHistory={bookingHistory}
     goToReserva={() => goToSection("reserva")}
-    clientName={clientName}
   />
 )}
 {activeSection === "pagos" && (
-  <PagosSection clientName={clientName} bookingHistory={bookingHistory} />
+  <PagosSection bookingHistory={bookingHistory} />
 )}
 {activeSection === "perfil" && (
   <PerfilSection
@@ -1125,338 +1161,131 @@ function DashboardSection({
 function HistorialSection({
   bookingHistory,
   goToReserva,
-  clientName,
 }: {
   bookingHistory: ClientBooking[];
   goToReserva: () => void;
-  clientName: string;
 }) {
   const [selectedBooking, setSelectedBooking] = useState<ClientBooking | null>(
     null
   );
+  const items: BookingHistoryItemData[] = bookingHistory.map((booking) => {
+    const bookingTotal = getClientBookingTotal(booking);
 
-  const statusLabels: Record<string, string> = {
-    pending: "Pendiente",
-    pending_payment: "Pendiente de pago",
-    paid: "Pagada",
-    pending_beluer_assignment: "Pendiente de asignación",
-    assigned: "Asignada",
-    confirmed: "Confirmada",
-    in_progress: "En curso",
-    completed: "Completada",
-    cancelled: "Cancelada",
-    rescheduled: "Reprogramada",
-    refunded: "Reembolsada",
-  };
+    return {
+      id: booking.id,
+      service: booking.services?.name || "Servicio belu",
+      beluer:
+        booking.beluer_profiles?.public_name || "Pendiente de asignación",
+      date: formatDisplayDate(booking.scheduled_date),
+      time: formatDisplayTime(booking.scheduled_time),
+      location: `${booking.district} · ${booking.address}`,
+      amount: formatSoles(bookingTotal.total),
+      status: getBookingStatusPresentation(booking.status),
+      paymentStatus: getPaymentStatusPresentation(booking.payment_status),
+      isExpress: Boolean(booking.is_express),
+    };
+  });
 
-  const paymentStatusLabels: Record<string, string> = {
-    pending: "Pago pendiente de confirmación",
-    paid: "Pago confirmado",
-    failed: "Pago fallido",
-    refunded: "Reembolsado",
-    partially_refunded: "Reembolso parcial",
-  };
-  const selectedBookingTotal = selectedBooking
-    ? getClientBookingTotal(selectedBooking)
-    : null;
-  
+  let selectedItem: BookingHistoryDetailData | null = null;
+
+  if (selectedBooking) {
+    const selectedBookingTotal = getClientBookingTotal(selectedBooking);
+    const breakdown: BookingHistoryDetailData["breakdown"] = [
+      {
+        label: "Servicio",
+        value: formatSoles(selectedBookingTotal.serviceAmount),
+      },
+    ];
+
+    if (selectedBookingTotal.logisticFee > 0) {
+      breakdown.push({
+        label: "Cargo logístico",
+        value: formatSoles(selectedBookingTotal.logisticFee),
+      });
+    }
+
+    if (selectedBooking.is_express || selectedBookingTotal.expressFee > 0) {
+      breakdown.push({
+        label: "Belu Express",
+        value: formatSoles(selectedBookingTotal.expressFee),
+      });
+    }
+
+    breakdown.push({
+      label: "Total",
+      value: formatSoles(selectedBookingTotal.total),
+      isTotal: true,
+    });
+
+    selectedItem = {
+      id: selectedBooking.id,
+      service: selectedBooking.services?.name || "Servicio belu",
+      beluer:
+        selectedBooking.beluer_profiles?.public_name ||
+        "Pendiente de asignación",
+      date: formatDisplayDate(selectedBooking.scheduled_date),
+      time: formatDisplayTime(selectedBooking.scheduled_time),
+      location: `${selectedBooking.district} · ${selectedBooking.address}`,
+      district: selectedBooking.district,
+      address: selectedBooking.address,
+      amount: formatSoles(selectedBookingTotal.total),
+      status: getBookingStatusPresentation(selectedBooking.status),
+      paymentStatus: getPaymentStatusPresentation(
+        selectedBooking.payment_status
+      ),
+      isExpress: Boolean(selectedBooking.is_express),
+      breakdown,
+    };
+  }
+
   return (
-    <section className="cliente-panel-section active">
-      <div className="cliente-panel-top-bar">
-        <div className="cliente-panel-greeting">
-          <span className="cliente-panel-dashboard-kicker">Tus reservas</span>
-          <h1>Tu historial</h1>
-          <p>Consulta el detalle de tus reservas registradas.</p>
-        </div>
-
-        <UserPill clientName={clientName} />
-      </div>
-
-      <div className="cliente-panel-historial-grid">
-        {bookingHistory.length === 0 && (
-          <div className="cliente-panel-card">
-            <p>Aún no tienes reservas registradas.</p>
-          </div>
-        )}
-
-        {bookingHistory.map((item) => {
-          const itemTotal = getClientBookingTotal(item);
-
-          return (
-          <article className="cliente-panel-historial-card" key={item.id}>
-            <div className="cliente-panel-historial-img">
-              <img
-                src={crearPlaceholder(
-                  item.services?.name || "Servicio belu",
-                  item.services?.category === "nails" ? "D81B60" : "AD1457"
-                )}
-                alt={item.services?.name || "Servicio belu"}
-              />
-              <span>{statusLabels[item.status] || item.status}</span>
-            </div>
-
-            <div className="cliente-panel-historial-body">
-              <div className="cliente-panel-historial-header">
-                <div>
-                  <h3>{item.services?.name || "Servicio belu"}</h3>
-                  <p>
-                    Beluer:{" "}
-                    {item.beluer_profiles?.public_name ||
-                      "Pendiente de asignación"}
-                  </p>
-                </div>
-
-                <strong>{formatSoles(itemTotal.total)}</strong>
-              </div>
-
-              <div className="cliente-panel-historial-meta">
-                <span>{formatDisplayDate(item.scheduled_date)}</span>
-                <span>{formatDisplayTime(item.scheduled_time)}</span>
-                {item.is_express ? (
-                  <span className="cliente-panel-express-pill">
-                    Belu Express
-                  </span>
-                ) : null}
-                <span>
-                  💳{" "}
-                  {paymentStatusLabels[item.payment_status] ||
-                    item.payment_status}
-                </span>
-              </div>
-
-              <div className="cliente-panel-historial-rating">
-                Reserva registrada en belu
-              </div>
-
-              <p className="cliente-panel-historial-comment">
-                {item.district} · {item.address}
-              </p>
-
-              <div className="cliente-panel-historial-actions">
-                <button
-                  type="button"
-                  className="cliente-panel-btn-r"
-                  onClick={goToReserva}
-                >
-                  Nueva reserva
-                </button>
-
-                <button
-                  type="button"
-                  className="cliente-panel-btn-ghost"
-                  onClick={() => setSelectedBooking(item)}
-                >
-                  Ver detalle
-                </button>
-              </div>
-            </div>
-          </article>
-          );
-        })}
-      </div>
-
-      {selectedBooking && (
-        <div className="cliente-panel-modal-overlay">
-          <div className="cliente-panel-gestion-modal">
-            <button
-              type="button"
-              className="cliente-panel-modal-close"
-              onClick={() => setSelectedBooking(null)}
-              aria-label="Cerrar detalle de reserva"
-            >
-              ×
-            </button>
-
-            <h3>Detalle de reserva</h3>
-
-            <div className="cliente-panel-detalle-reserva">
-              <p>
-                <strong>Servicio:</strong>{" "}
-                {selectedBooking.services?.name || "Servicio belu"}
-              </p>
-              <p>
-                <strong>Beluer:</strong>{" "}
-                {selectedBooking.beluer_profiles?.public_name ||
-                  "Pendiente de asignación"}
-              </p>
-              <p>
-                <strong>Fecha:</strong>{" "}
-                {formatDisplayDate(selectedBooking.scheduled_date)}
-              </p>
-              <p>
-                <strong>Hora:</strong>{" "}
-                {formatDisplayTime(selectedBooking.scheduled_time)}
-              </p>
-              <p>
-                <strong>Estado:</strong>{" "}
-                {statusLabels[selectedBooking.status] || selectedBooking.status}
-              </p>
-              <p>
-                <strong>Estado de pago:</strong>{" "}
-                {paymentStatusLabels[selectedBooking.payment_status] ||
-                  selectedBooking.payment_status}
-              </p>
-              {selectedBookingTotal ? (
-                <div className="cliente-panel-booking-breakdown">
-                  <div>
-                    <span>Servicio</span>
-                    <strong>
-                      {formatSoles(selectedBookingTotal.serviceAmount)}
-                    </strong>
-                  </div>
-
-                  {selectedBookingTotal.logisticFee > 0 ? (
-                    <div>
-                      <span>Cargo logistico</span>
-                      <strong>
-                        {formatSoles(selectedBookingTotal.logisticFee)}
-                      </strong>
-                    </div>
-                  ) : null}
-
-                  {selectedBooking.is_express ||
-                  selectedBookingTotal.expressFee > 0 ? (
-                    <div>
-                      <span>Belu Express</span>
-                      <strong>
-                        {formatSoles(selectedBookingTotal.expressFee)}
-                      </strong>
-                    </div>
-                  ) : null}
-
-                  <div className="cliente-panel-booking-breakdown-total">
-                    <span>Total</span>
-                    <strong>{formatSoles(selectedBookingTotal.total)}</strong>
-                  </div>
-                </div>
-              ) : null}
-              <p>
-                <strong>Distrito:</strong> {selectedBooking.district}
-              </p>
-              <p>
-                <strong>Dirección:</strong> {selectedBooking.address}
-              </p>
-            </div>
-
-            <button
-              type="button"
-              className="cliente-panel-btn-ghost"
-              onClick={() => setSelectedBooking(null)}
-            >
-              Cerrar
-            </button>
-          </div>
-        </div>
-      )}
-    </section>
+    <BookingHistoryList
+      items={items}
+      selectedItem={selectedItem}
+      onBook={goToReserva}
+      onViewDetails={(bookingId) =>
+        setSelectedBooking(
+          bookingHistory.find((booking) => booking.id === bookingId) || null
+        )
+      }
+      onCloseDetails={() => setSelectedBooking(null)}
+    />
   );
 }
+
 function PagosSection({
-  clientName,
   bookingHistory,
 }: {
-  clientName: string;
   bookingHistory: ClientBooking[];
 }) {
-  const paymentStatusLabels: Record<string, string> = {
-    pending: "Pago pendiente de confirmación",
-    paid: "Pago confirmado",
-    failed: "Pago fallido",
-    refunded: "Reembolsado",
-    partially_refunded: "Reembolso parcial",
-  };
   const totalRegistrado = bookingHistory.reduce(
     (acc, booking) => acc + getClientBookingTotal(booking).total,
     0
   );
-  const ultimoEstadoPago = bookingHistory[0]?.payment_status
-    ? paymentStatusLabels[bookingHistory[0].payment_status] ||
-      bookingHistory[0].payment_status
-    : "Sin pagos";
+  const latestPaymentStatus = bookingHistory[0]?.payment_status
+    ? getPaymentStatusPresentation(bookingHistory[0].payment_status)
+    : null;
+  const items: PaymentHistoryItemData[] = bookingHistory.map((booking) => ({
+    id: booking.id,
+    service: booking.services?.name || "Servicio belu",
+    beluer:
+      booking.beluer_profiles?.public_name || "Pendiente de asignación",
+    date: formatDisplayDate(booking.scheduled_date),
+    time: formatDisplayTime(booking.scheduled_time),
+    amount: formatSoles(getClientBookingTotal(booking).total),
+    status: getPaymentStatusPresentation(booking.payment_status),
+    isExpress: Boolean(booking.is_express),
+  }));
+
   return (
-    <section className="cliente-panel-section active">
-      <div className="cliente-panel-top-bar">
-        <div className="cliente-panel-greeting">
-          <span className="cliente-panel-dashboard-kicker">Tus movimientos</span>
-          <h1>Historial de pagos</h1>
-          <p>Consulta los montos y estados de pago de tus reservas.</p>
-        </div>
-
-        <UserPill clientName={clientName} />
-      </div>
-
-      <div className="cliente-panel-pagos-summary">
-        <div>
-  <span>Total registrado</span>
-          <strong>{formatSoles(totalRegistrado)}</strong>
-</div>
-
-        <div>
-          <span>Reservas</span>
-          <strong>{bookingHistory.length}</strong>
-        </div>
-
-        <div>
-          <span>Último estado</span>
-          <strong>{ultimoEstadoPago}</strong>
-        </div>
-      </div>
-
-      <div className="cliente-panel-pagos-list">
-        {bookingHistory.length === 0 ? (
-          <div className="cliente-panel-card">
-            <p>Aún no tienes pagos registrados.</p>
-          </div>
-        ) : (
-          bookingHistory.map((booking) => {
-            const bookingTotal = getClientBookingTotal(booking);
-
-            return (
-          <article className="cliente-panel-pago-card" key={booking.id}>
-            <div className="cliente-panel-pago-main">
-              <div>
-                <div className="cliente-panel-pago-id">
-                  {paymentStatusLabels[booking.payment_status] ||
-                    booking.payment_status}
-                </div>
-                <h3>{booking.services?.name || "Servicio belu"}</h3>
-                <p>
-                  Beluer:{" "}
-                  {booking.beluer_profiles?.public_name ||
-                    "Pendiente de asignación"}
-                </p>
-              </div>
-
-              <div className="cliente-panel-pago-monto">
-                <span>
-                  {paymentStatusLabels[booking.payment_status] ||
-                    booking.payment_status}
-                </span>
-                <strong>{formatSoles(bookingTotal.total)}</strong>
-              </div>
-            </div>
-
-            <div className="cliente-panel-pago-meta">
-              <span>Fecha: {formatDisplayDate(booking.scheduled_date)}</span>
-              <span>Hora: {formatDisplayTime(booking.scheduled_time)}</span>
-              {booking.is_express ? (
-                <span className="cliente-panel-express-pill">
-                  Belu Express
-                </span>
-              ) : null}
-              <span>
-                Pago:{" "}
-                {paymentStatusLabels[booking.payment_status] ||
-                  booking.payment_status}
-              </span>
-            </div>
-
-          </article>
-            );
-          })
-        )}
-      </div>
-    </section>
+    <PaymentHistory
+      summary={{
+        total: formatSoles(totalRegistrado),
+        bookingCount: bookingHistory.length,
+        latestStatus: latestPaymentStatus,
+      }}
+      items={items}
+    />
   );
 }
 function PerfilSection({

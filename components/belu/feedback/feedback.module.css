@@ -1,0 +1,47 @@
+.badge {
+  display: inline-flex;
+  min-height: 25px;
+  align-items: center;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: 4px 9px;
+  font: 800 0.66rem/1.2 var(--font-nunito), Nunito, sans-serif;
+  letter-spacing: 0.025em;
+  white-space: nowrap;
+}
+
+.neutral {
+  border-color: #ded5d0;
+  background: #f4efec;
+  color: #655d59;
+}
+
+.accent {
+  border-color: #f0c4cf;
+  background: #fff0f4;
+  color: #a41537;
+}
+
+.info {
+  border-color: #cbdce6;
+  background: #eff7fa;
+  color: #315f73;
+}
+
+.success {
+  border-color: #c8ddcf;
+  background: #f0f7f2;
+  color: #346046;
+}
+
+.warning {
+  border-color: #ead7aa;
+  background: #fff8e7;
+  color: #775b1f;
+}
+
+.danger {
+  border-color: #efc8c8;
+  background: #fff1f1;
+  color: #983939;
+}
