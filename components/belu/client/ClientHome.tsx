@@ -7,7 +7,7 @@ import styles from "./client.module.css";
 
 type ClientHomeProps = {
   clientFirstName: string;
-  booking: BookingHeroData | null;
+  bookings: BookingHeroData[];
   services: ServiceCardData[];
   beluers: BeluerCardData[];
   onBook: () => void;
@@ -18,7 +18,7 @@ type ClientHomeProps = {
 
 export function ClientHome({
   clientFirstName,
-  booking,
+  bookings,
   services,
   beluers,
   onBook,
@@ -33,7 +33,7 @@ export function ClientHome({
       </p>
 
       <BookingHero
-        booking={booking}
+        bookings={bookings}
         onBook={onBook}
         onExploreServices={onExploreServices}
         onViewHistory={onViewHistory}

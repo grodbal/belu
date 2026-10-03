@@ -69,7 +69,7 @@ type ClientBooking = {
 
 type ClientePanelOriginalPageProps = {
   clientProfile: ClientProfile | null;
-  nextBooking: ClientBooking | null;
+  upcomingBookings: ClientBooking[];
   bookingHistory: ClientBooking[];
   realBeluers: Beluer[];
   realServices: Service[];
@@ -233,7 +233,7 @@ const mobileNavItems: ClientNavigationItem<PanelSection>[] = [
 
 export default function ClientePanelOriginalPage({
   clientProfile,
-  nextBooking,
+  upcomingBookings,
   bookingHistory,
   realBeluers,
   realServices,
@@ -468,6 +468,7 @@ const handleIrDashboard = () => {
 };
 const clientName = clientProfile?.full_name || "Clienta";
 const clientFirstName = clientProfile?.full_name?.split(" ")[0] || "Clienta";
+const nextBooking = upcomingBookings[0] || null;
 const hasRealBooking = Boolean(nextBooking);
 const selectedBookingService = servicioSeleccionado;
 
@@ -522,7 +523,7 @@ const selectedBookingService = servicioSeleccionado;
   modoAsignacion={modoAsignacion}
   beluerSeleccionada={beluerSeleccionada}
   clientFirstName={clientFirstName}
-  nextBooking={nextBooking}
+  upcomingBookings={upcomingBookings}
   realBeluers={realBeluers}
   realServices={realServices}
 />
@@ -1029,7 +1030,7 @@ function DashboardSection({
   modoAsignacion,
   beluerSeleccionada,
   clientFirstName,
-  nextBooking,
+  upcomingBookings,
   realBeluers,
   realServices,
 }: {
@@ -1042,7 +1043,7 @@ function DashboardSection({
   modoAsignacion: AssignmentMode;
   beluerSeleccionada: string;
   clientFirstName: string;
-  nextBooking: ClientBooking | null;
+  upcomingBookings: ClientBooking[];
   realBeluers: Beluer[];
   realServices: Service[];
 }) {
@@ -1054,30 +1055,32 @@ function DashboardSection({
     completed: "Completada",
     cancelled: "Cancelada",
   };
-  const hasBooking = Boolean(nextBooking || reservaConfirmada);
-  const booking: BookingHeroData | null = hasBooking
-    ? {
-        service:
-          nextBooking?.services?.name ||
-          servicioSeleccionado?.nombre ||
-          "Servicio belu",
-        status:
-          reservationStatusLabels[nextBooking?.status || "confirmed"] ||
-          nextBooking?.status ||
-          "Confirmada",
-        date: formatDisplayDate(nextBooking?.scheduled_date || fecha),
-        time: formatDisplayTime(nextBooking?.scheduled_time || hora),
-        district: nextBooking?.district || undefined,
-        beluer:
-          nextBooking?.beluer_profiles?.public_name ||
-          (modoAsignacion === "libre" && beluerSeleccionada
-            ? beluerSeleccionada
-            : undefined),
-        total: formatSoles(
-          nextBooking ? getClientBookingTotal(nextBooking).total : total
-        ),
-      }
-    : null;
+  const bookings: BookingHeroData[] = upcomingBookings.map((booking) => ({
+    id: booking.id,
+    service: booking.services?.name || "Servicio belu",
+    status:
+      reservationStatusLabels[booking.status] || booking.status,
+    date: formatDisplayDate(booking.scheduled_date),
+    time: formatDisplayTime(booking.scheduled_time),
+    district: booking.district || undefined,
+    beluer: booking.beluer_profiles?.public_name || undefined,
+    total: formatSoles(getClientBookingTotal(booking).total),
+  }));
+
+  if (bookings.length === 0 && reservaConfirmada) {
+    bookings.push({
+      id: "new-booking",
+      service: servicioSeleccionado?.nombre || "Servicio belu",
+      status: "Confirmada",
+      date: formatDisplayDate(fecha),
+      time: formatDisplayTime(hora),
+      beluer:
+        modoAsignacion === "libre" && beluerSeleccionada
+          ? beluerSeleccionada
+          : undefined,
+      total: formatSoles(total),
+    });
+  }
   const services: ServiceCardData[] = sortServicesForReservation(realServices)
     .slice(0, 3)
     .map((service, index) => ({
@@ -1108,7 +1111,7 @@ function DashboardSection({
   return (
     <ClientHome
       clientFirstName={clientFirstName}
-      booking={booking}
+      bookings={bookings}
       services={services}
       beluers={beluers}
       onBook={() => goToSection("reserva")}

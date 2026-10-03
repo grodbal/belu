@@ -70,6 +70,36 @@ type BeluerProfileRow = {
   beluer_service_skills: BeluerServiceSkillRow[] | null;
 };
 
+const ACTIVE_UPCOMING_BOOKING_STATUSES = new Set([
+  "pending",
+  "assigned",
+  "confirmed",
+  "in_progress",
+]);
+
+function getLimaDateTimeKey(date = new Date()) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Lima",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(date);
+  const values = Object.fromEntries(
+    parts.map(({ type, value }) => [type, value])
+  );
+
+  return `${values.year}-${values.month}-${values.day}T${values.hour}:${values.minute}`;
+}
+
+function getBookingDateTimeKey(booking: ClientBooking) {
+  const [hour = "00", minute = "00"] = booking.scheduled_time.split(":");
+
+  return `${booking.scheduled_date}T${hour.padStart(2, "0")}:${minute.padStart(2, "0")}`;
+}
+
 function normalizeBeluerCategory(categories: string[]): Beluer["categoria"] {
   const normalizedCategories = categories.map((category) =>
     category.toLowerCase()
@@ -98,7 +128,7 @@ export default async function ClientePanelPage() {
   } = await authClient.auth.getUser();
 
   let profile: ClientProfile | null = null;
-  let nextBooking: ClientBooking | null = null;
+  let upcomingBookings: ClientBooking[] = [];
   let bookingHistory: ClientBooking[] = [];
   let realBeluers: Beluer[] = [];
   let realServices: Service[] = [];
@@ -267,18 +297,6 @@ export default async function ClientePanelPage() {
         )
       `;
 
-      const { data: bookingData } = await supabase
-        .from("bookings")
-        .select(bookingsSelect)
-        .eq("client_profile_id", profile.id)
-        .in("status", ["pending", "assigned", "confirmed", "in_progress"])
-        .order("scheduled_date", { ascending: true })
-        .order("scheduled_time", { ascending: true })
-        .limit(1)
-        .maybeSingle();
-
-      nextBooking = bookingData as ClientBooking | null;
-
       const { data: historyData } = await supabase
         .from("bookings")
         .select(bookingsSelect)
@@ -287,13 +305,26 @@ export default async function ClientePanelPage() {
         .order("scheduled_time", { ascending: false });
 
       bookingHistory = (historyData as ClientBooking[] | null) || [];
+      const nowInLima = getLimaDateTimeKey();
+
+      upcomingBookings = bookingHistory
+        .filter(
+          (booking) =>
+            ACTIVE_UPCOMING_BOOKING_STATUSES.has(booking.status) &&
+            getBookingDateTimeKey(booking) >= nowInLima
+        )
+        .sort((first, second) =>
+          getBookingDateTimeKey(first).localeCompare(
+            getBookingDateTimeKey(second)
+          )
+        );
     }
   }
 
   return (
     <ClientePanelOriginalPage
       clientProfile={profile}
-      nextBooking={nextBooking}
+      upcomingBookings={upcomingBookings}
       bookingHistory={bookingHistory}
       realBeluers={realBeluers}
       realServices={realServices}
