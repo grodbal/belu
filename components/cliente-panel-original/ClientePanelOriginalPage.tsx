@@ -23,6 +23,7 @@ import {
   BookingSummary,
   BookingToggle,
   PaymentHistory,
+  ProfileView,
   ServicesCatalog,
   type BeluerCatalogItem,
   type BeluerCardData,
@@ -1304,7 +1305,6 @@ function PerfilSection({
   const [preferencia, setPreferencia] = useState(
     clientProfile?.beauty_preference || ""
   );
-  
 
   const handleGuardarPerfil = async () => {
     setProfileLoading(true);
@@ -1319,106 +1319,22 @@ function PerfilSection({
     alert(result.message);
   };
 
-  
-
   return (
-    <section className="cliente-panel-section active">
-      <div className="cliente-panel-top-bar">
-        <div className="cliente-panel-greeting">
-          <span className="cliente-panel-dashboard-kicker">Tu cuenta</span>
-          <h1>Mi perfil</h1>
-          <p>Actualiza tus datos para que tu experiencia belu sea más precisa.</p>
-        </div>
-
-        <UserPill clientName={clientName} />
-      </div>
-
-      <div className="cliente-panel-perfil-layout">
-        <aside className="cliente-panel-perfil-card">
-          <div className="cliente-panel-perfil-avatar">{getInitials(nombre) || "C"}</div>
-          <h2>{nombre.split(" ")[0] || "Clienta"}</h2>
-          <p>Clienta belu ✦</p>
-
-          <div className="cliente-panel-perfil-stats">
-            <div>
-              <strong>{bookingCount}</strong>
-              <span>Reservas</span>
-            </div>
-
-          </div>
-        </aside>
-
-        <div className="cliente-panel-perfil-form-card">
-          <h3>Datos personales</h3>
-
-          <div className="cliente-panel-form-grid">
-            <div className="cliente-panel-form-group">
-              <label>Nombre completo</label>
-              <input
-                type="text"
-                value={nombre}
-                readOnly
-              />
-            </div>
-
-            <div className="cliente-panel-form-group">
-              <label>Email</label>
-              <input
-                type="email"
-                value={email}
-                readOnly
-              />
-            </div>
-
-            <div className="cliente-panel-form-group">
-              <label>Teléfono</label>
-              <input
-                type="tel"
-                value={phone}
-                onChange={(event) => setPhone(event.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="cliente-panel-form-group">
-            <label>Preferencia de belleza</label>
-            <select
-              value={preferencia}
-              onChange={(event) => setPreferencia(event.target.value)}
-            >
-              <option value="" disabled>
-                Selecciona una preferencia
-              </option>
-              <option value="Lashes naturales">Lashes naturales</option>
-              <option value="Lashes con volumen">Lashes con volumen</option>
-              <option value="Nails minimalistas">Nails minimalistas</option>
-              <option value="Nails protagonistas">Nails protagonistas</option>
-              <option value="Lashes y nails">Lashes y nails</option>
-            </select>
-          </div>
-
-          <button
-            className="cliente-panel-btn-r cliente-panel-full-btn"
-            type="button"
-            onClick={handleGuardarPerfil}
-            disabled={profileLoading || !preferencia}
-          >
-            {profileLoading ? "Guardando..." : "Guardar cambios"}
-          </button>
-
-          <div className="cliente-panel-session-block">
-            <div>
-              <h3>Sesión</h3>
-              <p>Cierra tu sesión de forma segura en este dispositivo.</p>
-            </div>
-            <LogoutButton className="cliente-panel-logout-button" />
-          </div>
-        </div>
-      </div>
-    </section>
+    <ProfileView
+      name={nombre}
+      email={email}
+      phone={phone}
+      beautyPreference={preferencia}
+      initials={getInitials(nombre) || "C"}
+      bookingCount={bookingCount}
+      isSaving={profileLoading}
+      logoutAction={<LogoutButton />}
+      onPhoneChange={setPhone}
+      onBeautyPreferenceChange={setPreferencia}
+      onSave={handleGuardarPerfil}
+    />
   );
 }
-
 function getInitials(name: string) {
   return name
     .split(" ")

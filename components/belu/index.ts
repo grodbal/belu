@@ -19,5 +19,6 @@ export {
   type PaymentHistoryItemData,
   type PaymentSummaryData,
 } from "./payments/PaymentHistory";
+export { ProfileView } from "./profile/ProfileView";
 export * from "./services";
 export * from "./ui";
