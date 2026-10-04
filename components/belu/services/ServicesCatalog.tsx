@@ -1,6 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { PageHeader } from "../client/PageHeader";
+import { EmptyState } from "../feedback/EmptyState";
+import { FilterChips } from "../ui/FilterChips";
 import { ServiceCard, type ServiceCardData } from "./ServiceCard";
 import styles from "./services.module.css";
 
@@ -93,11 +96,13 @@ export function ServicesCatalog({
 
   return (
     <section className={styles.catalog} aria-labelledby="services-catalog-title">
-      <header className={styles.catalogHeader}>
-        <p>Catálogo <span aria-hidden="true">✦</span></p>
-        <h1 id="services-catalog-title">Explora servicios</h1>
-        <span>Lashes y nails a domicilio, cuando quieras.</span>
-      </header>
+      <PageHeader
+        eyebrow="Catálogo"
+        accent
+        title="Explora servicios"
+        description="Lashes y nails a domicilio, cuando quieras."
+        titleId="services-catalog-title"
+      />
 
       <div className={styles.catalogTools}>
         <label className={styles.searchField}>
@@ -110,19 +115,13 @@ export function ServicesCatalog({
           />
         </label>
 
-        <div className={styles.filterRail} aria-label="Filtros de servicios">
-          {filters.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              className={filter === item.id ? styles.activeFilter : ""}
-              aria-pressed={filter === item.id}
-              onClick={() => setFilter(item.id)}
-            >
-              {item.label}
-            </button>
-          ))}
-        </div>
+        <FilterChips
+          ariaLabel="Filtros de servicios"
+          items={filters}
+          activeId={filter}
+          onChange={setFilter}
+          className={styles.filterRail}
+        />
 
         <div className={styles.catalogSummary} aria-live="polite">
           <strong>{filteredServices.length} servicios</strong>
@@ -152,14 +151,13 @@ export function ServicesCatalog({
           ))}
         </div>
       ) : (
-        <div className={styles.emptyState}>
-          <span aria-hidden="true">✦</span>
-          <strong>No encontramos servicios con esos filtros.</strong>
-          <p>Prueba con otra búsqueda o vuelve a ver todo el catálogo.</p>
-          <button type="button" onClick={clearFilters}>
-            Limpiar filtros
-          </button>
-        </div>
+        <EmptyState
+          className={styles.catalogEmpty}
+          title="No encontramos servicios con esos filtros."
+          description="Prueba con otra búsqueda o vuelve a ver todo el catálogo."
+          actionLabel="Limpiar filtros"
+          onAction={clearFilters}
+        />
       )}
     </section>
   );

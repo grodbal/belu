@@ -1,6 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { PageHeader } from "../client/PageHeader";
+import { EmptyState } from "../feedback/EmptyState";
+import { FilterChips } from "../ui/FilterChips";
 import { BeluerCard, type BeluerCardData } from "./BeluerCard";
 import styles from "./beluers.module.css";
 
@@ -37,28 +40,22 @@ export function BeluersCatalog({
 
   return (
     <section className={styles.catalog} aria-labelledby="beluers-catalog-title">
-      <header className={styles.catalogHeader}>
-        <p>Talento belu <span aria-hidden="true">✦</span></p>
-        <h1 id="beluers-catalog-title">Conoce a nuestras especialistas</h1>
-        <span>
-          Beluers verificadas para acompañarte en tu próxima sesión de belleza.
-        </span>
-      </header>
+      <PageHeader
+        eyebrow="Talento belu"
+        accent
+        title="Conoce a nuestras especialistas"
+        description="Beluers verificadas para acompañarte en tu próxima sesión de belleza."
+        titleId="beluers-catalog-title"
+      />
 
       <div className={styles.catalogToolbar}>
-        <div className={styles.filterRail} aria-label="Filtros de especialistas">
-          {filters.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              className={filter === item.id ? styles.activeFilter : ""}
-              aria-pressed={filter === item.id}
-              onClick={() => setFilter(item.id)}
-            >
-              {item.label}
-            </button>
-          ))}
-        </div>
+        <FilterChips
+          ariaLabel="Filtros de especialistas"
+          items={filters}
+          activeId={filter}
+          onChange={setFilter}
+          className={styles.filterRail}
+        />
         <span aria-live="polite">
           {filteredBeluers.length} especialistas
         </span>
@@ -76,14 +73,13 @@ export function BeluersCatalog({
           ))}
         </div>
       ) : (
-        <div className={styles.emptyState}>
-          <span aria-hidden="true">✦</span>
-          <strong>No encontramos especialistas en esta categoría.</strong>
-          <p>Explora todas las Beluers disponibles.</p>
-          <button type="button" onClick={() => setFilter("all")}>
-            Ver todas
-          </button>
-        </div>
+        <EmptyState
+          className={styles.catalogEmpty}
+          title="No encontramos especialistas en esta categoría."
+          description="Explora todas las Beluers disponibles."
+          actionLabel="Ver todas"
+          onAction={() => setFilter("all")}
+        />
       )}
     </section>
   );

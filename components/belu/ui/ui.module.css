@@ -53,6 +53,44 @@
   transition: background-color 180ms ease, color 180ms ease;
 }
 
+.filterChips {
+  display: flex;
+  min-width: 0;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.filterChips::-webkit-scrollbar {
+  display: none;
+}
+
+.filterChips button {
+  min-height: 44px;
+  flex: 0 0 auto;
+  border: 1px solid #e8dfda;
+  border-radius: 999px;
+  background: transparent;
+  padding: 0 15px;
+  color: #716966;
+  cursor: pointer;
+  font: 700 0.78rem/1 var(--font-nunito), Nunito, sans-serif;
+  transition: background-color 180ms ease, border-color 180ms ease,
+    color 180ms ease;
+}
+
+.filterChips button:hover,
+.filterChips .activeFilterChip {
+  border-color: #1a1a1a;
+  background: #1a1a1a;
+  color: #fff;
+}
+
+.filterChips button:focus-visible {
+  outline: 3px solid #e60023;
+  outline-offset: 3px;
+}
+
 @media (hover: hover) {
   .primary:hover:not(:disabled) {
     background: #bf001d;
@@ -77,6 +115,13 @@
   }
 }
 
+@media (min-width: 768px) {
+  .filterChips {
+    flex-wrap: wrap;
+    overflow-x: visible;
+  }
+}
+
 @media (max-width: 370px) {
   .button { width: 100%; }
 }
@@ -85,6 +130,10 @@
   .button,
   .button > svg,
   .iconButton {
+    transition-duration: .01ms;
+  }
+
+  .filterChips button {
     transition-duration: .01ms;
   }
 }

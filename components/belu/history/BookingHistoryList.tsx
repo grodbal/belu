@@ -1,8 +1,11 @@
 import { BeluIcon } from "../foundations/BeluIcon";
+import { PageHeader } from "../client/PageHeader";
+import { EmptyState } from "../feedback/EmptyState";
 import {
   StatusBadge,
   type StatusBadgeData,
 } from "../feedback/StatusBadge";
+import { PrimaryButton } from "../ui/Button";
 import styles from "./history.module.css";
 
 export type BookingHistoryItemData = {
@@ -45,13 +48,12 @@ export function BookingHistoryList({
 }: BookingHistoryListProps) {
   return (
     <section className={styles.page} aria-labelledby="booking-history-title">
-      <header className={styles.intro}>
-        <p>Tus reservas</p>
-        <h1 id="booking-history-title">Tu historial</h1>
-        <span>
-          Revisa tus servicios, especialistas y estados en un solo lugar.
-        </span>
-      </header>
+      <PageHeader
+        eyebrow="Tus reservas"
+        title="Tu historial"
+        description="Revisa tus servicios, especialistas y estados en un solo lugar."
+        titleId="booking-history-title"
+      />
 
       {items.length > 0 ? (
         <div className={styles.toolbar}>
@@ -61,22 +63,21 @@ export function BookingHistoryList({
               ? "reserva registrada"
               : "reservas registradas"}
           </p>
-          <button type="button" onClick={onBook}>
+          <PrimaryButton className={styles.toolbarAction} onClick={onBook}>
             Nueva reserva
             <BeluIcon name="arrow" size={16} aria-hidden="true" />
-          </button>
+          </PrimaryButton>
         </div>
       ) : null}
 
       {items.length === 0 ? (
-        <div className={styles.emptyState}>
-          <span aria-hidden="true">✦</span>
-          <strong>Tu historia con belu empieza aquí</strong>
-          <p>Cuando reserves un servicio, podrás consultar sus detalles aquí.</p>
-          <button type="button" onClick={onBook}>
-            Reservar ahora
-          </button>
-        </div>
+        <EmptyState
+          className={styles.pageEmpty}
+          title="Tu historia con belu empieza aquí"
+          description="Cuando reserves un servicio, podrás consultar sus detalles aquí."
+          actionLabel="Reservar ahora"
+          onAction={onBook}
+        />
       ) : (
         <div className={styles.list}>
           {items.map((item) => (
@@ -91,7 +92,7 @@ export function BookingHistoryList({
                 <div className={styles.badges}>
                   <StatusBadge {...item.status} />
                   {item.isExpress ? (
-                    <span className={styles.expressBadge}>Belu Express</span>
+                    <StatusBadge label="Belu Express" tone="accent" />
                   ) : null}
                 </div>
                 <h2>{item.service}</h2>

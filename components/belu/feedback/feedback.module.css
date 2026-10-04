@@ -45,3 +45,35 @@
   background: #fff1f1;
   color: #983939;
 }
+
+.emptyState {
+  display: flex;
+  min-height: 280px;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  border-block: 1px solid #e8dfda;
+  padding: 48px 20px;
+  text-align: center;
+}
+
+.emptyState > span {
+  margin-bottom: 14px;
+  color: #e60023;
+  font-size: 1.4rem;
+}
+
+.emptyState > strong {
+  font: 600 1.15rem/1.35 var(--font-poppins), Poppins, sans-serif;
+}
+
+.emptyState > p {
+  max-width: 440px;
+  margin: 8px 0 20px;
+  color: #716966;
+  font: 400 0.86rem/1.5 var(--font-nunito), Nunito, sans-serif;
+}
+
+.emptyState > p:last-child {
+  margin-bottom: 0;
+}

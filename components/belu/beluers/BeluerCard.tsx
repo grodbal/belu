@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
+import { StatusBadge } from "../feedback/StatusBadge";
 import styles from "./beluers.module.css";
 
 export type BeluerCardData = {
@@ -66,7 +67,11 @@ export function BeluerCard({
           <strong>{beluer.name}</strong>
           <span className={styles.specialty}>{beluer.specialty}</span>
           {beluer.isNew ? (
-            <span className={styles.newBeluer}>Nueva en belu</span>
+            <StatusBadge
+              className={styles.newBeluer}
+              label="Nueva en belu"
+              tone="accent"
+            />
           ) : null}
           {isCatalog && beluer.services && beluer.services.length > 0 ? (
             <span className={styles.services}>

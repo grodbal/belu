@@ -77,8 +77,8 @@
 
 .carouselArrow {
   display: inline-flex;
-  width: 38px;
-  height: 38px;
+  width: 44px;
+  height: 44px;
   align-items: center;
   justify-content: center;
   border: 1px solid rgba(255, 255, 255, 0.46);
@@ -112,21 +112,34 @@
   max-width: calc(100% - 48px);
   flex-wrap: wrap;
   justify-content: flex-end;
-  gap: 7px;
+  gap: 0;
 }
 
 .carouselDot {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.carouselDot::before {
+  position: absolute;
+  top: 50%;
+  left: 50%;
   width: 8px;
   height: 8px;
-  border: 0;
   border-radius: 999px;
-  padding: 0;
   background: rgba(255, 255, 255, 0.48);
-  cursor: pointer;
+  content: "";
+  transform: translate(-50%, -50%);
   transition: width 180ms ease, background-color 180ms ease;
 }
 
-.carouselDot[aria-current="true"] {
+.carouselDot[aria-current="true"]::before {
   width: 24px;
   background: #fff;
 }
@@ -238,43 +251,7 @@
   margin-top: 26px;
 }
 
-.actions button {
-  display: inline-flex;
-  min-height: 48px;
-  align-items: center;
-  justify-content: center;
-  gap: 9px;
-  border-radius: 12px;
-  padding: 0 20px;
-  cursor: pointer;
-  font: 600 0.82rem/1 var(--font-poppins), Poppins, sans-serif;
-  transition: background-color 180ms ease, border-color 180ms ease;
-}
-
-.primaryAction {
-  border: 1px solid #e60023;
-  background: #e60023;
-  color: #fff;
-}
-
-.primaryAction:hover {
-  border-color: #bf001d;
-  background: #bf001d;
-}
-
-.secondaryAction {
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
-  backdrop-filter: blur(6px);
-}
-
-.secondaryAction:hover {
-  border-color: rgba(255, 255, 255, 0.8);
-  background: rgba(255, 255, 255, 0.18);
-}
-
-.actions button:focus-visible {
+.heroButton:focus-visible {
   outline: 3px solid #fff;
   outline-offset: 3px;
 }
@@ -316,11 +293,6 @@
 
   .carouselCount {
     font-size: 0.68rem;
-  }
-
-  .carouselArrow {
-    width: 34px;
-    height: 34px;
   }
 
   .carouselDots {
@@ -386,11 +358,6 @@
     margin-top: 18px;
   }
 
-  .actions button {
-    min-height: 46px;
-    padding-inline: 16px;
-    font-size: 0.75rem;
-  }
 }
 
 @media (max-width: 370px) {
@@ -399,9 +366,6 @@
     flex-direction: column;
   }
 
-  .actions button {
-    width: 100%;
-  }
 }
 
 @media (hover: none) {
@@ -416,9 +380,8 @@
   }
 
   .heroImage,
-  .actions button,
   .carouselArrow,
-  .carouselDot {
+  .carouselDot::before {
     transition-duration: 0.01ms;
   }
 }

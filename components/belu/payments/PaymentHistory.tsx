@@ -1,4 +1,6 @@
 import { BeluIcon } from "../foundations/BeluIcon";
+import { PageHeader } from "../client/PageHeader";
+import { EmptyState } from "../feedback/EmptyState";
 import {
   StatusBadge,
   type StatusBadgeData,
@@ -30,14 +32,12 @@ type PaymentHistoryProps = {
 export function PaymentHistory({ summary, items }: PaymentHistoryProps) {
   return (
     <section className={styles.page} aria-labelledby="payment-history-title">
-      <header className={styles.intro}>
-        <p>Tus movimientos</p>
-        <h1 id="payment-history-title">Historial de pagos</h1>
-        <span>
-          Consulta los montos y estados registrados para cada una de tus
-          reservas.
-        </span>
-      </header>
+      <PageHeader
+        eyebrow="Tus movimientos"
+        title="Historial de pagos"
+        description="Consulta los montos y estados registrados para cada una de tus reservas."
+        titleId="payment-history-title"
+      />
 
       <dl className={styles.summary}>
         <div className={styles.summaryPrimary}>
@@ -61,14 +61,11 @@ export function PaymentHistory({ summary, items }: PaymentHistoryProps) {
       </dl>
 
       {items.length === 0 ? (
-        <div className={styles.emptyState}>
-          <span aria-hidden="true">✦</span>
-          <strong>Aún no tienes movimientos registrados</strong>
-          <p>
-            Los pagos asociados a tus próximas reservas aparecerán en esta
-            sección.
-          </p>
-        </div>
+        <EmptyState
+          className={styles.pageEmpty}
+          title="Aún no tienes movimientos registrados"
+          description="Los pagos asociados a tus próximas reservas aparecerán en esta sección."
+        />
       ) : (
         <div className={styles.list}>
           <div className={styles.listHeader} aria-hidden="true">
@@ -86,7 +83,9 @@ export function PaymentHistory({ summary, items }: PaymentHistoryProps) {
                 <div>
                   <div className={styles.serviceTitle}>
                     <h2>{item.service}</h2>
-                    {item.isExpress ? <span>Express</span> : null}
+                    {item.isExpress ? (
+                      <StatusBadge label="Express" tone="accent" />
+                    ) : null}
                   </div>
                   <p>{item.beluer}</p>
                 </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { PageHeader } from "../client/PageHeader";
 import { PrimaryButton } from "../ui/Button";
 import styles from "./booking-flow.module.css";
 
@@ -21,11 +22,12 @@ export function BookingFlow({
 }: BookingFlowProps) {
   return (
     <section className={styles.flow} aria-labelledby="booking-flow-title">
-      <header className={styles.intro}>
-        <p>{eyebrow}</p>
-        <h1 id="booking-flow-title">{title}</h1>
-        <span>{description}</span>
-      </header>
+      <PageHeader
+        eyebrow={eyebrow}
+        title={title}
+        description={description}
+        titleId="booking-flow-title"
+      />
 
       <div className={styles.layout}>
         <div className={styles.steps}>{children}</div>

@@ -11,6 +11,8 @@ import styles from "./ui.module.css";
 type ButtonCommonProps = {
   children: ReactNode;
   className?: string;
+  tabIndex?: number;
+  "aria-busy"?: boolean;
 };
 
 type ActionButtonProps = ButtonCommonProps & {
@@ -48,22 +50,36 @@ function Button({
   );
 
   if (props.href !== undefined) {
-    const { href, onClick } = props;
+    const { href, onClick, tabIndex, "aria-busy": ariaBusy } = props;
 
     return (
-      <Link className={buttonClassName} href={href} onClick={onClick}>
+      <Link
+        aria-busy={ariaBusy}
+        className={buttonClassName}
+        href={href}
+        onClick={onClick}
+        tabIndex={tabIndex}
+      >
         {children}
       </Link>
     );
   }
 
-  const { disabled, onClick, type = "button" } = props;
+  const {
+    disabled,
+    onClick,
+    tabIndex,
+    type = "button",
+    "aria-busy": ariaBusy,
+  } = props;
 
   return (
     <button
+      aria-busy={ariaBusy}
       className={buttonClassName}
       disabled={disabled}
       onClick={onClick}
+      tabIndex={tabIndex}
       type={type}
     >
       {children}

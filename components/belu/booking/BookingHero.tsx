@@ -9,6 +9,7 @@ import {
   useSyncExternalStore,
 } from "react";
 import { BeluIcon } from "../foundations/BeluIcon";
+import { PrimaryButton, SecondaryButton } from "../ui/Button";
 import styles from "./booking.module.css";
 
 export type BookingHeroData = {
@@ -124,23 +125,21 @@ function BookingSlide({
         )}
 
         <div className={styles.actions}>
-          <button
-            className={styles.primaryAction}
-            type="button"
+          <PrimaryButton
+            className={styles.heroButton}
             onClick={booking ? onViewHistory : onBook}
             tabIndex={isActive ? undefined : -1}
           >
             {booking ? "Ver detalle" : "Reservar ahora"}
             <BeluIcon name="arrow" size={17} aria-hidden="true" />
-          </button>
-          <button
-            className={styles.secondaryAction}
-            type="button"
+          </PrimaryButton>
+          <SecondaryButton
+            className={styles.heroButton}
             onClick={booking ? onBook : onExploreServices}
             tabIndex={isActive ? undefined : -1}
           >
             {booking ? "Nueva reserva" : "Explorar servicios"}
-          </button>
+          </SecondaryButton>
         </div>
       </div>
     </section>

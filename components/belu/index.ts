@@ -8,6 +8,7 @@ export {
   type StatusBadgeData,
   type StatusBadgeTone,
 } from "./feedback/StatusBadge";
+export { EmptyState } from "./feedback/EmptyState";
 export {
   BookingHistoryList,
   type BookingHistoryDetailData,

@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { PageHeader } from "../client/PageHeader";
 import { BeluIcon } from "../foundations/BeluIcon";
 import { PrimaryButton } from "../ui";
 import styles from "./profile.module.css";
@@ -34,13 +35,12 @@ export function ProfileView({
 }: ProfileViewProps) {
   return (
     <section className={styles.page} aria-labelledby="client-profile-title">
-      <header className={styles.intro}>
-        <p>Tu cuenta</p>
-        <h1 id="client-profile-title">Mi perfil</h1>
-        <span>
-          Mantén tus datos actualizados para una experiencia belu más precisa.
-        </span>
-      </header>
+      <PageHeader
+        eyebrow="Tu cuenta"
+        title="Mi perfil"
+        description="Mantén tus datos actualizados para una experiencia belu más precisa."
+        titleId="client-profile-title"
+      />
 
       <div className={styles.layout}>
         <aside className={styles.identity} aria-label="Identidad de clienta">
@@ -136,6 +136,7 @@ export function ProfileView({
                 type="button"
                 onClick={onSave}
                 disabled={isSaving || !beautyPreference}
+                aria-busy={isSaving}
               >
                 {isSaving ? "Guardando..." : "Guardar cambios"}
               </PrimaryButton>
