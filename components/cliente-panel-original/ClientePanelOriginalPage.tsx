@@ -104,7 +104,6 @@ function getBookingStatusPresentation(status: string): StatusBadgeData {
     bookingStatusPresentation[status] || { label: status, tone: "neutral" }
   );
 }
-
 function getPaymentStatusPresentation(status: string): StatusBadgeData {
   return (
     paymentStatusPresentation[status] || { label: status, tone: "neutral" }
@@ -865,32 +864,6 @@ const selectedBookingService = servicioSeleccionado;
   />
 )}
 
-{activeSection !== "dashboard" &&
-  activeSection !== "reserva" &&
-  activeSection !== "servicios" &&
-  activeSection !== "beluers" &&
-  activeSection !== "historial" &&
-activeSection !== "pagos" &&
-activeSection !== "perfil" && (
-    <section className="cliente-panel-section active">
-      <div className="cliente-panel-top-bar">
-        <div className="cliente-panel-greeting">
-          <h1>{getSectionTitle(activeSection)}</h1>
-          <p>Esta sección se construirá en el siguiente bloque.</p>
-        </div>
-
-        <UserPill clientName={clientName} />
-      </div>
-
-      <div className="cliente-panel-card">
-        <h3>{getSectionTitle(activeSection)}</h3>
-        <p>
-          Panel base conectado correctamente. Esta sección se migrará en
-          un siguiente bloque.
-        </p>
-      </div>
-    </section>
-          )}
       {selectedBookingService &&
       (activeSection === "dashboard" || activeSection === "servicios") ? (
         <button
@@ -1344,17 +1317,6 @@ function getInitials(name: string) {
     .join("");
 }
 
-function UserPill({ clientName = "Clienta belu" }: { clientName?: string }) {
-  return (
-    <div className="cliente-panel-user-pill">
-      <div className="cliente-panel-avatar">
-        {getInitials(clientName) || "CB"}
-      </div>
-      <span>{clientName}</span>
-    </div>
-  );
-}
-
 function EspecialistasSection({
   beluers,
   goToReserva,
@@ -1388,95 +1350,6 @@ function EspecialistasSection({
       beluers={catalogBeluers}
       onViewServices={goToReserva}
     />
-  );
-}
-
-function DashboardCard({
-  icon,
-  title,
-  text,
-  button,
-  onClick,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  text: string;
-  button: string;
-  onClick: () => void;
-}) {
-  return (
-    <div className="cliente-panel-card">
-      <h3>
-        <span className="cliente-panel-card-icon">{icon}</span>
-        {title}
-      </h3>
-      <p>{text}</p>
-      <button className="cliente-panel-btn-ghost" type="button" onClick={onClick}>
-        {button}
-      </button>
-    </div>
-  );
-}
-
-function ServiceCompactCard({
-  servicio,
-  selected,
-  onClick,
-}: {
-  servicio: Service;
-  selected: boolean;
-  onClick: () => void;
-}) {
-  const duration = getServiceDuration(servicio);
-
-  return (
-    <button
-      className={`cliente-panel-service-compact-card ${selected ? "selected" : ""}`}
-      type="button"
-      onClick={onClick}
-    >
-      {servicio.image_url ? (
-        <img
-          className="cliente-panel-service-compact-image"
-          src={servicio.foto}
-          alt={servicio.nombre}
-        />
-      ) : (
-        <span
-          className="cliente-panel-service-compact-placeholder"
-          aria-hidden="true"
-        >
-          <b>{servicio.nombre.slice(0, 1).toUpperCase()}</b>
-          <small>✦</small>
-        </span>
-      )}
-
-      <span className="cliente-panel-service-compact-body">
-        <span className="cliente-panel-service-compact-kickers">
-          <span className="cliente-panel-servicio-category">
-            {servicio.categoria === "lashes" ? "Lashes" : "Nails"}
-          </span>
-          {servicio.is_featured ? (
-            <span className="cliente-panel-service-featured-mini">
-              Destacado ✦
-            </span>
-          ) : null}
-        </span>
-        <strong>{servicio.nombre}</strong>
-        {servicio.desc ? <small>{servicio.desc}</small> : null}
-        <span className="cliente-panel-service-compact-meta">
-          <b>S/ {servicio.precio}</b>
-          {duration ? <em>{duration}</em> : null}
-        </span>
-        <span className="cliente-panel-service-compact-cta">
-          {selected ? "Seleccionado" : "Ver"}
-        </span>
-      </span>
-
-      {selected ? (
-        <span className="cliente-panel-service-row-check">✓</span>
-      ) : null}
-    </button>
   );
 }
 
@@ -1752,18 +1625,4 @@ function ServiciosSection({
       ) : null}
     </>
   );
-}
-
-function getSectionTitle(section: PanelSection) {
-  const titles: Record<PanelSection, string> = {
-    dashboard: "Inicio",
-    reserva: "Agendar nueva cita",
-    servicios: "Servicios",
-    beluers: "Nuestras Especialistas",
-    historial: "Tu historial",
-    pagos: "Historial de pagos",
-    perfil: "Mi perfil",
-  };
-
-  return titles[section];
 }
