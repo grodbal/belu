@@ -11,12 +11,11 @@ export type ServiceCategory = "lashes" | "nails";
 
 export type AssignmentMode = "gestionado" | "libre";
 
-export type PaymentMethod = "tarjeta" | "yape" | "plin";
-
 export type Service = {
   id?: string;
   nombre: string;
   precio: number;
+  logisticFee?: number;
   desc: string;
   foto: string;
   categoria: ServiceCategory;
@@ -37,6 +36,7 @@ export type Addon = {
 };
 
 export type Beluer = {
+  id: string;
   nombre: string;
   espec: string;
   categoria: ServiceCategory | "mixta";
@@ -44,6 +44,7 @@ export type Beluer = {
   citas: number;
   foto: string;
   serviciosActivos: string[];
+  distritos: string[];
 };
 
 export type HistorialItem = {

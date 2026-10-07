@@ -41,7 +41,7 @@ export function PaymentHistory({ summary, items }: PaymentHistoryProps) {
 
       <dl className={styles.summary}>
         <div className={styles.summaryPrimary}>
-          <dt>Total registrado</dt>
+          <dt>Total pagado</dt>
           <dd>{summary.total}</dd>
         </div>
         <div>

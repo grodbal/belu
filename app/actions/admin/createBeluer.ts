@@ -2,6 +2,7 @@
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
+import { parseBeluerCoverageDistricts } from "@/lib/bookings/foundation";
 
 type CreateBeluerState = {
   success: boolean;
@@ -20,7 +21,9 @@ export async function createBeluerAction(
   const instagram = String(formData.get("instagram") ?? "").trim();
   const phone = String(formData.get("phone") ?? "").trim();
   const bio = String(formData.get("bio") ?? "").trim();
-  const districtsRaw = String(formData.get("districts") ?? "").trim();
+  const { districts, invalidDistricts } = parseBeluerCoverageDistricts(
+    formData.getAll("districts")
+  );
   const experienceYearsRaw = String(formData.get("experienceYears") ?? "0").trim();
 
   if (!fullName) {
@@ -53,12 +56,12 @@ export async function createBeluerAction(
     };
   }
 
-  const districts = districtsRaw
-    ? districtsRaw
-        .split(",")
-        .map((district) => district.trim())
-        .filter(Boolean)
-    : [];
+  if (invalidDistricts.length > 0 || districts.length === 0) {
+    return {
+      success: false,
+      message: "Selecciona al menos un distrito de atención válido.",
+    };
+  }
 
   const supabase = createAdminClient();
 

@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { updateBeluerProfileAction } from "@/app/actions/admin/updateBeluerProfile";
+import BeluerCoverageMultiSelect from "@/components/beluer-coverage/BeluerCoverageMultiSelect";
 
 const initialState = {
   success: false,
@@ -15,7 +16,7 @@ type EditBeluerProfileFormProps = {
   publicName: string;
   phone: string;
   instagram: string;
-  districts: string;
+  districts: string[];
   experienceYears: number;
   bio: string;
 };
@@ -84,15 +85,7 @@ export default function EditBeluerProfileForm({
           />
         </label>
 
-        <label className="grid gap-1 text-xs font-bold text-[#1A1A1A]">
-          Distritos
-          <input
-            name="districts"
-            defaultValue={districts}
-            placeholder="Miraflores, San Isidro, Surco"
-            className="h-10 rounded-xl border border-neutral-200 px-3 text-xs outline-none focus:border-[#E60023]"
-          />
-        </label>
+        <BeluerCoverageMultiSelect defaultValue={districts} compact />
 
         <label className="grid gap-1 text-xs font-bold text-[#1A1A1A]">
           Años de experiencia

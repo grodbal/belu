@@ -50,6 +50,7 @@ type ServiceRow = {
   category: Service["categoria"];
   description: string | null;
   public_price: number;
+  logistic_fee: number;
   image_url: string | null;
   is_featured: boolean | null;
   service_images: {
@@ -169,6 +170,7 @@ export default async function ClientePanelPage() {
         category,
         description,
         public_price,
+        logistic_fee,
         image_url,
         is_featured,
         service_images (
@@ -204,6 +206,7 @@ export default async function ClientePanelPage() {
           id: service.id,
           nombre: service.name,
           precio: Number(service.public_price),
+          logisticFee: Number(service.logistic_fee || 0),
           desc: service.description || "",
           foto:
             service.image_url ||
@@ -258,8 +261,9 @@ export default async function ClientePanelPage() {
           .filter((category): category is string => Boolean(category));
 
         return {
+          id: beluer.id,
           nombre: beluer.public_name || "Beluer verificada",
-          foto: beluer.profile_photo_url || "/beluer-placeholder.jpg",
+          foto: beluer.profile_photo_url || "",
           espec:
             servicios.length > 0
               ? servicios.slice(0, 2).join(" + ")
@@ -271,6 +275,7 @@ export default async function ClientePanelPage() {
               : Number(beluer.rating_average).toFixed(1),
           citas: Number(beluer.total_bookings || 0),
           serviciosActivos: servicios,
+          distritos: beluer.districts || [],
         };
       })
       .filter((beluer) => beluer.serviciosActivos.length > 0);

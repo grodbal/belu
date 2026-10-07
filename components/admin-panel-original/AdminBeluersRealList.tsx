@@ -3,6 +3,7 @@ import UpdateBeluerStatusForm from "@/components/admin-panel-original/UpdateBelu
 import UpdateBeluerLevelForm from "@/components/admin-panel-original/UpdateBeluerLevelForm";
 import UpdateBeluerAvailabilityForm from "@/components/admin-panel-original/UpdateBeluerAvailabilityForm";
 import EditBeluerProfileForm from "@/components/admin-panel-original/EditBeluerProfileForm";
+import { getCanonicalBeluerCoverageDistrict } from "@/lib/bookings/foundation";
 import UpdateBeluerServiceSkillsForm from "@/components/admin-panel-original/UpdateBeluerServiceSkillsForm";
 
 type Profile = {
@@ -42,13 +43,23 @@ type BeluerServiceSkill = {
 };
 
 function formatDistricts(districts: BeluerProfile["districts"]) {
-  if (!districts) return "Sin distritos";
+  const validDistricts = getDistrictValues(districts)
+    .map(getCanonicalBeluerCoverageDistrict)
+    .filter(Boolean);
 
-  if (Array.isArray(districts)) {
-    return districts.length > 0 ? districts.join(", ") : "Sin distritos";
-  }
+  return validDistricts.length > 0
+    ? validDistricts.join(", ")
+    : "Cobertura por configurar";
+}
 
-  return districts;
+function getDistrictValues(districts: BeluerProfile["districts"]) {
+  if (Array.isArray(districts)) return districts;
+  if (!districts) return [];
+
+  return districts
+    .split(",")
+    .map((district) => district.trim())
+    .filter(Boolean);
 }
 
 function formatDate(value: string | null) {
@@ -423,7 +434,7 @@ const assignedServices = ((services as ServiceOption[]) ?? []).filter(
     publicName={beluer.public_name || profile?.full_name || ""}
     phone={beluer.phone || profile?.phone || ""}
     instagram={beluer.instagram || ""}
-    districts={formatDistricts(beluer.districts)}
+    districts={getDistrictValues(beluer.districts)}
     experienceYears={beluer.experience_years ?? 0}
     bio={beluer.bio || ""}
   />

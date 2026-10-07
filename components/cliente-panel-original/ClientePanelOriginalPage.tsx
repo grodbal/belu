@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { createBookingAction } from "@/app/actions/client/createBooking";
+import { normalizeBookingDistrict } from "@/lib/bookings/foundation";
 import { updateClientProfileAction } from "@/app/actions/client/updateClientProfile";
 import LogoutButton from "@/components/auth/LogoutButton";
 import {
@@ -40,7 +42,6 @@ import type {
   AssignmentMode,
   Beluer,
   PanelSection,
-  PaymentMethod,
   Service,
 } from "./clientePanelTypes";
 
@@ -273,6 +274,10 @@ export default function ClientePanelOriginalPage({
   realBeluers,
   realServices,
 }: ClientePanelOriginalPageProps) {
+  const router = useRouter();
+  const bookingAttemptKeyRef = useRef("");
+  const bookingAttemptFingerprintRef = useRef("");
+  const bookingSubmissionInFlightRef = useRef(false);
   const [activeSection, setActiveSection] = useState<PanelSection>("dashboard");
   const [, setSidebarOpen] = useState(false);
   const [servicioSeleccionado, setServicioSeleccionado] =
@@ -283,23 +288,15 @@ const [direccionReserva, setDireccionReserva] = useState("");
 const [distritoReserva, setDistritoReserva] = useState("");
 const [notasReserva, setNotasReserva] = useState("");
 const [bookingLoading, setBookingLoading] = useState(false);
+const [bookingError, setBookingError] = useState("");
+const [bookingModalError, setBookingModalError] = useState("");
 const [urgencia, setUrgencia] = useState(false);
   const [modoAsignacion, setModoAsignacion] =
     useState<AssignmentMode>("gestionado");
   const [beluerSeleccionada, setBeluerSeleccionada] = useState("");
   const [pagoOpen, setPagoOpen] = useState(false);
 const [confirmacionOpen, setConfirmacionOpen] = useState(false);
-const [metodoPago, setMetodoPago] = useState<PaymentMethod>("tarjeta");
 const [reservaConfirmada, setReservaConfirmada] = useState(false);
-const distritoSugerencias = [
-  "Miraflores",
-  "San Isidro",
-  "Surco",
-  "La Molina",
-  "Barranco",
-  "San Borja",
-  "San Miguel",
-];
 const horaOpciones12 = [
   "12:00",
   "12:30",
@@ -375,22 +372,36 @@ const urgenciaAutomatica = isWithinNextTwoHours(fecha, hora);
 const urgenciaEfectiva = urgenciaAutomatica || urgencia;
 
 const beluersDisponibles = useMemo(() => {
-  if (!servicioSeleccionado) return realBeluers;
+  if (!servicioSeleccionado) return [];
 
   const servicioRequerido = normalizarTexto(servicioSeleccionado.nombre);
+  const distritoRequerido = normalizeBookingDistrict(distritoReserva);
+
+  if (!distritoRequerido) return [];
 
   return realBeluers.filter((beluer) => {
     const serviciosBeluer = beluer.serviciosActivos.map((servicio) =>
       normalizarTexto(servicio)
     );
 
-    return serviciosBeluer.some(
+    const realizaServicio = serviciosBeluer.some(
       (servicioBeluer) =>
         servicioBeluer.includes(servicioRequerido) ||
         servicioRequerido.includes(servicioBeluer)
     );
+
+    const cubreDistrito = beluer.distritos.some(
+      (district) => normalizeBookingDistrict(district) === distritoRequerido
+    );
+
+    return realizaServicio && cubreDistrito;
   });
-}, [servicioSeleccionado, realBeluers]);
+}, [distritoReserva, servicioSeleccionado, realBeluers]);
+
+const beluerSeleccionadaDetalle = realBeluers.find(
+  (beluer) => beluer.id === beluerSeleccionada
+);
+const beluerSeleccionadaNombre = beluerSeleccionadaDetalle?.nombre || "";
 
 useEffect(() => {
   if (selectedTimeHasPassed && nextAvailableTime && nextAvailableTime !== hora) {
@@ -405,7 +416,7 @@ useEffect(() => {
 }, [urgenciaAutomatica]);
 
   const precioServicio = servicioSeleccionado?.precio ?? 0;
-  const cargoLogistico = servicioSeleccionado ? 10 : 0;
+  const cargoLogistico = servicioSeleccionado?.logisticFee ?? 0;
   const recargoExpress = urgenciaEfectiva && servicioSeleccionado ? 20 : 0;
   const subtotal = precioServicio + cargoLogistico;
   const total = subtotal + recargoExpress;
@@ -453,6 +464,8 @@ const handleConfirmarReserva = () => {
   }
 
   setPagoOpen(true);
+  setBookingError("");
+  setBookingModalError("");
 };
 
 const handleConfirmarPago = async () => {
@@ -461,40 +474,77 @@ const handleConfirmarPago = async () => {
     return;
   }
 
+  if (bookingSubmissionInFlightRef.current) return;
+
+  bookingSubmissionInFlightRef.current = true;
   setBookingLoading(true);
 
-  const formData = new FormData();
-  if (servicioSeleccionado.id) {
-    formData.append("serviceId", servicioSeleccionado.id);
+  try {
+    const attemptFingerprint = JSON.stringify({
+      serviceId: servicioSeleccionado.id,
+      modoAsignacion,
+      beluerSeleccionada,
+      fecha,
+      hora,
+      direccion: direccionReserva.trim(),
+      distrito: distritoReserva.trim(),
+      notas: notasReserva.trim(),
+      urgencia: urgenciaEfectiva,
+    });
+
+    if (
+      !bookingAttemptKeyRef.current ||
+      bookingAttemptFingerprintRef.current !== attemptFingerprint
+    ) {
+      bookingAttemptKeyRef.current = crypto.randomUUID();
+      bookingAttemptFingerprintRef.current = attemptFingerprint;
+    }
+
+    const formData = new FormData();
+    if (servicioSeleccionado.id) {
+      formData.append("serviceId", servicioSeleccionado.id);
+    }
+    formData.append("bookingMode", modoAsignacion);
+    formData.append("selectedBeluerId", beluerSeleccionada);
+    formData.append("scheduledDate", fecha);
+    formData.append("scheduledTime", hora);
+    formData.append("address", direccionReserva.trim());
+    formData.append("district", distritoReserva.trim());
+    formData.append("notes", notasReserva.trim());
+    formData.append("isExpress", urgenciaEfectiva ? "true" : "false");
+    formData.append("idempotencyKey", bookingAttemptKeyRef.current);
+
+    const result = await createBookingAction(
+      { success: false, message: "" },
+      formData
+    );
+
+    if (!result.success) {
+      if (result.code === "BELUER_DISTRICT_MISMATCH") {
+        setPagoOpen(false);
+        setBeluerSeleccionada("");
+        setBookingError(result.message);
+        return;
+      }
+
+      setBookingModalError(result.message);
+      return;
+    }
+
+    bookingAttemptKeyRef.current = "";
+    bookingAttemptFingerprintRef.current = "";
+    setPagoOpen(false);
+    setConfirmacionOpen(true);
+    setReservaConfirmada(true);
+    router.refresh();
+  } catch {
+    setBookingModalError(
+      "No pudimos registrar tu reserva. Inténtalo nuevamente."
+    );
+  } finally {
+    bookingSubmissionInFlightRef.current = false;
+    setBookingLoading(false);
   }
-  formData.append("serviceName", servicioSeleccionado.nombre);
-  formData.append("bookingMode", modoAsignacion);
-formData.append("selectedBeluerName", beluerSeleccionada);
-  formData.append("scheduledDate", fecha);
-  formData.append("scheduledTime", hora);
-  formData.append("address", direccionReserva.trim());
-  formData.append("district", distritoReserva.trim());
-  formData.append("notes", notasReserva.trim());
-  formData.append("isExpress", urgenciaEfectiva ? "true" : "false");
-
-  const result = await createBookingAction(
-    {
-      success: false,
-      message: "",
-    },
-    formData
-  );
-
-  setBookingLoading(false);
-
-  if (!result.success) {
-    alert(result.message);
-    return;
-  }
-
-  setPagoOpen(false);
-  setConfirmacionOpen(true);
-  setReservaConfirmada(false);
 };
 
 const handleIrDashboard = () => {
@@ -558,7 +608,7 @@ const selectedBookingService = servicioSeleccionado;
   hora={hora}
   total={total}
   modoAsignacion={modoAsignacion}
-  beluerSeleccionada={beluerSeleccionada}
+  beluerSeleccionada={beluerSeleccionadaNombre}
   clientFirstName={clientFirstName}
   upcomingBookings={upcomingBookings}
   realBeluers={realBeluers}
@@ -716,20 +766,19 @@ const selectedBookingService = servicioSeleccionado;
                 <BookingFields>
                   <BookingField
                     label="Distrito"
-                    hint="Escribe tu distrito. belu validará cobertura antes de confirmar."
+                    hint="Escribe el distrito de Lima Metropolitana o Callao donde recibirás el servicio."
                   >
                     <input
                       type="text"
-                      list="cliente-panel-distritos"
                       value={distritoReserva}
-                      onChange={(event) => setDistritoReserva(event.target.value)}
-                      placeholder="Ej: Miraflores, Magdalena, Jesús María..."
+                      maxLength={120}
+                      onChange={(event) => {
+                        setDistritoReserva(event.target.value);
+                        setBeluerSeleccionada("");
+                        setBookingError("");
+                      }}
+                      placeholder="Ej: Miraflores, Ate, Ventanilla..."
                     />
-                    <datalist id="cliente-panel-distritos">
-                      {distritoSugerencias.map((distrito) => (
-                        <option key={distrito} value={distrito} />
-                      ))}
-                    </datalist>
                   </BookingField>
 
                   <BookingField
@@ -795,25 +844,45 @@ const selectedBookingService = servicioSeleccionado;
                   ) : null}
 
                   {modoAsignacion === "libre" ? (
-                    <BookingChoiceGrid
-                      title="Elige a tu beluer (precio fijo para todas):"
-                      hint="Solo se muestran las beluers que realizan el servicio seleccionado."
-                    >
-                      {beluersDisponibles.length > 0 ? (
-                        beluersDisponibles.map((beluer) => (
+                    <>
+                      {bookingError ? (
+                        <BookingNotice title="Revisa tu selección">
+                          {bookingError}
+                        </BookingNotice>
+                      ) : null}
+                      <BookingChoiceGrid
+                        title="Elige a tu beluer (precio fijo para todas):"
+                        hint="Solo se muestran especialistas que realizan el servicio y cubren el distrito indicado."
+                      >
+                        {beluersDisponibles.length > 0 ? (
+                          beluersDisponibles.map((beluer) => (
                           <BookingChoice
-                            key={beluer.nombre}
-                            media={<img src={beluer.foto} alt={beluer.nombre} />}
+                            key={beluer.id}
+                            media={
+                              beluer.foto ? (
+                                <img src={beluer.foto} alt={beluer.nombre} />
+                              ) : (
+                                <span aria-hidden="true">
+                                  <b>{beluer.nombre.slice(0, 1).toUpperCase()}</b>
+                                  <small>Beluer</small>
+                                </span>
+                              )
+                            }
                             title={beluer.nombre}
                             meta={`⭐ ${beluer.rating} · ${beluer.citas} citas`}
-                            selected={beluerSeleccionada === beluer.nombre}
-                            onSelect={() => setBeluerSeleccionada(beluer.nombre)}
+                            selected={beluerSeleccionada === beluer.id}
+                            onSelect={() => setBeluerSeleccionada(beluer.id)}
                           />
-                        ))
-                      ) : (
-                        <p>No hay beluers disponibles para estos servicios en este momento.</p>
-                      )}
-                    </BookingChoiceGrid>
+                          ))
+                        ) : (
+                          <p>
+                            {distritoReserva.trim()
+                              ? "No hay Beluers disponibles para ese servicio y distrito."
+                              : "Ingresa primero el distrito donde recibirás el servicio."}
+                          </p>
+                        )}
+                      </BookingChoiceGrid>
+                    </>
                   ) : null}
 
                   <BookingField
@@ -888,7 +957,7 @@ const selectedBookingService = servicioSeleccionado;
         ×
       </button>
 
-      <h2>💳 Completa tu pago</h2>
+      <h2>Pago con Yape</h2>
 
       <div className="cliente-panel-detalle-pago">
         <div>
@@ -916,13 +985,13 @@ const selectedBookingService = servicioSeleccionado;
         )}
 
         <div className="linea-pago total">
-          <span>Total a pagar</span>
+          <span>Total pendiente</span>
           <strong>S/ {total}</strong>
         </div>
 
-        {modoAsignacion === "libre" && beluerSeleccionada ? (
+        {modoAsignacion === "libre" && beluerSeleccionadaNombre ? (
           <div className="cliente-panel-beluer-info-pago">
-            Tu servicio será realizado por <strong>{beluerSeleccionada}</strong>.
+            Tu servicio será realizado por <strong>{beluerSeleccionadaNombre}</strong>.
           </div>
         ) : (
           <div className="cliente-panel-beluer-info-pago gestionado">
@@ -932,30 +1001,21 @@ const selectedBookingService = servicioSeleccionado;
       </div>
 
       <div className="cliente-panel-metodos-pago">
-        <button
-          type="button"
-          className={metodoPago === "tarjeta" ? "seleccionado" : ""}
-          onClick={() => setMetodoPago("tarjeta")}
-        >
-          💳 Tarjeta
-        </button>
-
-        <button
-          type="button"
-          className={metodoPago === "yape" ? "seleccionado" : ""}
-          onClick={() => setMetodoPago("yape")}
-        >
-          📱 Yape
-        </button>
-
-        <button
-          type="button"
-          className={metodoPago === "plin" ? "seleccionado" : ""}
-          onClick={() => setMetodoPago("plin")}
-        >
-          📱 Plin
+        <button type="button" className="seleccionado" disabled>
+          Pago con Yape
         </button>
       </div>
+
+      <p>
+        Tu reserva se registrará con el pago pendiente. La conexión segura con
+        Yape estará disponible próximamente.
+      </p>
+
+      {bookingModalError ? (
+        <div className="cliente-panel-beluer-info-pago" role="alert">
+          {bookingModalError}
+        </div>
+      ) : null}
 
       <button
   className="cliente-panel-btn-r cliente-panel-full-btn"
@@ -963,7 +1023,7 @@ const selectedBookingService = servicioSeleccionado;
   onClick={handleConfirmarPago}
   disabled={bookingLoading}
 >
-  {bookingLoading ? "Creando reserva..." : "Confirmar pago"}
+  {bookingLoading ? "Registrando reserva..." : "Registrar reserva"}
 </button>
     </div>
   </div>
@@ -974,8 +1034,8 @@ const selectedBookingService = servicioSeleccionado;
     <div className="cliente-panel-popup-content">
       <div className="cliente-panel-popup-logo">belu ✦</div>
 
-      <h2>¡Reserva confirmada!</h2>
-      <p>Tu servicio ha sido agendado exitosamente.</p>
+      <h2>Reserva registrada</h2>
+      <p>Recibimos tu solicitud. El pago todavía está pendiente.</p>
 
       <div className="cliente-panel-detalle-reserva">
         <p>
@@ -992,12 +1052,7 @@ const selectedBookingService = servicioSeleccionado;
         </p>
 
         <p>
-          <strong>Método:</strong>{" "}
-          {metodoPago === "tarjeta"
-            ? "Tarjeta"
-            : metodoPago === "yape"
-            ? "Yape"
-            : "Plin"}
+          <strong>Pago:</strong> Yape pendiente
         </p>
 
         <p>
@@ -1005,9 +1060,9 @@ const selectedBookingService = servicioSeleccionado;
         </p>
 
         <div className="beluer-confirm">
-          {modoAsignacion === "libre" && beluerSeleccionada ? (
+          {modoAsignacion === "libre" && beluerSeleccionadaNombre ? (
             <>
-              Beluer asignada: <strong>{beluerSeleccionada}</strong>
+              Beluer asignada: <strong>{beluerSeleccionadaNombre}</strong>
             </>
           ) : (
             <>belu asignará una Beluer disponible en tu zona.</>
@@ -1081,7 +1136,7 @@ function DashboardSection({
     bookings.push({
       id: "new-booking",
       service: servicioSeleccionado?.nombre || "Servicio belu",
-      status: "Confirmada",
+      status: "Pendiente",
       date: formatDisplayDate(fecha),
       time: formatDisplayTime(hora),
       beluer:
@@ -1232,7 +1287,10 @@ function PagosSection({
 }: {
   bookingHistory: ClientBooking[];
 }) {
-  const totalRegistrado = bookingHistory.reduce(
+  const paidBookings = bookingHistory.filter(
+    (booking) => booking.payment_status === "paid"
+  );
+  const totalPagado = paidBookings.reduce(
     (acc, booking) => acc + getClientBookingTotal(booking).total,
     0
   );
@@ -1254,7 +1312,7 @@ function PagosSection({
   return (
     <PaymentHistory
       summary={{
-        total: formatSoles(totalRegistrado),
+        total: formatSoles(totalPagado),
         bookingCount: bookingHistory.length,
         latestStatus: latestPaymentStatus,
       }}
@@ -1282,14 +1340,18 @@ function PerfilSection({
   const handleGuardarPerfil = async () => {
     setProfileLoading(true);
 
-    const formData = new FormData();
-    formData.append("phone", phone);
-    formData.append("beautyPreference", preferencia);
+    try {
+      const formData = new FormData();
+      formData.append("phone", phone);
+      formData.append("beautyPreference", preferencia);
 
-    const result = await updateClientProfileAction(formData);
-
-    setProfileLoading(false);
-    alert(result.message);
+      const result = await updateClientProfileAction(formData);
+      alert(result.message);
+    } catch {
+      alert("No pudimos actualizar tu perfil. Inténtalo nuevamente.");
+    } finally {
+      setProfileLoading(false);
+    }
   };
 
   return (

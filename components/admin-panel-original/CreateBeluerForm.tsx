@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { createBeluerAction } from "@/app/actions/admin/createBeluer";
+import BeluerCoverageMultiSelect from "@/components/beluer-coverage/BeluerCoverageMultiSelect";
 
 const initialState = {
   success: false,
@@ -88,15 +89,7 @@ export default function CreateBeluerForm() {
           </label>
         </div>
 
-        <label className="grid gap-2 text-sm font-bold text-[#1A1A1A]">
-          Distritos de atención
-          <input
-            name="districts"
-            type="text"
-            placeholder="Miraflores, San Isidro, Surco"
-            className="h-12 rounded-[16px] border border-[#E8E0E3] bg-white px-4 text-sm outline-none transition focus:border-[#E60023] focus:ring-4 focus:ring-[#FFD6E2]/60"
-          />
-        </label>
+        <BeluerCoverageMultiSelect />
 
         <label className="grid gap-2 text-sm font-bold text-[#1A1A1A]">
           Bio breve

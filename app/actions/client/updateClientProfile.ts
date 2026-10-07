@@ -76,9 +76,13 @@ export async function updateClientProfileAction(
       .maybeSingle();
 
   if (clientProfileLookupError) {
+    console.error(
+      "updateClientProfile: client profile lookup failed",
+      clientProfileLookupError
+    );
     return {
       success: false,
-      message: `No se pudo verificar tu perfil de clienta: ${clientProfileLookupError.message}`,
+      message: "No pudimos actualizar tu perfil. Inténtalo nuevamente.",
     };
   }
 
@@ -95,9 +99,13 @@ export async function updateClientProfileAction(
       });
 
   if (clientProfileError) {
+    console.error(
+      "updateClientProfile: beauty preference update failed",
+      clientProfileError
+    );
     return {
       success: false,
-      message: `No se pudo guardar tu preferencia: ${clientProfileError.message}`,
+      message: "No pudimos actualizar tu perfil. Inténtalo nuevamente.",
     };
   }
 
@@ -109,9 +117,13 @@ export async function updateClientProfileAction(
     .eq("id", profile.id);
 
   if (profileUpdateError) {
+    console.error(
+      "updateClientProfile: base profile update failed",
+      profileUpdateError
+    );
     return {
       success: false,
-      message: `No se pudo actualizar tu WhatsApp: ${profileUpdateError.message}`,
+      message: "No pudimos actualizar tu perfil. Inténtalo nuevamente.",
     };
   }
 

@@ -5,6 +5,10 @@ import type { ReactNode } from "react";
 import { updateBeluerGoalsAction } from "@/app/actions/beluer/updateBeluerGoals";
 import { updateBeluerPublicProfileAction } from "@/app/actions/beluer/updateBeluerPublicProfile";
 import { updateBeluerBookingStatusAction } from "@/app/actions/beluer/updateBeluerBookingStatus";
+import {
+  BELUER_COVERAGE_DISTRICTS,
+  getCanonicalBeluerCoverageDistrict,
+} from "@/lib/bookings/foundation";
 import { perfilInicial } from "./beluerPanelData";
 import type {
   BeluerSection,
@@ -172,7 +176,9 @@ export default function BeluerPanelOriginalPage({
     bio: beluerProfile?.bio || "",
     nivel: beluerProfile?.levelLabel || perfilInicial.nivel,
     estado: beluerProfile?.statusLabel || perfilInicial.estado,
-    distritos: beluerProfile?.districts || [],
+    distritos: (beluerProfile?.districts || [])
+      .map(getCanonicalBeluerCoverageDistrict)
+      .filter(Boolean) as string[],
     disponibilidadGeneral: beluerProfile?.isAvailable ?? false,
   }));
 
@@ -283,8 +289,13 @@ export default function BeluerPanelOriginalPage({
     }));
   };
 
-  const handleToggleDistrito = () => {
-    alert("Los distritos de atención solo pueden ser modificados por Admin.");
+  const handleToggleDistrito = (district: string) => {
+    setPerfilBeluer((current) => ({
+      ...current,
+      distritos: current.distritos.includes(district)
+        ? current.distritos.filter((item) => item !== district)
+        : [...current.distritos, district],
+    }));
   };
 
   const handleGuardarPerfilBeluer = async () => {
@@ -293,6 +304,9 @@ export default function BeluerPanelOriginalPage({
     formData.append("instagram", perfilBeluer.instagram);
     formData.append("phone", perfilBeluer.whatsapp);
     formData.append("bio", perfilBeluer.bio);
+    perfilBeluer.distritos.forEach((district) => {
+      formData.append("districts", district);
+    });
 
     const result = await updateBeluerPublicProfileAction(formData);
 
@@ -1542,13 +1556,24 @@ function PerfilBeluerSection({
   beluerDisplayName: string;
   beluerInitials: string;
 }) {
-  const distritosDisponibles = [
-    "Miraflores",
-    "San Isidro",
-    "Surco",
-    "La Molina",
-    "Barranco",
-  ];
+  const distritosDisponibles = BELUER_COVERAGE_DISTRICTS;
+  const [editandoDistritos, setEditandoDistritos] = useState(false);
+  const [distritosAntesDeEditar, setDistritosAntesDeEditar] = useState<
+    string[]
+  >([]);
+  const distritosSeleccionados = distritosDisponibles.filter((distrito) =>
+    perfil.distritos.includes(distrito)
+  );
+
+  const iniciarEdicionDistritos = () => {
+    setDistritosAntesDeEditar([...perfil.distritos]);
+    setEditandoDistritos(true);
+  };
+
+  const cancelarEdicionDistritos = () => {
+    onActualizarCampo("distritos", distritosAntesDeEditar);
+    setEditandoDistritos(false);
+  };
 
   return (
     <section className="beluer-panel-section active">
@@ -1556,8 +1581,7 @@ function PerfilBeluerSection({
         <div className="beluer-panel-greeting">
           <h1>Mi perfil</h1>
           <p>
-            Actualiza tu información pública. Los datos operativos los gestiona
-            Admin.
+            Actualiza tu información pública y las zonas donde deseas atender.
           </p>
         </div>
 
@@ -1665,19 +1689,73 @@ function PerfilBeluerSection({
           <div className="beluer-panel-distritos-box">
             <label>Distritos de atención</label>
 
-            <div className="beluer-panel-distritos-grid">
-              {distritosDisponibles.map((distrito) => (
+            {!editandoDistritos ? (
+              <div className="beluer-panel-distritos-resumen">
+                <strong>Tus zonas</strong>
+
+                {distritosSeleccionados.length > 0 ? (
+                  <div
+                    className="beluer-panel-distritos-seleccionados"
+                    aria-label="Zonas de atención actuales"
+                  >
+                    {distritosSeleccionados.map((distrito) => (
+                      <span key={distrito}>{distrito}</span>
+                    ))}
+                  </div>
+                ) : (
+                  <p>Aún no tienes zonas de atención configuradas.</p>
+                )}
+
                 <button
-                  key={distrito}
                   type="button"
-                  className={perfil.distritos.includes(distrito) ? "active" : ""}
-                  onClick={() => onToggleDistrito(distrito)}
-                  disabled
+                  className="beluer-panel-btn-secondary beluer-panel-distritos-editar"
+                  onClick={iniciarEdicionDistritos}
+                  aria-expanded="false"
+                  aria-controls="beluer-panel-distritos-editor"
                 >
-                  {distrito}
+                  Editar zonas de atención
                 </button>
-              ))}
-            </div>
+              </div>
+            ) : (
+              <div
+                className="beluer-panel-distritos-editor"
+                id="beluer-panel-distritos-editor"
+              >
+                <div className="beluer-panel-distritos-editor-heading">
+                  <strong>Selecciona tus zonas</strong>
+                  <span>{perfil.distritos.length} seleccionadas</span>
+                </div>
+
+                <div className="beluer-panel-distritos-grid">
+                  {distritosDisponibles.map((distrito) => (
+                    <button
+                      key={distrito}
+                      type="button"
+                      className={
+                        perfil.distritos.includes(distrito) ? "active" : ""
+                      }
+                      onClick={() => onToggleDistrito(distrito)}
+                      aria-pressed={perfil.distritos.includes(distrito)}
+                    >
+                      {distrito}
+                    </button>
+                  ))}
+                </div>
+
+                <small>
+                  Selecciona al menos una zona. Cuando termines, usa Guardar
+                  cambios al final del perfil.
+                </small>
+
+                <button
+                  type="button"
+                  className="beluer-panel-btn-secondary beluer-panel-distritos-cancelar"
+                  onClick={cancelarEdicionDistritos}
+                >
+                  Cancelar
+                </button>
+              </div>
+            )}
           </div>
 
           <label className="beluer-panel-disponibilidad-toggle">

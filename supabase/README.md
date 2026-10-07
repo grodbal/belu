@@ -324,6 +324,7 @@ beluer_total_payout_amount
 commission_locked_at
 commission_locked_event
 payment_status
+idempotency_key
 created_at
 updated_at
 ```
@@ -414,11 +415,8 @@ No usar `booking_services` local legacy para el MVP actual.
 
 ## Pagos
 
-En el MVP, el flujo de reserva simula pago completo y la app crea reservas con:
-
-```txt
-bookings.payment_status = paid
-```
+Las reservas nuevas se crean con `bookings.payment_status = pending`. Solo una
+confirmacion futura de un proveedor real podra cambiarlas a `paid`.
 
 Admin > Pagos lee datos basicos desde `bookings`.
 
@@ -428,6 +426,10 @@ La tabla `payments` queda documentada como base posterior para Culqi/Niubiz/Yape
 - conciliacion de `payment_status`
 - comprobante o `receipt_url`
 - fallos, reembolsos y reversas
+
+La migracion `migrations/20261006_booking_payment_foundation.sql` agrega
+unicamente la clave idempotente de la reserva. No crea ni modifica una tabla
+`payments`; ese modelo se definira al integrar Culqi/Yape.
 
 No conectar pasarela real sin revisar este flujo.
 

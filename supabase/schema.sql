@@ -202,6 +202,7 @@ create table if not exists public.bookings (
   belu_commission_amount numeric(10,2) not null default 0,
   beluer_payment_amount numeric(10,2) not null default 0,
   payment_status payment_status not null default 'pending',
+  idempotency_key uuid,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -302,6 +303,9 @@ create index if not exists idx_bookings_beluer_profile_id on public.bookings(bel
 create index if not exists idx_bookings_service_id on public.bookings(service_id);
 create index if not exists idx_bookings_status on public.bookings(status);
 create index if not exists idx_bookings_payment_status on public.bookings(payment_status);
+create unique index if not exists bookings_client_idempotency_key_idx
+  on public.bookings(client_profile_id, idempotency_key)
+  where idempotency_key is not null;
 create index if not exists idx_bookings_scheduled_date on public.bookings(scheduled_date);
 
 create index if not exists idx_payments_booking_id on public.payments(booking_id);

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
+import { parseBeluerCoverageDistricts } from "@/lib/bookings/foundation";
 
 type UpdateBeluerProfileState = {
   success: boolean;
@@ -22,7 +23,9 @@ export async function updateBeluerProfileAction(
   const publicName = String(formData.get("publicName") || "").trim();
   const phone = String(formData.get("phone") || "").trim();
   const instagram = String(formData.get("instagram") || "").trim();
-  const districtsRaw = String(formData.get("districts") || "").trim();
+  const { districts, invalidDistricts } = parseBeluerCoverageDistricts(
+    formData.getAll("districts")
+  );
   const experienceYearsRaw = String(formData.get("experienceYears") || "0");
   const bio = String(formData.get("bio") || "").trim();
 
@@ -49,12 +52,12 @@ export async function updateBeluerProfileAction(
     };
   }
 
-  const districts = districtsRaw
-    ? districtsRaw
-        .split(",")
-        .map((district) => district.trim())
-        .filter(Boolean)
-    : [];
+  if (invalidDistricts.length > 0 || districts.length === 0) {
+    return {
+      success: false,
+      message: "Selecciona al menos un distrito de atención válido.",
+    };
+  }
 
   const supabase = createAdminClient();
 
@@ -95,6 +98,8 @@ export async function updateBeluerProfileAction(
   }
 
   revalidatePath("/app/admin");
+  revalidatePath("/app/beluer");
+  revalidatePath("/app/cliente");
 
   return {
     success: true,

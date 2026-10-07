@@ -1845,6 +1845,67 @@
   margin-bottom: 1.4rem;
 }
 
+.beluer-panel-distritos-resumen,
+.beluer-panel-distritos-editor {
+  border: 1px solid rgba(230, 0, 35, 0.1);
+  border-radius: 1.2rem;
+  background: rgba(255, 255, 255, 0.66);
+  padding: 1rem;
+}
+
+.beluer-panel-distritos-resumen > strong,
+.beluer-panel-distritos-editor-heading > strong {
+  display: block;
+  color: var(--negro);
+  font-size: 0.9rem;
+  font-weight: 900;
+}
+
+.beluer-panel-distritos-seleccionados {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-top: 0.8rem;
+}
+
+.beluer-panel-distritos-seleccionados span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  border: 1px solid rgba(230, 0, 35, 0.18);
+  border-radius: 2rem;
+  background: rgba(230, 0, 35, 0.08);
+  color: var(--r);
+  padding: 0.45rem 0.85rem;
+  font-size: 0.78rem;
+  font-weight: 850;
+}
+
+.beluer-panel-distritos-resumen p {
+  margin: 0.65rem 0 0;
+  color: #666;
+  font-size: 0.84rem;
+}
+
+.beluer-panel-distritos-editar,
+.beluer-panel-distritos-cancelar {
+  margin-top: 1rem;
+}
+
+.beluer-panel-distritos-editor-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.9rem;
+}
+
+.beluer-panel-distritos-editor-heading span {
+  color: var(--r);
+  font-size: 0.75rem;
+  font-weight: 850;
+}
+
 .beluer-panel-distritos-grid {
   display: flex;
   flex-wrap: wrap;
@@ -1869,6 +1930,14 @@
   background: rgba(230, 0, 35, 0.08);
   color: var(--r);
   border-color: rgba(230, 0, 35, 0.2);
+}
+
+.beluer-panel-distritos-editor small {
+  display: block;
+  margin-top: 0.8rem;
+  color: #666;
+  font-size: 0.78rem;
+  line-height: 1.45;
 }
 
 .beluer-panel-disponibilidad-toggle {
@@ -1915,6 +1984,17 @@
   .beluer-panel-form-grid {
     grid-template-columns: 1fr;
     gap: 0;
+  }
+
+  .beluer-panel-distritos-resumen,
+  .beluer-panel-distritos-editor {
+    padding: 0.9rem;
+  }
+
+  .beluer-panel-distritos-editor-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.25rem;
   }
 }
 

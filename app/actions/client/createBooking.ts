@@ -1,212 +1,340 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
+import { normalizeBookingDistrict } from "@/lib/bookings/foundation";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 
 type CreateBookingState = {
   success: boolean;
   message: string;
+  code?: "BELUER_DISTRICT_MISMATCH";
 };
 
-const serviceNameAliases: Record<string, string> = {
-  "Mega Volumen 5D": "Mega Volumen 5D",
-  "Mega Volume 5D": "Mega Volumen 5D",
-  "Mega Volume": "Mega Volumen 5D",
-  "Acrilico Sculpted": "Acrílico Sculpted",
-  "Acrílico Sculpted": "Acrílico Sculpted",
-  "Extensiones Classic": "Extensiones Classic",
-  "Extensiones Volume": "Extensiones Volume",
-  "Lifting de pestañas": "Lifting de Pestañas",
-  "Lifting de Pestañas": "Lifting de Pestañas",
-  "Semipermanente": "Semipermanente",
-  "Nail Art Premium": "Nail Art Premium",
-};
+const PUBLIC_BOOKING_ERROR =
+  "No pudimos registrar tu reserva. Inténtalo nuevamente.";
+
+function isUuid(value: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+    value
+  );
+}
+
+function isValidDate(value: string) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+
+  const [year, month, day] = value.split("-").map(Number);
+  const parsed = new Date(Date.UTC(year, month - 1, day));
+
+  return (
+    parsed.getUTCFullYear() === year &&
+    parsed.getUTCMonth() === month - 1 &&
+    parsed.getUTCDate() === day
+  );
+}
+
+function normalizeTime(value: string) {
+  const match = value.match(/^([01]\d|2[0-3]):([0-5]\d)(?::[0-5]\d)?$/);
+  return match ? `${match[1]}:${match[2]}` : null;
+}
+
+function getLimaNowParts() {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Lima",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(new Date());
+  const values = Object.fromEntries(
+    parts.map(({ type, value }) => [type, value])
+  );
+
+  return {
+    date: `${values.year}-${values.month}-${values.day}`,
+    time: `${values.hour}:${values.minute}`,
+  };
+}
+
+function isValidMoney(value: unknown, allowZero = true) {
+  const amount = Number(value);
+  return Number.isFinite(amount) && (allowZero ? amount >= 0 : amount > 0);
+}
 
 export async function createBookingAction(
   previousState: CreateBookingState,
   formData: FormData
 ): Promise<CreateBookingState> {
-  const serviceId = String(formData.get("serviceId") || "");
-  const rawServiceName = String(formData.get("serviceName") || "").trim();
-  const serviceName = serviceNameAliases[rawServiceName] || rawServiceName;
+  void previousState;
 
-  const selectedBeluerName = String(
-    formData.get("selectedBeluerName") || ""
+  const serviceId = String(formData.get("serviceId") || "").trim();
+  const selectedBeluerId = String(
+    formData.get("selectedBeluerId") || ""
   ).trim();
-
   const bookingMode =
-    String(formData.get("bookingMode") || "") === "libre" &&
-    selectedBeluerName
+    String(formData.get("bookingMode") || "") === "libre"
       ? "libre"
       : "managed";
-
   const scheduledDate = String(formData.get("scheduledDate") || "");
-  const scheduledTime = String(formData.get("scheduledTime") || "");
+  const scheduledTime = normalizeTime(
+    String(formData.get("scheduledTime") || "")
+  );
   const address = String(formData.get("address") || "").trim();
-  const district = String(formData.get("district") || "").trim();
+  const districtValue = formData.get("district");
+  const district =
+    typeof districtValue === "string" ? districtValue.trim() : "";
   const notes = String(formData.get("notes") || "").trim();
-  const isExpress = String(formData.get("isExpress") || "") === "true";
+  const expressRequested = String(formData.get("isExpress") || "") === "true";
+  const idempotencyKey = String(
+    formData.get("idempotencyKey") || ""
+  ).trim();
 
-  if (!serviceId && !serviceName) {
-    return { success: false, message: "Selecciona un servicio." };
+  if (!isUuid(serviceId)) {
+    return { success: false, message: "Selecciona un servicio válido." };
   }
 
-  if (!scheduledDate || !scheduledTime) {
-    return { success: false, message: "Selecciona fecha y hora." };
+  if (!isValidDate(scheduledDate) || !scheduledTime) {
+    return { success: false, message: "Selecciona una fecha y hora válidas." };
+  }
+
+  const nowInLima = getLimaNowParts();
+  if (
+    scheduledDate < nowInLima.date ||
+    (scheduledDate === nowInLima.date && scheduledTime <= nowInLima.time)
+  ) {
+    return {
+      success: false,
+      message: "La fecha y hora de la reserva deben ser futuras.",
+    };
   }
 
   if (!address) {
     return { success: false, message: "Ingresa la dirección del servicio." };
   }
 
-  if (!district) {
+  if (!district || district.length > 120) {
     return {
       success: false,
-      message: "Escribe el distrito donde recibirás el servicio.",
+      message: "Ingresa el distrito donde recibirás el servicio.",
     };
   }
 
-  const authClient = await createClient();
+  if (bookingMode === "libre" && !isUuid(selectedBeluerId)) {
+    return { success: false, message: "Selecciona una Beluer válida." };
+  }
 
-  const {
-    data: { user },
-    error: userError,
-  } = await authClient.auth.getUser();
-
-  if (userError || !user) {
+  if (!isUuid(idempotencyKey)) {
     return {
       success: false,
-      message: "Debes iniciar sesión para reservar.",
+      message: "No pudimos validar este intento de reserva. Inténtalo nuevamente.",
     };
   }
 
-  const supabase = createAdminClient();
+  try {
+    const authClient = await createClient();
+    const {
+      data: { user },
+      error: userError,
+    } = await authClient.auth.getUser();
 
-  const { data: profile, error: profileError } = await supabase
-    .from("profiles")
-    .select("id, role")
-    .eq("auth_user_id", user.id)
-    .single();
+    if (userError || !user) {
+      return {
+        success: false,
+        message: "Debes iniciar sesión para reservar.",
+      };
+    }
 
-  if (profileError || !profile) {
-    return {
-      success: false,
-      message: "No se encontró tu perfil de clienta.",
-    };
-  }
-
-  if (profile.role !== "cliente") {
-    return {
-      success: false,
-      message: "Solo las clientas pueden crear reservas.",
-    };
-  }
-
-let service = null;
-let serviceError = null;
-
-if (serviceId) {
-  const response = await supabase
-    .from("services")
-    .select("id, name, public_price, logistic_fee, base_price, status")
-    .eq("id", serviceId)
-    .single();
-
-  service = response.data;
-  serviceError = response.error;
-} else {
-  const response = await supabase
-    .from("services")
-    .select("id, name, public_price, logistic_fee, base_price, status")
-    .eq("name", serviceName)
-    .maybeSingle();
-
-  service = response.data;
-  serviceError = response.error;
-}
-
-if (serviceError || !service) {
-  return {
-    success: false,
-    message: `No se encontró el servicio seleccionado en Supabase. Servicio recibido: ${rawServiceName}. Revisa que exista en la tabla services.`,
-  };
-}
-
-  if (service.status !== "active") {
-    return {
-      success: false,
-      message: "Este servicio no está disponible actualmente.",
-    };
-  }
-
-  let beluerProfileId: string | null = null;
-
-  if (bookingMode === "libre") {
-    const { data: beluer, error: beluerError } = await supabase
-      .from("beluer_profiles")
-      .select("id, public_name, status, is_available")
-      .eq("public_name", selectedBeluerName)
+    const supabase = createAdminClient();
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("id, role")
+      .eq("auth_user_id", user.id)
       .single();
 
-    if (beluerError || !beluer) {
+    if (profileError || !profile) {
+      console.error("createBooking: client profile lookup failed", profileError);
+      return { success: false, message: PUBLIC_BOOKING_ERROR };
+    }
+
+    if (profile.role !== "cliente") {
       return {
         success: false,
-        message: `No se encontró la Beluer seleccionada: ${selectedBeluerName}`,
+        message: "Solo las clientas pueden crear reservas.",
       };
     }
 
-    if (beluer.status !== "approved") {
+    const { data: existingBooking, error: existingBookingError } =
+      await supabase
+        .from("bookings")
+        .select("id")
+        .eq("client_profile_id", profile.id)
+        .eq("idempotency_key", idempotencyKey)
+        .maybeSingle();
+
+    if (existingBookingError) {
+      console.error(
+        "createBooking: idempotency lookup failed",
+        existingBookingError
+      );
+      return { success: false, message: PUBLIC_BOOKING_ERROR };
+    }
+
+    if (existingBooking) {
+      revalidatePath("/app/cliente");
       return {
-        success: false,
-        message: "La Beluer seleccionada aún no está aprobada.",
+        success: true,
+        message: "Tu reserva ya estaba registrada. El pago continúa pendiente.",
       };
     }
 
-    if (!beluer.is_available) {
+    const { data: service, error: serviceError } = await supabase
+      .from("services")
+      .select("id, public_price, logistic_fee, base_price, status")
+      .eq("id", serviceId)
+      .single();
+
+    if (serviceError) {
+      console.error("createBooking: service lookup failed", serviceError);
+    }
+
+    if (
+      serviceError ||
+      !service ||
+      service.status !== "active" ||
+      !isValidMoney(service.public_price, false) ||
+      !isValidMoney(service.logistic_fee) ||
+      !isValidMoney(service.base_price)
+    ) {
       return {
         success: false,
-        message: "La Beluer seleccionada no está disponible actualmente.",
+        message: "El servicio seleccionado no está disponible.",
       };
     }
 
-    beluerProfileId = beluer.id;
-  }
+    let beluerProfileId: string | null = null;
 
-  const expressFee = isExpress ? 20 : 0;
+    if (bookingMode === "libre") {
+      const { data: beluer, error: beluerError } = await supabase
+        .from("beluer_profiles")
+        .select("id, status, is_available, districts")
+        .eq("id", selectedBeluerId)
+        .single();
 
-  const { error: bookingError } = await supabase.from("bookings").insert({
-    client_profile_id: profile.id,
-    beluer_profile_id: beluerProfileId,
-    service_id: service.id,
-    booking_mode: bookingMode,
-    scheduled_date: scheduledDate,
-    scheduled_time: scheduledTime,
-    address,
-    district,
-    notes,
-    is_express: isExpress,
-    express_fee: expressFee,
-    status: bookingMode === "libre" ? "assigned" : "pending",
-    public_price: service.public_price,
-    logistic_fee: service.logistic_fee,
-    base_price: service.base_price,
-    payment_status: "paid",
-  });
+      if (beluerError) {
+        console.error("createBooking: beluer lookup failed", beluerError);
+      }
 
-  if (bookingError) {
+      if (
+        beluerError ||
+        !beluer ||
+        beluer.status !== "approved" ||
+        !beluer.is_available
+      ) {
+        return {
+          success: false,
+          message: "La Beluer seleccionada no está disponible.",
+        };
+      }
+
+      const { data: skill, error: skillError } = await supabase
+        .from("beluer_service_skills")
+        .select("id")
+        .eq("beluer_profile_id", beluer.id)
+        .eq("service_id", service.id)
+        .eq("status", "active")
+        .maybeSingle();
+
+      if (skillError) {
+        console.error("createBooking: beluer skill lookup failed", skillError);
+      }
+
+      if (skillError || !skill) {
+        return {
+          success: false,
+          message: "La Beluer seleccionada no realiza este servicio.",
+        };
+      }
+
+      const coveredDistricts = Array.isArray(beluer.districts)
+        ? beluer.districts.map(normalizeBookingDistrict)
+        : [];
+
+      if (
+        coveredDistricts.length === 0 ||
+        !coveredDistricts.includes(normalizeBookingDistrict(district))
+      ) {
+        return {
+          success: false,
+          code: "BELUER_DISTRICT_MISMATCH",
+          message:
+            "Esta especialista ya no está disponible para esa zona. Elige otra Beluer.",
+        };
+      }
+
+      beluerProfileId = beluer.id;
+    }
+
+    const scheduledAt = new Date(
+      `${scheduledDate}T${scheduledTime}:00-05:00`
+    ).getTime();
+    const isAutomaticallyExpress =
+      scheduledAt <= Date.now() + 2 * 60 * 60 * 1000;
+    const isExpress = expressRequested || isAutomaticallyExpress;
+    const expressFee = isExpress ? 20 : 0;
+    const { error: bookingError } = await supabase.from("bookings").insert({
+      client_profile_id: profile.id,
+      beluer_profile_id: beluerProfileId,
+      service_id: service.id,
+      booking_mode: bookingMode,
+      scheduled_date: scheduledDate,
+      scheduled_time: scheduledTime,
+      address,
+      district,
+      notes,
+      is_express: isExpress,
+      express_fee: expressFee,
+      status: bookingMode === "libre" ? "assigned" : "pending",
+      public_price: Number(service.public_price),
+      logistic_fee: Number(service.logistic_fee),
+      base_price: Number(service.base_price),
+      payment_status: "pending",
+      idempotency_key: idempotencyKey,
+    });
+
+    if (bookingError) {
+      if (bookingError.code === "23505") {
+        const { data: duplicateBooking } = await supabase
+          .from("bookings")
+          .select("id")
+          .eq("client_profile_id", profile.id)
+          .eq("idempotency_key", idempotencyKey)
+          .maybeSingle();
+
+        if (duplicateBooking) {
+          revalidatePath("/app/cliente");
+          return {
+            success: true,
+            message:
+              "Tu reserva ya estaba registrada. El pago continúa pendiente.",
+          };
+        }
+      }
+
+      console.error("createBooking: insert failed", bookingError);
+      return { success: false, message: PUBLIC_BOOKING_ERROR };
+    }
+
+    revalidatePath("/app/cliente");
+    revalidatePath("/app/admin");
+
     return {
-      success: false,
-      message: `No se pudo crear la reserva: ${bookingError.message}`,
+      success: true,
+      message: "Reserva registrada. El pago con Yape continúa pendiente.",
     };
+  } catch (error) {
+    console.error("createBooking: unexpected failure", error);
+    return { success: false, message: PUBLIC_BOOKING_ERROR };
   }
-
-  revalidatePath("/app/cliente");
-  revalidatePath("/app/admin");
-
-  return {
-    success: true,
-    message:
-      "Reserva creada correctamente. En breve confirmaremos la disponibilidad.",
-  };
 }
