@@ -8,6 +8,20 @@ export type BeluerSection =
 
 export type ReservaEstado = "pendiente" | "aceptada" | "rechazada";
 
+export type BookingStatus =
+  | "pending"
+  | "assigned"
+  | "confirmed"
+  | "in_progress"
+  | "completed"
+  | "cancelled"
+  | "redo_requested"
+  | "redo_approved";
+
+export type BookingMode = "managed" | "libre";
+
+export type PaymentStatus = "pending" | "paid" | "failed" | "refunded";
+
 export type ReservaBeluer = {
   id: string;
   clienta: string;
@@ -16,21 +30,24 @@ export type ReservaBeluer = {
   direccion: string;
   fecha: string;
   hora: string;
-  total: number;
+  total: number | null;
   estado: ReservaEstado;
+  status: BookingStatus;
+  bookingMode: BookingMode;
+  paymentStatus: PaymentStatus;
   instrucciones: string;
   metodoPago: string;
   publicPrice?: number;
   basePrice?: number;
   logisticFee?: number;
   expressFee?: number;
-  pagoServicioBeluer?: number;
-  pagoLogisticaBeluer?: number;
-  pagoExpressBeluer?: number;
-  totalBeluer?: number;
+  pagoServicioBeluer?: number | null;
+  pagoLogisticaBeluer?: number | null;
+  pagoExpressBeluer?: number | null;
+  totalBeluer?: number | null;
   nivelAplicado?: string | null;
   comisionAplicada?: number | null;
-  comisionBelu?: number;
+  comisionBelu?: number | null;
   commissionLockedAt?: string | null;
   commissionLockedEvent?: string | null;
 };
@@ -60,17 +77,52 @@ export type IngresoBeluer = {
   clienta: string;
   servicio: string;
   totalServicio: number;
-  comisionBelu: number;
-  netoBeluer: number;
-  pagoServicioBeluer?: number;
-  pagoLogisticaBeluer?: number;
-  pagoExpressBeluer?: number;
-  totalBeluer?: number;
+  comisionBelu: number | null;
+  netoBeluer: number | null;
+  pagoServicioBeluer?: number | null;
+  pagoLogisticaBeluer?: number | null;
+  pagoExpressBeluer?: number | null;
+  totalBeluer?: number | null;
   nivelAplicado?: string | null;
   comisionAplicada?: number | null;
   commissionLockedAt?: string | null;
   commissionLockedEvent?: string | null;
-  estadoPago: "pendiente" | "pagado" | "retenido";
+  bookingStatus: BookingStatus;
+  estadoPago: PaymentStatus;
+};
+
+export type BeluerPanelProfile = {
+  publicName: string;
+  firstName: string;
+  levelLabel: "Beluer Nueva" | "Beluer Verificada" | "Beluer Top ✦";
+  statusLabel: "Activo" | "En revisión" | "Pausado";
+  photoUrl: string;
+  initials: string;
+  rating: number | null;
+  instagram: string;
+  phone: string;
+  bio: string;
+  experienceYears: number;
+  districts: string[];
+  districtsCount: number;
+  isAvailable: boolean;
+  monthlyIncomeGoal: number;
+  weeklyRealizedIncome: number;
+  weeklyUncalculatedCompletedCount: number;
+  monthlyRealizedIncome: number;
+  monthlyUncalculatedCompletedCount: number;
+  assignedRequestsCount: number;
+  nextConfirmedBooking: ReservaBeluer | null;
+  completedBookingsCountThisMonth: number;
+};
+
+export type PortfolioReadState = "ready" | "unavailable";
+
+export type BeluerPanelReadState = {
+  bookings: "ready" | "unavailable";
+  clients: "ready" | "unavailable";
+  services: "ready" | "unavailable";
+  portfolio: PortfolioReadState;
 };
 
 export type PerfilBeluer = {

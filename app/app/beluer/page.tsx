@@ -2,33 +2,18 @@ import LogoutButton from "@/components/auth/LogoutButton";
 import BeluerPanelOriginalPage from "@/components/beluer-panel-original/BeluerPanelOriginalPage";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { redirect } from "next/navigation";
 import type {
+  BeluerPanelProfile,
+  BeluerPanelReadState,
+  BookingMode,
+  BookingStatus,
   FotoPortafolio,
   ReservaBeluer,
   IngresoBeluer,
+  PaymentStatus,
   ServicioBeluer,
 } from "@/components/beluer-panel-original/beluerPanelTypes";
-
-type BeluerPanelProfile = {
-  publicName: string;
-  firstName: string;
-  levelLabel: "Beluer Nueva" | "Beluer Verificada" | "Beluer Top ✦";
-  statusLabel: "Activo" | "En revisión" | "Pausado";
-  photoUrl: string;
-  initials: string;
-  rating: string;
-  instagram: string;
-  phone: string;
-  bio: string;
-  experienceYears: number;
-  districts: string[];
-  isAvailable: boolean;
-  weeklyIncomeGoal: number;
-  monthlyIncomeGoal: number;
-  weeklyIncome: number;
-  monthlyIncome: number;
-  weeklyRangeLabel: string;
-};
 
 type BookingRow = {
   id: string;
@@ -38,8 +23,9 @@ type BookingRow = {
   address: string;
   district: string;
   notes: string | null;
-  status: string;
-  payment_status: string;
+  status: BookingStatus;
+  booking_mode: BookingMode;
+  payment_status: PaymentStatus;
   public_price: number | string | null;
   base_price: number | string | null;
   logistic_fee: number | string | null;
@@ -149,11 +135,14 @@ function getBookingBeluerPayoutTotal(booking: BookingRow) {
     return moneyToNumber(booking.beluer_total_payout_amount);
   }
 
-  if (booking.beluer_payment_amount != null) {
+  if (
+    booking.commission_locked_at &&
+    booking.beluer_payment_amount != null
+  ) {
     return moneyToNumber(booking.beluer_payment_amount);
   }
 
-  return moneyToNumber(booking.public_price);
+  return null;
 }
 
 function getBookingPayoutBreakdown(booking: BookingRow) {
@@ -163,15 +152,15 @@ function getBookingPayoutBreakdown(booking: BookingRow) {
   const pagoLogisticaBeluer =
     booking.beluer_logistic_payout_amount != null
       ? moneyToNumber(booking.beluer_logistic_payout_amount)
-      : logisticFee;
+      : null;
   const pagoExpressBeluer =
     booking.beluer_express_payout_amount != null
       ? moneyToNumber(booking.beluer_express_payout_amount)
-      : moneyToNumber(booking.express_fee);
+      : null;
   const pagoServicioBeluer =
     booking.beluer_service_payout_amount != null
       ? moneyToNumber(booking.beluer_service_payout_amount)
-      : Math.max(totalBeluer - pagoLogisticaBeluer - pagoExpressBeluer, 0);
+      : null;
 
   return {
     publicPrice,
@@ -187,18 +176,23 @@ function getBookingPayoutBreakdown(booking: BookingRow) {
     totalBeluer,
     nivelAplicado: booking.beluer_level_snapshot,
     comisionAplicada: nullableRateToNumber(booking.commission_rate_snapshot),
-    comisionBelu: moneyToNumber(booking.belu_commission_amount),
+    comisionBelu: booking.commission_locked_at
+      ? moneyToNumber(booking.belu_commission_amount)
+      : null,
     commissionLockedAt: booking.commission_locked_at,
     commissionLockedEvent: booking.commission_locked_event,
   };
 }
 
-function mapPaymentStatusToIngresoStatus(
-  paymentStatus: string
-): IngresoBeluer["estadoPago"] {
-  if (paymentStatus === "paid") return "pagado";
-  if (paymentStatus === "refunded") return "retenido";
-  return "pendiente";
+function getClientPaymentStatusLabel(paymentStatus: PaymentStatus) {
+  const labels: Record<PaymentStatus, string> = {
+    pending: "Pago de clienta pendiente",
+    paid: "Pago de clienta registrado",
+    failed: "Pago de clienta fallido",
+    refunded: "Pago de clienta reembolsado",
+  };
+
+  return labels[paymentStatus];
 }
 
 function mapServiceCategory(
@@ -226,69 +220,48 @@ function formatDuration(minutes: number | null) {
   return `${remainingMinutes}min`;
 }
 
-function formatDateForDisplay(date: Date) {
-  return date.toLocaleDateString("es-PE", {
-    day: "2-digit",
-    month: "2-digit",
+function getLimaDateTimeKey(date = new Date()) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Lima",
     year: "numeric",
-  });
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(date);
+  const values = Object.fromEntries(
+    parts.map(({ type, value }) => [type, value])
+  );
+
+  return `${values.year}-${values.month}-${values.day}T${values.hour}:${values.minute}`;
 }
 
-function getCurrentWeekRange() {
-  const now = new Date();
-
-  const startOfWeek = new Date(now);
-  const day = now.getDay();
+function getLimaWeekDateRange(now = new Date()) {
+  const todayKey = getLimaDateTimeKey(now).slice(0, 10);
+  const today = new Date(`${todayKey}T00:00:00Z`);
+  const day = today.getUTCDay();
   const diffToMonday = day === 0 ? -6 : 1 - day;
+  const start = new Date(today);
+  start.setUTCDate(today.getUTCDate() + diffToMonday);
+  const end = new Date(start);
+  end.setUTCDate(start.getUTCDate() + 6);
 
-  startOfWeek.setDate(now.getDate() + diffToMonday);
-  startOfWeek.setHours(0, 0, 0, 0);
-
-  const endOfWeek = new Date(startOfWeek);
-  endOfWeek.setDate(startOfWeek.getDate() + 6);
-  endOfWeek.setHours(23, 59, 59, 999);
-
-  const weeklyRangeLabel = `Semana del ${formatDateForDisplay(
-    startOfWeek
-  )} al ${formatDateForDisplay(endOfWeek)}`;
-
-  return { startOfWeek, endOfWeek, weeklyRangeLabel };
+  return {
+    startDate: start.toISOString().slice(0, 10),
+    endDate: end.toISOString().slice(0, 10),
+  };
 }
 
-function getCurrentMonthRange() {
-  const now = new Date();
+function sumRealizedPayouts(
+  bookings: BookingRow[],
+  isInPeriod: (booking: BookingRow) => boolean
+) {
+  return bookings.reduce((total, booking) => {
+    if (booking.status !== "completed" || !isInPeriod(booking)) return total;
 
-  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-  startOfMonth.setHours(0, 0, 0, 0);
-
-  const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-  endOfMonth.setHours(23, 59, 59, 999);
-
-  return { startOfMonth, endOfMonth };
-}
-
-function calculateIncomeByDateRange({
-  bookings,
-  startDate,
-  endDate,
-}: {
-  bookings: BookingRow[];
-  startDate: Date;
-  endDate: Date;
-}) {
-  const incomeStatuses = ["assigned", "confirmed", "in_progress", "completed"];
-
-  return bookings
-    .filter((booking) => {
-      const bookingDate = new Date(`${booking.scheduled_date}T00:00:00`);
-
-      return (
-        incomeStatuses.includes(booking.status) &&
-        bookingDate >= startDate &&
-        bookingDate <= endDate
-      );
-    })
-    .reduce((acc, booking) => acc + getBookingBeluerPayoutTotal(booking), 0);
+    return total + (getBookingBeluerPayoutTotal(booking) ?? 0);
+  }, 0);
 }
 
 export default async function BeluerPanelPage() {
@@ -296,25 +269,40 @@ export default async function BeluerPanelPage() {
 
   const {
     data: { user },
+    error: userError,
   } = await authClient.auth.getUser();
+
+  if (userError || !user) {
+    redirect("/login?redirectTo=/app/beluer");
+  }
 
   let beluerProfile: BeluerPanelProfile | null = null;
   let realReservas: ReservaBeluer[] = [];
   let realIngresos: IngresoBeluer[] = [];
   let realServicios: ServicioBeluer[] = [];
   let realPortafolio: FotoPortafolio[] = [];
+  const readState: BeluerPanelReadState = {
+    bookings: "ready",
+    clients: "ready",
+    services: "ready",
+    portfolio: "ready",
+  };
 
   if (user) {
     const supabase = createAdminClient();
 
-    const { data: profile } = await supabase
+    const { data: profile, error: profileError } = await supabase
       .from("profiles")
       .select("id, full_name, email, phone, role")
       .eq("auth_user_id", user.id)
       .single();
 
+    if (profileError || !profile || profile.role !== "beluer") {
+      redirect("/login?redirectTo=/app/beluer");
+    }
+
     if (profile) {
-      const { data: beluer } = await supabase
+      const { data: beluer, error: beluerError } = await supabase
         .from("beluer_profiles")
         .select(
           `
@@ -338,8 +326,12 @@ export default async function BeluerPanelPage() {
         .eq("profile_id", profile.id)
         .single();
 
+      if (beluerError || !beluer) {
+        redirect("/login?redirectTo=/app/beluer");
+      }
+
       if (beluer) {
-        const { data: serviceSkillsData } = await supabase
+        const { data: serviceSkillsData, error: serviceSkillsError } = await supabase
           .from("beluer_service_skills")
           .select(
             `
@@ -357,7 +349,12 @@ export default async function BeluerPanelPage() {
           )
           .eq("beluer_profile_id", beluer.id);
 
-        realServicios = ((serviceSkillsData as BeluerServiceSkillRow[] | null) || [])
+        if (serviceSkillsError) readState.services = "unavailable";
+
+        realServicios = (serviceSkillsError
+          ? []
+          : (serviceSkillsData as unknown as BeluerServiceSkillRow[] | null) ||
+            [])
           .map((skill) => {
             const service = skill.services;
             const category = mapServiceCategory(service?.category || null);
@@ -379,7 +376,7 @@ export default async function BeluerPanelPage() {
           })
           .filter((service): service is ServicioBeluer => Boolean(service));
 
-        const { data: portfolioData } = await supabase
+        const { data: portfolioData, error: portfolioError } = await supabase
           .from("beluer_photos")
           .select("id, image_url, category, caption, is_cover, status")
           .eq("beluer_id", beluer.id)
@@ -387,7 +384,11 @@ export default async function BeluerPanelPage() {
           .order("is_cover", { ascending: false })
           .order("created_at", { ascending: false });
 
-        realPortafolio = ((portfolioData as BeluerPhotoRow[] | null) || [])
+        if (portfolioError) readState.portfolio = "unavailable";
+
+        realPortafolio = (portfolioError
+          ? []
+          : (portfolioData as BeluerPhotoRow[] | null) || [])
           .reduce<FotoPortafolio[]>((acc, photo) => {
             const category = mapServiceCategory(photo.category || null);
 
@@ -405,7 +406,7 @@ export default async function BeluerPanelPage() {
             return acc;
           }, []);
 
-        const { data: bookingsData } = await supabase
+        const { data: bookingsData, error: bookingsError } = await supabase
           .from("bookings")
           .select(
             `
@@ -417,6 +418,7 @@ export default async function BeluerPanelPage() {
             district,
             notes,
             status,
+            booking_mode,
             payment_status,
             public_price,
             base_price,
@@ -439,51 +441,19 @@ export default async function BeluerPanelPage() {
           `
           )
           .eq("beluer_profile_id", beluer.id)
-          .not("status", "eq", "cancelled")
           .order("scheduled_date", { ascending: true })
           .order("scheduled_time", { ascending: true });
 
-        const bookings = (bookingsData as BookingRow[] | null) || [];
+        if (bookingsError) readState.bookings = "unavailable";
 
-        const { startOfWeek, endOfWeek, weeklyRangeLabel } =
-          getCurrentWeekRange();
+        const bookings = bookingsError
+          ? []
+          : (bookingsData as unknown as BookingRow[] | null) || [];
 
-        const { startOfMonth, endOfMonth } = getCurrentMonthRange();
-
-        const weeklyIncome = calculateIncomeByDateRange({
-          bookings,
-          startDate: startOfWeek,
-          endDate: endOfWeek,
-        });
-
-        const monthlyIncome = calculateIncomeByDateRange({
-          bookings,
-          startDate: startOfMonth,
-          endDate: endOfMonth,
-        });
-
-        const publicName = beluer.public_name || profile.full_name || "Beluer";
-
-        beluerProfile = {
-          publicName,
-          firstName: publicName.split(" ")[0] || "Beluer",
-          levelLabel: getLevelLabel(beluer.level),
-          statusLabel: getStatusLabel(beluer.status),
-          photoUrl: beluer.profile_photo_url || "/beluer-placeholder.jpg",
-          initials: getInitials(publicName),
-          rating: Number(beluer.rating_average || 5).toFixed(1),
-          instagram: beluer.instagram || "",
-          phone: beluer.phone || profile.phone || "",
-          bio: beluer.bio || "",
-          experienceYears: Number(beluer.experience_years || 0),
-          districts: beluer.districts || [],
-          isAvailable: Boolean(beluer.is_available),
-          weeklyIncomeGoal: Number(beluer.weekly_income_goal || 1000),
-          monthlyIncomeGoal: Number(beluer.monthly_income_goal || 4000),
-          weeklyIncome,
-          monthlyIncome,
-          weeklyRangeLabel,
-        };
+        const limaNowKey = getLimaDateTimeKey();
+        const currentMonth = limaNowKey.slice(0, 7);
+        const { startDate: weekStart, endDate: weekEnd } =
+          getLimaWeekDateRange();
 
         const clientIds = Array.from(
           new Set(bookings.map((booking) => booking.client_profile_id))
@@ -492,12 +462,16 @@ export default async function BeluerPanelPage() {
         let clients: ClientProfileRow[] = [];
 
         if (clientIds.length > 0) {
-          const { data: clientsData } = await supabase
+          const { data: clientsData, error: clientsError } = await supabase
             .from("profiles")
             .select("id, full_name, email, phone")
             .in("id", clientIds);
 
-          clients = (clientsData as ClientProfileRow[] | null) || [];
+          if (clientsError) {
+            readState.clients = "unavailable";
+          } else {
+            clients = (clientsData as ClientProfileRow[] | null) || [];
+          }
         }
 
         realReservas = bookings.map((booking) => {
@@ -509,27 +483,30 @@ export default async function BeluerPanelPage() {
           return {
             id: booking.id,
             servicio: booking.services?.name || "Servicio belu",
-            clienta: client?.full_name || client?.email || "Clienta belu",
+            clienta:
+              client?.full_name ||
+              client?.email ||
+              (readState.clients === "unavailable"
+                ? "Clienta no disponible"
+                : "Clienta belu"),
             distrito: booking.district,
             fecha: booking.scheduled_date,
             hora: booking.scheduled_time.slice(0, 5),
             total: payout.totalBeluer,
             direccion: booking.address,
             instrucciones: booking.notes || "Sin instrucciones adicionales.",
-            metodoPago:
-              booking.payment_status === "paid"
-                ? "Pago registrado por belu"
-                : "Pendiente de liquidación",
+            metodoPago: getClientPaymentStatusLabel(booking.payment_status),
             estado: mapBookingStatusToBeluerStatus(booking.status),
+            status: booking.status,
+            bookingMode: booking.booking_mode,
+            paymentStatus: booking.payment_status,
             ...payout,
           };
         });
 
         realIngresos = bookings
           .filter((booking) =>
-            ["assigned", "confirmed", "in_progress", "completed"].includes(
-              booking.status
-            )
+            ["confirmed", "in_progress", "completed"].includes(booking.status)
           )
           .map((booking) => {
             const client = clients.find(
@@ -543,18 +520,89 @@ export default async function BeluerPanelPage() {
             return {
               id: booking.id,
               servicio: booking.services?.name || "Servicio belu",
-              clienta: client?.full_name || client?.email || "Clienta belu",
+              clienta:
+                client?.full_name ||
+                client?.email ||
+                (readState.clients === "unavailable"
+                  ? "Clienta no disponible"
+                  : "Clienta belu"),
               fecha: booking.scheduled_date,
               ...payout,
               totalServicio,
               netoBeluer,
-              estadoPago: mapPaymentStatusToIngresoStatus(
-                booking.payment_status
-              ),
+              bookingStatus: booking.status,
+              estadoPago: booking.payment_status,
             };
           });
+
+        const nextConfirmedBooking =
+          realReservas.find(
+            (booking) =>
+              (booking.status === "confirmed" ||
+                booking.status === "in_progress") &&
+              `${booking.fecha}T${booking.hora}` > limaNowKey
+          ) ?? null;
+        const publicName = beluer.public_name || profile.full_name || "Beluer";
+        const ratingValue = Number(beluer.rating_average);
+
+        beluerProfile = {
+          publicName,
+          firstName: publicName.split(" ")[0] || "Beluer",
+          levelLabel: getLevelLabel(beluer.level),
+          statusLabel: getStatusLabel(beluer.status),
+          photoUrl: beluer.profile_photo_url || "/beluer-placeholder.jpg",
+          initials: getInitials(publicName),
+          rating:
+            Number.isFinite(ratingValue) && ratingValue > 0
+              ? ratingValue
+              : null,
+          instagram: beluer.instagram || "",
+          phone: beluer.phone || profile.phone || "",
+          bio: beluer.bio || "",
+          experienceYears: Number(beluer.experience_years ?? 0),
+          districts: beluer.districts || [],
+          districtsCount: (beluer.districts || []).length,
+          isAvailable: Boolean(beluer.is_available),
+          monthlyIncomeGoal: Number(beluer.monthly_income_goal ?? 0),
+          weeklyRealizedIncome: sumRealizedPayouts(
+            bookings,
+            (booking) =>
+              booking.scheduled_date >= weekStart &&
+              booking.scheduled_date <= weekEnd
+          ),
+          weeklyUncalculatedCompletedCount: bookings.filter(
+            (booking) =>
+              booking.status === "completed" &&
+              booking.scheduled_date >= weekStart &&
+              booking.scheduled_date <= weekEnd &&
+              getBookingBeluerPayoutTotal(booking) == null
+          ).length,
+          monthlyRealizedIncome: sumRealizedPayouts(
+            bookings,
+            (booking) => booking.scheduled_date.startsWith(currentMonth)
+          ),
+          monthlyUncalculatedCompletedCount: bookings.filter(
+            (booking) =>
+              booking.status === "completed" &&
+              booking.scheduled_date.startsWith(currentMonth) &&
+              getBookingBeluerPayoutTotal(booking) == null
+          ).length,
+          assignedRequestsCount: bookings.filter(
+            (booking) => booking.status === "assigned"
+          ).length,
+          nextConfirmedBooking,
+          completedBookingsCountThisMonth: bookings.filter(
+            (booking) =>
+              booking.status === "completed" &&
+              booking.scheduled_date.startsWith(currentMonth)
+          ).length,
+        };
       }
     }
+  }
+
+  if (!beluerProfile) {
+    redirect("/login?redirectTo=/app/beluer");
   }
 
   return (
@@ -565,9 +613,9 @@ export default async function BeluerPanelPage() {
         realIngresos={realIngresos}
         realServicios={realServicios}
         realPortafolio={realPortafolio}
+        readState={readState}
+        logoutButton={<LogoutButton className="beluer-logout-button" />}
       />
-
-      <LogoutButton className="fixed right-6 bottom-6 z-50 rounded-full bg-[#E60023] px-5 py-3 text-sm font-bold text-white shadow-lg hover:bg-[#C4001D] transition" />
     </>
   );
 }

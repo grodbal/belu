@@ -11,105 +11,46 @@ import {
 } from "@/lib/bookings/foundation";
 import { perfilInicial } from "./beluerPanelData";
 import type {
+  BeluerPanelProfile,
+  BeluerPanelReadState,
   BeluerSection,
   FotoPortafolio,
   IngresoBeluer,
   PerfilBeluer,
   ReservaBeluer,
-  ReservaEstado,
   ServicioBeluer,
 } from "./beluerPanelTypes";
-
-type BeluerPanelProfile = {
-  publicName: string;
-  firstName: string;
-  levelLabel: "Beluer Nueva" | "Beluer Verificada" | "Beluer Top ✦";
-  statusLabel: "Activo" | "En revisión" | "Pausado";
-  photoUrl: string;
-  initials: string;
-  rating: string;
-  instagram: string;
-  phone: string;
-  bio: string;
-  experienceYears: number;
-  districts: string[];
-  isAvailable: boolean;
-  monthlyIncomeGoal: number;
-  weeklyIncome: number;
-  monthlyIncome: number;
-  weeklyRangeLabel?: string;
-};
+import { BeluerHome } from "@/components/belu-beluer/home/BeluerHome";
+import { BeluerShellAdapter } from "@/components/belu-beluer/shell/BeluerShellAdapter";
+import styles from "@/components/belu-beluer/shell/beluer-shell.module.css";
 
 type BeluerPanelOriginalPageProps = {
-  beluerProfile: BeluerPanelProfile | null;
+  beluerProfile: BeluerPanelProfile;
   realReservas: ReservaBeluer[];
   realIngresos: IngresoBeluer[];
   realServicios: ServicioBeluer[];
   realPortafolio: FotoPortafolio[];
+  readState: BeluerPanelReadState;
+  logoutButton: ReactNode;
 };
-
-const icons = {
-  dashboard: (
-    <svg viewBox="0 0 24 24">
-      <rect x="3" y="3" width="7" height="7" rx="1" />
-      <rect x="14" y="3" width="7" height="7" rx="1" />
-      <rect x="3" y="14" width="7" height="7" rx="1" />
-      <rect x="14" y="14" width="7" height="7" rx="1" />
-    </svg>
-  ),
-  reservas: (
-    <svg viewBox="0 0 24 24">
-      <rect x="3" y="4" width="18" height="18" rx="2" />
-      <line x1="16" y1="2" x2="16" y2="6" />
-      <line x1="8" y1="2" x2="8" y2="6" />
-      <line x1="3" y1="10" x2="21" y2="10" />
-    </svg>
-  ),
-  servicios: (
-    <svg viewBox="0 0 24 24">
-      <path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.1 5.9 20.6l1.4-6.8-5.1-4.7 6.9-.8L12 2z" />
-    </svg>
-  ),
-  portafolio: (
-    <svg viewBox="0 0 24 24">
-      <rect x="3" y="3" width="18" height="18" rx="2" />
-      <circle cx="8.5" cy="8.5" r="1.5" />
-      <path d="M21 15l-5-5L5 21" />
-    </svg>
-  ),
-  ingresos: (
-    <svg viewBox="0 0 24 24">
-      <line x1="12" y1="1" x2="12" y2="23" />
-      <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6" />
-    </svg>
-  ),
-  perfil: (
-    <svg viewBox="0 0 24 24">
-      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-      <circle cx="12" cy="7" r="4" />
-    </svg>
-  ),
-};
-
-const navItems: {
-  id: BeluerSection;
-  label: string;
-  icon: ReactNode;
-}[] = [
-  { id: "dashboard", label: "Inicio", icon: icons.dashboard },
-  { id: "reservas", label: "Reservas", icon: icons.reservas },
-  { id: "servicios", label: "Mis Servicios", icon: icons.servicios },
-  { id: "portafolio", label: "Portafolio", icon: icons.portafolio },
-  { id: "ingresos", label: "Ingresos", icon: icons.ingresos },
-  { id: "perfil", label: "Mi Perfil", icon: icons.perfil },
-];
 
 function formatMoney(value: number) {
   return Number(value || 0).toFixed(2);
 }
 
 function getReservaTotalBeluer(reserva: ReservaBeluer) {
-  return reserva.totalBeluer ?? reserva.total ?? 0;
+  return reserva.totalBeluer ?? reserva.total ?? null;
+}
+
+function formatPayout(value: number | null | undefined) {
+  return value == null ? "Por calcular" : `S/ ${formatMoney(value)}`;
+}
+
+function formatPayoutAggregate(total: number, uncalculatedCount: number) {
+  if (uncalculatedCount === 0) return `S/ ${formatMoney(total)}`;
+  if (total === 0) return "Por calcular";
+
+  return `S/ ${formatMoney(total)} + ${uncalculatedCount} por calcular`;
 }
 
 function formatCommissionRate(rate: number | null) {
@@ -150,10 +91,11 @@ export default function BeluerPanelOriginalPage({
   realIngresos,
   realServicios,
   realPortafolio,
+  readState,
+  logoutButton,
 }: BeluerPanelOriginalPageProps) {
   const [activeSection, setActiveSection] =
     useState<BeluerSection>("dashboard");
-  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [reservas] = useState<ReservaBeluer[]>(realReservas || []);
   const [reservaDetalle, setReservaDetalle] =
@@ -184,20 +126,26 @@ export default function BeluerPanelOriginalPage({
 
   const beluerDisplayName =
     beluerProfile?.publicName || perfilBeluer.nombrePublico || "Beluer";
-  const beluerFirstName =
-    beluerProfile?.firstName || beluerDisplayName.split(" ")[0] || "Beluer";
-  const beluerLevel = beluerProfile?.levelLabel || perfilBeluer.nivel;
   const beluerPhoto = beluerProfile?.photoUrl || "/beluer-placeholder.jpg";
   const beluerInitials = beluerProfile?.initials || getInitials(beluerDisplayName);
-  const beluerRating = beluerProfile?.rating || "5.0";
+  const beluerRating =
+    beluerProfile.rating == null
+      ? "Sin calificación"
+      : beluerProfile.rating.toFixed(1);
 
-  const weeklyIncome = beluerProfile?.weeklyIncome || 0;
-  const monthlyIncome = beluerProfile?.monthlyIncome || 0;
-  const monthlyIncomeGoal = beluerProfile?.monthlyIncomeGoal || 4000;
+  const weeklyIncome = beluerProfile.weeklyRealizedIncome;
+  const monthlyIncome = beluerProfile.monthlyRealizedIncome;
+  const monthlyIncomeGoal = beluerProfile.monthlyIncomeGoal;
   const monthlyProgress =
     monthlyIncomeGoal > 0
       ? Math.min((monthlyIncome / monthlyIncomeGoal) * 100, 100)
       : 0;
+  const homeMonthlyProgress =
+    monthlyIncomeGoal > 0 &&
+    readState.bookings === "ready" &&
+    beluerProfile.monthlyUncalculatedCompletedCount === 0
+      ? monthlyProgress
+      : null;
 
   const [monthlyGoalInput, setMonthlyGoalInput] = useState(
     String(monthlyIncomeGoal)
@@ -205,16 +153,11 @@ export default function BeluerPanelOriginalPage({
   const [goalLoading, setGoalLoading] = useState(false);
 
   const reservasPendientes = reservas.filter(
-    (reserva) => reserva.estado === "pendiente"
-  );
-
-  const reservasAceptadas = reservas.filter(
-    (reserva) => reserva.estado === "aceptada"
+    (reserva) => reserva.status === "assigned"
   );
 
   const goToSection = (section: BeluerSection) => {
     setActiveSection(section);
-    setSidebarOpen(false);
   };
 
   const handleAceptarReserva = async (id: string) => {
@@ -320,170 +263,28 @@ export default function BeluerPanelOriginalPage({
   };
 
   return (
-    <div className="beluer-panel-shell">
-      <button
-        className="beluer-panel-menu-btn"
-        type="button"
-        onClick={() => setSidebarOpen(true)}
-        aria-label="Abrir menú"
-      >
-        <svg viewBox="0 0 24 24">
-          <line x1="3" y1="6" x2="21" y2="6" />
-          <line x1="3" y1="12" x2="21" y2="12" />
-          <line x1="3" y1="18" x2="21" y2="18" />
-        </svg>
-      </button>
-
-      <div className="beluer-panel-app">
-        <aside
-          className={`beluer-panel-sidebar ${
-            sidebarOpen ? "beluer-panel-sidebar-open" : ""
-          }`}
-        >
-          <div className="beluer-panel-sidebar-logo">
-            <img src="/logo-belu-red.png" alt="belu" />
-          </div>
-
-          <div className="beluer-panel-profile-mini">
-            <img src={beluerPhoto} alt={beluerDisplayName} />
-            <div>
-              <strong>{beluerDisplayName}</strong>
-              <span>{beluerLevel}</span>
-            </div>
-          </div>
-
-          <ul className="beluer-panel-sidebar-nav">
-            {navItems.map((item) => (
-              <li key={item.id}>
-                <button
-                  type="button"
-                  className={activeSection === item.id ? "active" : ""}
-                  onClick={() => goToSection(item.id)}
-                >
-                  <span className="beluer-panel-nav-icon">{item.icon}</span>
-                  {item.label}
-                </button>
-              </li>
-            ))}
-          </ul>
-
-          <div className="beluer-panel-sidebar-footer">
-            <a href="/">← Volver a somosbelu.pe</a>
-          </div>
-        </aside>
-
-        <main className="beluer-panel-main">
-          {activeSection === "dashboard" && (
-            <section className="beluer-panel-section active">
-              <div className="beluer-panel-top-bar">
-                <div className="beluer-panel-greeting">
-                  <h1>Hola, {beluerFirstName} ✦</h1>
-                  <p>Este es tu centro de control como Beluer.</p>
-                </div>
-
-                <BeluerPill
-                  nombre={beluerDisplayName}
-                  iniciales={beluerInitials}
-                />
-              </div>
-
-              <div className="beluer-panel-kpi-grid">
-                <KpiCard
-                  label="Reservas pendientes"
-                  value={String(reservasPendientes.length)}
-                />
-                <KpiCard
-                  label="Reservas aceptadas"
-                  value={String(reservasAceptadas.length)}
-                />
-                <KpiCard
-                  label="Ingresos del mes"
-                  value={`S/ ${formatMoney(monthlyIncome)}`}
-                />
-                <KpiCard label="Rating promedio" value={beluerRating} />
-              </div>
-
-              <div className="beluer-panel-dashboard-grid">
-                <div className="beluer-panel-card large">
-                  <div className="beluer-panel-card-header">
-                    <div>
-                      <h2>Solicitudes disponibles</h2>
-                      <p>Acepta las reservas que encajan con tu agenda.</p>
-                    </div>
-                  </div>
-
-                  {reservasPendientes.length > 0 ? (
-                    <div className="beluer-panel-reservas-list">
-                      {reservasPendientes.map((reserva) => (
-                        <article
-                          className="beluer-panel-reserva-card"
-                          key={reserva.id}
-                        >
-                          <div>
-                            <span>{getReservaEstadoLabel(reserva.estado)}</span>
-                            <h3>{reserva.servicio}</h3>
-                            <p>
-                              {reserva.clienta} · {reserva.distrito}
-                            </p>
-                            <small>
-                              {reserva.fecha} · {reserva.hora}
-                            </small>
-                          </div>
-
-                          <div className="beluer-panel-reserva-actions">
-                            <div className="beluer-panel-reserva-mini-payout">
-                              <span>Tú recibes</span>
-                              <strong>S/ {formatMoney(getReservaTotalBeluer(reserva))}</strong>
-                            </div>
-
-                            <button
-                              type="button"
-                              onClick={() => handleAceptarReserva(reserva.id)}
-                            >
-                              Aceptar
-                            </button>
-
-                            <button
-                              type="button"
-                              className="secondary"
-                              onClick={() => setReservaDetalle(reserva)}
-                            >
-                              Ver detalle
-                            </button>
-                          </div>
-                        </article>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="beluer-panel-empty-state">
-                      No tienes solicitudes pendientes por ahora.
-                    </div>
-                  )}
-                </div>
-
-                <div className="beluer-panel-card">
-                  <h2>Meta del mes</h2>
-                  <p>Tu avance de ingresos netos de este mes.</p>
-                  <p>Vas {monthlyProgress.toFixed(0)}% hacia tu meta mensual.</p>
-
-                  <div className="beluer-panel-progress">
-                    <span style={{ width: `${monthlyProgress}%` }} />
-                  </div>
-
-                  <strong>
-                    S/ {formatMoney(monthlyIncome)} de S/{" "}
-                    {formatMoney(monthlyIncomeGoal)}
-                  </strong>
-
-                  <small>Esta semana generaste S/ {formatMoney(weeklyIncome)}.</small>
-                </div>
-              </div>
-            </section>
-          )}
+    <BeluerShellAdapter
+      activeSection={activeSection}
+      onNavigate={goToSection}
+      name={beluerDisplayName}
+      initials={beluerInitials}
+      logoutButton={logoutButton}
+    >
+      <div className={activeSection === "dashboard" ? undefined : styles.legacyScope}>
+        {activeSection === "dashboard" && (
+          <BeluerHome
+            profile={beluerProfile}
+            readState={readState}
+            pendingRequests={reservasPendientes}
+            monthlyProgress={homeMonthlyProgress}
+            onNavigate={goToSection}
+          />
+        )}
 
           {activeSection === "reservas" && (
             <ReservasSection
               reservas={reservas}
+              dataAvailable={readState.bookings === "ready"}
               onAceptar={handleAceptarReserva}
               onRechazar={handleRechazarReserva}
               onVerDetalle={setReservaDetalle}
@@ -495,6 +296,7 @@ export default function BeluerPanelOriginalPage({
           {activeSection === "servicios" && (
             <ServiciosSection
               servicios={servicios}
+              dataAvailable={readState.services === "ready"}
               onToggleServicio={handleToggleServicio}
               onCambiarPrecio={handleCambiarPrecioServicio}
               onGuardar={handleGuardarServicios}
@@ -506,6 +308,7 @@ export default function BeluerPanelOriginalPage({
           {activeSection === "portafolio" && (
             <PortafolioSection
               fotos={fotosPortafolio}
+              dataAvailable={readState.portfolio === "ready"}
               onAgregarFoto={handleAgregarFoto}
               onEliminarFoto={handleEliminarFoto}
               onMarcarPortada={handleMarcarPortada}
@@ -517,10 +320,17 @@ export default function BeluerPanelOriginalPage({
           {activeSection === "ingresos" && (
             <IngresosSection
               ingresos={ingresos}
+              dataAvailable={readState.bookings === "ready"}
               beluerDisplayName={beluerDisplayName}
               beluerInitials={beluerInitials}
               weeklyIncome={weeklyIncome}
+              weeklyUncalculatedCount={
+                beluerProfile.weeklyUncalculatedCompletedCount
+              }
               monthlyIncome={monthlyIncome}
+              monthlyUncalculatedCount={
+                beluerProfile.monthlyUncalculatedCompletedCount
+              }
               monthlyIncomeGoal={monthlyIncomeGoal}
               monthlyProgress={monthlyProgress}
               monthlyGoalInput={monthlyGoalInput}
@@ -588,17 +398,7 @@ export default function BeluerPanelOriginalPage({
                 </div>
               </section>
             )}
-        </main>
       </div>
-
-      {sidebarOpen && (
-        <button
-          className="beluer-panel-backdrop"
-          type="button"
-          onClick={() => setSidebarOpen(false)}
-          aria-label="Cerrar menú"
-        />
-      )}
 
       {reservaDetalle && (
         <div className="beluer-panel-modal-overlay">
@@ -613,7 +413,7 @@ export default function BeluerPanelOriginalPage({
             </button>
 
             <div className="beluer-panel-modal-badge">
-              {getReservaEstadoLabel(reservaDetalle.estado)}
+              {getBookingStatusLabel(reservaDetalle)}
             </div>
 
             <h2>{reservaDetalle.servicio}</h2>
@@ -639,7 +439,7 @@ export default function BeluerPanelOriginalPage({
 
               <div>
                 <span>Total Beluer</span>
-                <strong>S/ {formatMoney(getReservaTotalBeluer(reservaDetalle))}</strong>
+                <strong>{formatPayout(getReservaTotalBeluer(reservaDetalle))}</strong>
               </div>
 
               <div className="full">
@@ -653,14 +453,14 @@ export default function BeluerPanelOriginalPage({
               </div>
 
               <div>
-                <span>Método de pago</span>
+                <span>Estado del pago de la clienta</span>
                 <strong>{reservaDetalle.metodoPago}</strong>
               </div>
             </div>
 
             <ReservaPayoutSummary reserva={reservaDetalle} />
 
-            {reservaDetalle.estado === "pendiente" && (
+            {reservaDetalle.status === "assigned" && (
               <div className="beluer-panel-modal-actions">
                 <button
                   type="button"
@@ -682,12 +482,13 @@ export default function BeluerPanelOriginalPage({
           </div>
         </div>
       )}
-    </div>
+    </BeluerShellAdapter>
   );
 }
 
 function ReservasSection({
   reservas,
+  dataAvailable,
   onAceptar,
   onRechazar,
   onVerDetalle,
@@ -695,15 +496,21 @@ function ReservasSection({
   beluerInitials,
 }: {
   reservas: ReservaBeluer[];
+  dataAvailable: boolean;
   onAceptar: (id: string) => void;
   onRechazar: (id: string) => void;
   onVerDetalle: (reserva: ReservaBeluer) => void;
   beluerDisplayName: string;
   beluerInitials: string;
 }) {
-  const pendientes = reservas.filter((reserva) => reserva.estado === "pendiente");
-  const aceptadas = reservas.filter((reserva) => reserva.estado === "aceptada");
-  const rechazadas = reservas.filter((reserva) => reserva.estado === "rechazada");
+  const pendientes = reservas.filter((reserva) => reserva.status === "assigned");
+  const aceptadas = reservas.filter(
+    (reserva) =>
+      reserva.status === "confirmed" || reserva.status === "in_progress"
+  );
+  const completadas = reservas.filter(
+    (reserva) => reserva.status === "completed"
+  );
 
   return (
     <section className="beluer-panel-section beluer-panel-reservas-page active">
@@ -720,17 +527,17 @@ function ReservasSection({
       <div className="beluer-panel-reservas-summary">
         <div>
           <span>Pendientes</span>
-          <strong>{pendientes.length}</strong>
+          <strong>{dataAvailable ? pendientes.length : "—"}</strong>
         </div>
 
         <div>
           <span>Aceptadas</span>
-          <strong>{aceptadas.length}</strong>
+          <strong>{dataAvailable ? aceptadas.length : "—"}</strong>
         </div>
 
         <div>
-          <span>Devueltas a belu</span>
-          <strong>{rechazadas.length}</strong>
+          <span>Completadas</span>
+          <strong>{dataAvailable ? completadas.length : "—"}</strong>
         </div>
       </div>
 
@@ -744,7 +551,11 @@ function ReservasSection({
           </p>
         </div>
 
-        {pendientes.length > 0 ? (
+        {!dataAvailable ? (
+          <div className="beluer-panel-empty-state">
+            No fue posible cargar las reservas en este momento.
+          </div>
+        ) : pendientes.length > 0 ? (
           <div className="beluer-panel-reservas-board">
             {pendientes.map((reserva) => (
               <ReservaBeluerCard
@@ -771,7 +582,7 @@ function ReservasSection({
           <p>Las citas confirmadas quedan organizadas para tu jornada.</p>
         </div>
 
-        {aceptadas.length > 0 ? (
+        {!dataAvailable ? null : aceptadas.length > 0 ? (
           <div className="beluer-panel-reservas-board">
             {aceptadas.map((reserva) => (
               <ReservaBeluerCard
@@ -808,8 +619,8 @@ function ReservaBeluerCard({
   return (
     <article className={`beluer-panel-reserva-full-card ${reserva.estado}`}>
       <div className="beluer-panel-reserva-full-top">
-        <span>{getReservaEstadoLabel(reserva.estado)}</span>
-        <strong>Tú recibes S/ {formatMoney(getReservaTotalBeluer(reserva))}</strong>
+        <span>{getBookingStatusLabel(reserva)}</span>
+        <strong>Tú recibes: {formatPayout(getReservaTotalBeluer(reserva))}</strong>
       </div>
 
       <h3>{reserva.servicio}</h3>
@@ -835,7 +646,7 @@ function ReservaBeluerCard({
 
       <ReservaPayoutSummary reserva={reserva} />
 
-      {reserva.estado === "pendiente" ? (
+      {reserva.status === "assigned" ? (
         <p className="beluer-panel-reserva-reassign-note">
           Si no puedes tomarla, belu la devolverá a la cola para reasignarla.
         </p>
@@ -846,7 +657,7 @@ function ReservaBeluerCard({
           Ver detalle
         </button>
 
-        {reserva.estado === "pendiente" && (
+        {reserva.status === "assigned" && (
           <>
             <button
               type="button"
@@ -872,35 +683,33 @@ function ReservaBeluerCard({
 
 function ReservaPayoutSummary({ reserva }: { reserva: ReservaBeluer }) {
   const totalBeluer = getReservaTotalBeluer(reserva);
-  const pagoLogisticaBeluer = reserva.pagoLogisticaBeluer ?? reserva.logisticFee ?? 0;
-  const pagoExpressBeluer = reserva.pagoExpressBeluer ?? reserva.expressFee ?? 0;
-  const pagoServicioBeluer =
-    reserva.pagoServicioBeluer ??
-    Math.max(totalBeluer - pagoLogisticaBeluer - pagoExpressBeluer, 0);
-  const showExpress = pagoExpressBeluer > 0;
+  const pagoLogisticaBeluer = reserva.pagoLogisticaBeluer;
+  const pagoExpressBeluer = reserva.pagoExpressBeluer;
+  const pagoServicioBeluer = reserva.pagoServicioBeluer;
+  const showExpress = (pagoExpressBeluer ?? 0) > 0;
 
   return (
     <div className="beluer-panel-payout-card">
       <div className="beluer-panel-payout-card-head">
         <span>Tú recibes</span>
-        <strong>Total Beluer: S/ {formatMoney(totalBeluer)}</strong>
+        <strong>Total Beluer: {formatPayout(totalBeluer)}</strong>
       </div>
 
       <div className="beluer-panel-payout-breakdown">
         <div>
           <span>Servicio</span>
-          <strong>S/ {formatMoney(pagoServicioBeluer)}</strong>
+          <strong>{formatPayout(pagoServicioBeluer)}</strong>
         </div>
 
         <div>
           <span>Movilidad / logística</span>
-          <strong>S/ {formatMoney(pagoLogisticaBeluer)}</strong>
+          <strong>{formatPayout(pagoLogisticaBeluer)}</strong>
         </div>
 
         {showExpress ? (
           <div>
             <span>Express</span>
-            <strong>S/ {formatMoney(pagoExpressBeluer)}</strong>
+            <strong>{formatPayout(pagoExpressBeluer)}</strong>
           </div>
         ) : null}
       </div>
@@ -925,18 +734,24 @@ function ReservaPayoutSummary({ reserva }: { reserva: ReservaBeluer }) {
   );
 }
 
-function getReservaEstadoLabel(estado: ReservaEstado) {
-  const labels: Record<ReservaEstado, string> = {
-    pendiente: "Pendiente de aceptar",
-    aceptada: "Aceptada",
-    rechazada: "Devuelta a belu",
+function getBookingStatusLabel(reserva: ReservaBeluer) {
+  const labels: Record<ReservaBeluer["status"], string> = {
+    pending: "Pendiente de asignación",
+    assigned: "Solicitud asignada",
+    confirmed: "Confirmada",
+    in_progress: "En curso",
+    completed: "Completada",
+    cancelled: "Cancelada",
+    redo_requested: "Retoque solicitado",
+    redo_approved: "Retoque aprobado",
   };
 
-  return labels[estado];
+  return labels[reserva.status];
 }
 
 function ServiciosSection({
   servicios,
+  dataAvailable,
   onToggleServicio,
   onCambiarPrecio,
   onGuardar,
@@ -944,6 +759,7 @@ function ServiciosSection({
   beluerInitials,
 }: {
   servicios: ServicioBeluer[];
+  dataAvailable: boolean;
   onToggleServicio: (id: string) => void;
   onCambiarPrecio: (id: string, precio: number) => void;
   onGuardar: () => void;
@@ -971,22 +787,34 @@ function ServiciosSection({
       <div className="beluer-panel-servicios-summary">
         <div>
           <span>Servicios activos</span>
-          <strong>{activos.length}</strong>
+          <strong>{dataAvailable ? activos.length : "—"}</strong>
         </div>
 
         <div>
           <span>Lashes</span>
-          <strong>{lashes.filter((servicio) => servicio.activo).length}</strong>
+          <strong>
+            {dataAvailable
+              ? lashes.filter((servicio) => servicio.activo).length
+              : "—"}
+          </strong>
         </div>
 
         <div>
           <span>Nails</span>
-          <strong>{nails.filter((servicio) => servicio.activo).length}</strong>
+          <strong>
+            {dataAvailable
+              ? nails.filter((servicio) => servicio.activo).length
+              : "—"}
+          </strong>
         </div>
 
         <div>
           <span>Brows</span>
-          <strong>{brows.filter((servicio) => servicio.activo).length}</strong>
+          <strong>
+            {dataAvailable
+              ? brows.filter((servicio) => servicio.activo).length
+              : "—"}
+          </strong>
         </div>
       </div>
 
@@ -997,7 +825,11 @@ function ServiciosSection({
         </span>
       </div>
 
-      {servicios.length === 0 ? (
+      {!dataAvailable ? (
+        <div className="beluer-panel-empty-state">
+          No fue posible cargar tus servicios en este momento.
+        </div>
+      ) : servicios.length === 0 ? (
         <div className="beluer-panel-empty-state">
           Aún no tienes servicios asignados.
         </div>
@@ -1118,6 +950,7 @@ function ServicioCategoriaBlock({
 
 function PortafolioSection({
   fotos,
+  dataAvailable,
   onAgregarFoto,
   onEliminarFoto,
   onMarcarPortada,
@@ -1125,6 +958,7 @@ function PortafolioSection({
   beluerInitials,
 }: {
   fotos: FotoPortafolio[];
+  dataAvailable: boolean;
   onAgregarFoto: () => void;
   onEliminarFoto: (id: string) => void;
   onMarcarPortada: (id: string) => void;
@@ -1141,7 +975,6 @@ function PortafolioSection({
   });
 
   const aprobadas = fotos.filter((foto) => foto.estado === "aprobada").length;
-  const pendientes = fotos.filter((foto) => foto.estado === "pendiente").length;
 
   return (
     <section className="beluer-panel-section active">
@@ -1159,18 +992,14 @@ function PortafolioSection({
       <div className="beluer-panel-portafolio-summary">
         <div>
           <span>Total de fotos</span>
-          <strong>{fotos.length}</strong>
+          <strong>{dataAvailable ? fotos.length : "—"}</strong>
         </div>
 
         <div>
           <span>Aprobadas</span>
-          <strong>{aprobadas}</strong>
+          <strong>{dataAvailable ? aprobadas : "—"}</strong>
         </div>
 
-        <div>
-          <span>Pendientes</span>
-          <strong>{pendientes}</strong>
-        </div>
       </div>
 
       <div className="beluer-panel-portafolio-actions">
@@ -1217,7 +1046,11 @@ function PortafolioSection({
         </button>
       </div>
 
-      {fotosFiltradas.length > 0 ? (
+      {!dataAvailable ? (
+        <div className="beluer-panel-empty-state">
+          No fue posible cargar el portafolio en este momento.
+        </div>
+      ) : fotosFiltradas.length > 0 ? (
         <div className="beluer-panel-portafolio-grid">
           {fotosFiltradas.map((foto) => (
             <article className="beluer-panel-foto-card" key={foto.id}>
@@ -1274,10 +1107,13 @@ function PortafolioSection({
 
 function IngresosSection({
   ingresos,
+  dataAvailable,
   beluerDisplayName,
   beluerInitials,
   weeklyIncome,
+  weeklyUncalculatedCount,
   monthlyIncome,
+  monthlyUncalculatedCount,
   monthlyIncomeGoal,
   monthlyProgress,
   monthlyGoalInput,
@@ -1286,10 +1122,13 @@ function IngresosSection({
   onSaveGoals,
 }: {
   ingresos: IngresoBeluer[];
+  dataAvailable: boolean;
   beluerDisplayName: string;
   beluerInitials: string;
   weeklyIncome: number;
+  weeklyUncalculatedCount: number;
   monthlyIncome: number;
+  monthlyUncalculatedCount: number;
   monthlyIncomeGoal: number;
   monthlyProgress: number;
   monthlyGoalInput: string;
@@ -1297,26 +1136,43 @@ function IngresosSection({
   onMonthlyGoalChange: (value: string) => void;
   onSaveGoals: () => void;
 }) {
-  const totalBruto = ingresos.reduce(
+  const ingresosRealizados = ingresos.filter(
+    (ingreso) => ingreso.bookingStatus === "completed"
+  );
+  const ingresosProyectados = ingresos.filter(
+    (ingreso) =>
+      ingreso.bookingStatus === "confirmed" ||
+      ingreso.bookingStatus === "in_progress"
+  );
+  const totalBruto = ingresosRealizados.reduce(
     (acc, ingreso) => acc + ingreso.totalServicio,
     0
   );
 
-  const totalComision = ingresos.reduce(
-    (acc, ingreso) => acc + ingreso.comisionBelu,
+  const totalComision = ingresosRealizados.reduce(
+    (acc, ingreso) => acc + (ingreso.comisionBelu ?? 0),
     0
   );
 
-  const totalNeto = ingresos.reduce(
-    (acc, ingreso) => acc + ingreso.netoBeluer,
+  const totalNeto = ingresosRealizados.reduce(
+    (acc, ingreso) => acc + (ingreso.netoBeluer ?? 0),
     0
   );
 
-  const pagosPendientes = ingresos
-    .filter((ingreso) => ingreso.estadoPago === "pendiente")
-    .reduce((acc, ingreso) => acc + ingreso.netoBeluer, 0);
-
-  const serviciosCompletados = ingresos.length;
+  const totalProyectado = ingresosProyectados.reduce(
+    (acc, ingreso) => acc + (ingreso.netoBeluer ?? 0),
+    0
+  );
+  const realizadosPorCalcular = ingresosRealizados.filter(
+    (ingreso) => ingreso.netoBeluer == null
+  ).length;
+  const comisionesPorCalcular = ingresosRealizados.filter(
+    (ingreso) => ingreso.comisionBelu == null
+  ).length;
+  const proyectadosPorCalcular = ingresosProyectados.filter(
+    (ingreso) => ingreso.netoBeluer == null
+  ).length;
+  const serviciosCompletados = ingresosRealizados.length;
 
   return (
     <section className="beluer-panel-section active">
@@ -1339,7 +1195,7 @@ function IngresosSection({
             <h2>Mi meta mensual</h2>
             <p>
               Define cuánto quieres generar este mes. belu calculará tu avance
-              usando tus reservas reales.
+              con servicios completados y payout disponible.
             </p>
           </div>
         </div>
@@ -1349,7 +1205,11 @@ function IngresosSection({
             <h3>Meta mensual</h3>
 
             <p>
-              S/ {formatMoney(monthlyIncome)} de S/{" "}
+              {formatPayoutAggregate(
+                monthlyIncome,
+                monthlyUncalculatedCount
+              )}{" "}
+              de S/{" "}
               {formatMoney(monthlyIncomeGoal)}
             </p>
 
@@ -1359,7 +1219,7 @@ function IngresosSection({
 
             <small>
               Avance actual: {monthlyProgress.toFixed(0)}%. Esta semana generaste
-              S/ {formatMoney(weeklyIncome)}.
+              {formatPayoutAggregate(weeklyIncome, weeklyUncalculatedCount)}.
             </small>
 
             <label>Editar meta mensual</label>
@@ -1384,11 +1244,14 @@ function IngresosSection({
 
       <div className="beluer-panel-ingresos-hero">
         <div>
-          <span>Total Beluer del mes</span>
-          <strong>S/ {formatMoney(totalNeto)}</strong>
+          <span>Ingreso realizado del mes</span>
+          <strong>
+            {dataAvailable
+              ? formatPayoutAggregate(monthlyIncome, monthlyUncalculatedCount)
+              : "No disponible"}
+          </strong>
           <p>
-            Este monto usa el pago congelado de tus reservas: servicio neto,
-            movilidad y express cuando aplica.
+            Suma únicamente servicios completados con payout calculado.
           </p>
         </div>
 
@@ -1404,28 +1267,40 @@ function IngresosSection({
 
       <div className="beluer-panel-ingresos-summary">
         <div>
-          <span>Público clienta</span>
-          <strong>S/ {formatMoney(totalBruto)}</strong>
+          <span>Precio público completado</span>
+          <strong>{dataAvailable ? `S/ ${formatMoney(totalBruto)}` : "—"}</strong>
         </div>
 
         <div>
           <span>Comisión plataforma</span>
-          <strong>S/ {formatMoney(totalComision)}</strong>
+          <strong>
+            {dataAvailable
+              ? formatPayoutAggregate(totalComision, comisionesPorCalcular)
+              : "—"}
+          </strong>
         </div>
 
         <div>
-          <span>Total Beluer</span>
-          <strong>S/ {formatMoney(totalNeto)}</strong>
+          <span>Ingreso realizado</span>
+          <strong>
+            {dataAvailable
+              ? formatPayoutAggregate(totalNeto, realizadosPorCalcular)
+              : "—"}
+          </strong>
         </div>
 
         <div>
-          <span>Pendiente de liquidación</span>
-          <strong>S/ {formatMoney(pagosPendientes)}</strong>
+          <span>Proyectado / por realizar</span>
+          <strong>
+            {dataAvailable
+              ? formatPayoutAggregate(totalProyectado, proyectadosPorCalcular)
+              : "—"}
+          </strong>
         </div>
 
         <div>
           <span>Servicios completados</span>
-          <strong>{serviciosCompletados}</strong>
+          <strong>{dataAvailable ? serviciosCompletados : "—"}</strong>
         </div>
       </div>
 
@@ -1433,7 +1308,7 @@ function IngresosSection({
         <div className="beluer-panel-ingresos-card-header">
           <div>
             <h2>Historial de ingresos</h2>
-            <p>Detalle de cada servicio realizado a través de belu.</p>
+            <p>Detalle de servicios realizados y por realizar en belu.</p>
           </div>
 
           <button
@@ -1447,7 +1322,11 @@ function IngresosSection({
           </button>
         </div>
 
-        {ingresos.length > 0 ? (
+        {!dataAvailable ? (
+          <div className="beluer-panel-empty-state">
+            No fue posible cargar los datos de ingresos en este momento.
+          </div>
+        ) : ingresos.length > 0 ? (
           <div className="beluer-panel-ingresos-list">
             {ingresos.map((ingreso) => (
               <article className="beluer-panel-ingreso-row" key={ingreso.id}>
@@ -1458,7 +1337,8 @@ function IngresosSection({
 
                   <h3>{ingreso.servicio}</h3>
                   <p>
-                    {ingreso.clienta} · {ingreso.fecha}
+                    {ingreso.clienta} · {ingreso.fecha} ·{" "}
+                    {getBookingFinancialLabel(ingreso.bookingStatus)}
                   </p>
                 </div>
 
@@ -1470,13 +1350,13 @@ function IngresosSection({
 
                   <div>
                     <span>Comisión plataforma</span>
-                    <strong>- S/ {formatMoney(ingreso.comisionBelu)}</strong>
+                    <strong>{formatPayout(ingreso.comisionBelu)}</strong>
                   </div>
 
                   <div>
                     <span>Tú recibes</span>
                     <strong className="neto">
-                      S/ {formatMoney(ingreso.netoBeluer)}
+                      {formatPayout(ingreso.netoBeluer)}
                     </strong>
                   </div>
                 </div>
@@ -1484,17 +1364,15 @@ function IngresosSection({
                 <div className="beluer-panel-ingreso-breakdown">
                   <span>
                     Servicio: S/{" "}
-                    {formatMoney(
-                      ingreso.pagoServicioBeluer ?? ingreso.netoBeluer
-                    )}
+                    {formatPayout(ingreso.pagoServicioBeluer)}
                   </span>
                   <span>
-                    Movilidad / logística: S/{" "}
-                    {formatMoney(ingreso.pagoLogisticaBeluer ?? 0)}
+                    Movilidad / logística:{" "}
+                    {formatPayout(ingreso.pagoLogisticaBeluer)}
                   </span>
                   {(ingreso.pagoExpressBeluer ?? 0) > 0 ? (
                     <span>
-                      Express: S/ {formatMoney(ingreso.pagoExpressBeluer ?? 0)}
+                      Express: {formatPayout(ingreso.pagoExpressBeluer)}
                     </span>
                   ) : null}
                   <span>
@@ -1526,12 +1404,20 @@ function IngresosSection({
 
 function getIngresoEstadoLabel(estado: IngresoBeluer["estadoPago"]) {
   const labels: Record<IngresoBeluer["estadoPago"], string> = {
-    pendiente: "Pendiente de liquidación",
-    pagado: "Pago registrado por belu",
-    retenido: "Retenido",
+    pending: "Pago de clienta pendiente",
+    paid: "Pago de clienta registrado",
+    failed: "Pago de clienta fallido",
+    refunded: "Pago de clienta reembolsado",
   };
 
   return labels[estado];
+}
+
+function getBookingFinancialLabel(status: IngresoBeluer["bookingStatus"]) {
+  if (status === "completed") return "Ingreso realizado";
+  if (status === "in_progress") return "Servicio en curso · por realizar";
+
+  return "Servicio confirmado · por realizar";
 }
 
 function PerfilBeluerSection({
@@ -1794,15 +1680,6 @@ function BeluerPill({
     <div className="beluer-panel-user-pill">
       <div className="beluer-panel-avatar">{iniciales}</div>
       <span>{nombre}</span>
-    </div>
-  );
-}
-
-function KpiCard({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="beluer-panel-kpi-card">
-      <span>{label}</span>
-      <strong>{value}</strong>
     </div>
   );
 }

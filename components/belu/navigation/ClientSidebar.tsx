@@ -36,9 +36,11 @@ function SidebarItems<ItemId extends string>({
     return (
       <button
         aria-current={isActive ? "page" : undefined}
+        aria-label={item.label}
         className={isActive ? styles.sideNavActive : styles.sideNavLink}
         key={item.id}
         onClick={() => onNavigate(item.id)}
+        title={item.label}
         type="button"
       >
         <BeluIcon className={styles.icon} name={item.icon} />

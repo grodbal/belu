@@ -88,14 +88,15 @@ export function mapMockPerfilToSupabaseBeluerProfile(perfil: PerfilBeluer) {
 export function mapMockReservaToSupabaseBooking(reserva: ReservaBeluer) {
   return {
     id: reserva.id,
-    status: mapReservaEstadoToDatabase(reserva.estado),
+    status: reserva.status,
+    booking_mode: reserva.bookingMode,
     scheduled_date: reserva.fecha,
     scheduled_time: reserva.hora,
     district: reserva.distrito,
     address: reserva.direccion,
     instructions: reserva.instrucciones,
     total: reserva.total,
-    payment_status: "paid",
+    payment_status: reserva.paymentStatus,
     payment_method_snapshot: reserva.metodoPago,
   };
 }
@@ -130,7 +131,8 @@ export function mapMockIngresoToSupabaseBeluerEarning(
     gross_amount: ingreso.totalServicio,
     platform_commission_amount: ingreso.comisionBelu,
     net_amount: ingreso.netoBeluer,
-    payout_status: mapIngresoEstadoToDatabase(ingreso.estadoPago),
+    booking_status: ingreso.bookingStatus,
+    payment_status: ingreso.estadoPago,
     service_name_snapshot: ingreso.servicio,
     client_name_snapshot: ingreso.clienta,
     completed_at: ingreso.fecha,
@@ -155,24 +157,4 @@ function mapBeluerStatusToDatabase(status: PerfilBeluer["estado"]) {
   };
 
   return statuses[status];
-}
-
-function mapReservaEstadoToDatabase(estado: ReservaBeluer["estado"]) {
-  const estados: Record<ReservaBeluer["estado"], string> = {
-    pendiente: "pending_beluer_assignment",
-    aceptada: "assigned",
-    rechazada: "cancelled",
-  };
-
-  return estados[estado];
-}
-
-function mapIngresoEstadoToDatabase(estado: IngresoBeluer["estadoPago"]) {
-  const estados: Record<IngresoBeluer["estadoPago"], string> = {
-    pendiente: "pending",
-    pagado: "paid",
-    retenido: "held",
-  };
-
-  return estados[estado];
 }

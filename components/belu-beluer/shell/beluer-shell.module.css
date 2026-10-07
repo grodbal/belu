@@ -1,0 +1,85 @@
+.shell {
+  --canvas: #f8f4f1;
+  background: #f8f4f1;
+}
+
+.main {
+  width: min(100%, 1380px);
+  padding-top: 34px;
+}
+
+.headerStack {
+  position: relative;
+}
+
+.mobilePortfolioLink {
+  display: none;
+  width: 100%;
+  min-height: 44px;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 7px;
+  border: 0;
+  border-bottom: 1px solid #e8dfda;
+  background: #fff;
+  padding: 0 19px;
+  color: #ad1636;
+  font: 800 0.75rem/1 var(--font-nunito), Nunito, sans-serif;
+  cursor: pointer;
+}
+
+.mobilePortfolioLink:focus-visible,
+:global(.beluer-logout-button):focus-visible {
+  outline: 3px solid color-mix(in srgb, #e60023 34%, white);
+  outline-offset: 3px;
+}
+
+:global(.beluer-logout-button) {
+  justify-content: flex-start;
+  border-radius: 10px;
+  color: #8a817e;
+  font: 700 0.82rem/1 var(--font-nunito), Nunito, sans-serif;
+}
+
+:global(.beluer-logout-button:hover) {
+  background: #fff0f4;
+  color: #e60023;
+}
+
+.legacyScope {
+  --r: #e60023;
+  --r2: #c4001d;
+  --rosa: #ffd6e2;
+  --negro: #1a1a1a;
+  --w: #fff;
+  min-width: 0;
+  color: #1a1a1a;
+  font-family: var(--font-nunito), Nunito, sans-serif;
+}
+
+.legacyScope :global(.beluer-panel-section) {
+  min-width: 0;
+}
+
+@media (max-width: 900px) {
+  .main {
+    padding: 24px 24px 40px;
+  }
+}
+
+@media (max-width: 767px) {
+  .main {
+    padding: 14px 18px calc(28px + env(safe-area-inset-bottom));
+  }
+
+  .mobilePortfolioLink {
+    display: flex;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mobilePortfolioLink {
+    scroll-behavior: auto;
+    transition-duration: 0.01ms;
+  }
+}
