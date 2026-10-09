@@ -333,5 +333,54 @@ using (public.is_admin());
 -- Writes should come from service_role / n8n integration only.
 
 -- =====================================================
+-- B4.2A: SERVICE PRICING RULES
+-- =====================================================
+
+alter table public.service_pricing_rules enable row level security;
+revoke all on table public.service_pricing_rules from anon, authenticated;
+grant select on table public.service_pricing_rules to authenticated;
+grant all on table public.service_pricing_rules to service_role;
+
+drop policy if exists service_pricing_rules_select_admin_or_approved_beluer
+  on public.service_pricing_rules;
+create policy service_pricing_rules_select_admin_or_approved_beluer
+on public.service_pricing_rules
+for select
+to authenticated
+using (
+  public.is_admin()
+  or exists (
+    select 1
+    from public.services s
+    join public.beluer_category_approvals a on a.category = s.category
+    where s.id = service_pricing_rules.service_id
+      and a.beluer_profile_id = public.current_beluer_profile_id()
+      and a.status = 'approved'
+  )
+);
+
+-- =====================================================
+-- B4.2A: BELUER CATEGORY APPROVALS
+-- =====================================================
+
+alter table public.beluer_category_approvals enable row level security;
+revoke all on table public.beluer_category_approvals from anon, authenticated;
+grant select on table public.beluer_category_approvals to authenticated;
+grant all on table public.beluer_category_approvals to service_role;
+
+drop policy if exists beluer_category_approvals_select_own_or_admin
+  on public.beluer_category_approvals;
+create policy beluer_category_approvals_select_own_or_admin
+on public.beluer_category_approvals
+for select
+to authenticated
+using (
+  public.is_admin()
+  or beluer_profile_id = public.current_beluer_profile_id()
+);
+
+-- Writes remain Server Action/service_role only, with server-side authorization.
+
+-- =====================================================
 -- END
 -- =====================================================

@@ -1,6 +1,6 @@
 -- =====================================================
 -- BELU - SUPABASE BASE SCHEMA
--- Modelo local alineado con la app MVP actual.
+-- Modelo local con el fundamento aditivo B4.2A para catálogo y precios por Beluer.
 --
 -- Importante:
 -- - No ejecutar automaticamente contra remoto desde Codex.
@@ -31,7 +31,12 @@ exception when duplicate_object then null;
 end $$;
 
 do $$ begin
-  create type service_category as enum ('lashes', 'nails', 'brows');
+  create type service_type as enum ('primary', 'addon');
+exception when duplicate_object then null;
+end $$;
+
+do $$ begin
+  create type beluer_category_approval_status as enum ('pending', 'approved', 'rejected', 'revoked');
 exception when duplicate_object then null;
 end $$;
 
@@ -139,21 +144,32 @@ create table if not exists public.beluer_profiles (
 
 create table if not exists public.services (
   id uuid primary key default gen_random_uuid(),
-  category service_category not null,
+  category text not null,
+  service_type service_type not null default 'primary',
   name text not null unique,
   description text,
   public_price numeric(10,2) not null,
   logistic_fee numeric(10,2) not null default 10,
-  base_price numeric(10,2) not null,
+  base_price numeric(10,2) generated always as (public_price - logistic_fee) stored,
   duration_minutes integer not null default 90,
   image_url text,
   is_featured boolean not null default false,
   status service_status not null default 'active',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
-  constraint services_price_check check (public_price >= 0 and logistic_fee >= 0 and base_price >= 0),
-  constraint services_public_price_check check (public_price >= logistic_fee)
+  constraint services_price_check check (public_price >= 0 and logistic_fee >= 0),
+  constraint services_category_check check (category in ('lashes', 'nails', 'brows')),
+  constraint services_base_price_positive check (base_price >= 0)
 );
+
+alter table public.services
+  add column if not exists service_type service_type not null default 'primary';
+
+alter table public.services
+  drop constraint if exists services_category_check;
+alter table public.services
+  add constraint services_category_check
+  check (category in ('lashes', 'nails', 'brows'));
 
 create table if not exists public.service_images (
   id uuid primary key default gen_random_uuid(),
@@ -168,9 +184,40 @@ create table if not exists public.beluer_service_skills (
   beluer_profile_id uuid not null references public.beluer_profiles(id) on delete cascade,
   service_id uuid not null references public.services(id) on delete cascade,
   status beluer_skill_status not null default 'active',
+  beluer_price numeric(10,2),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
-  unique (beluer_profile_id, service_id)
+  unique (beluer_profile_id, service_id),
+  constraint beluer_service_skills_beluer_price_check check (beluer_price is null or beluer_price > 0)
+);
+
+alter table public.beluer_service_skills
+  add column if not exists beluer_price numeric(10,2);
+do $$ begin
+  if not exists (select 1 from pg_constraint where conrelid = 'public.beluer_service_skills'::regclass and conname = 'beluer_service_skills_beluer_price_check') then
+    alter table public.beluer_service_skills add constraint beluer_service_skills_beluer_price_check
+      check (beluer_price is null or beluer_price > 0);
+  end if;
+end $$;
+
+create table if not exists public.service_pricing_rules (
+  service_id uuid primary key references public.services(id) on delete cascade,
+  minimum_price numeric(10,2) not null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  constraint service_pricing_rules_minimum_price_check check (minimum_price > 0)
+);
+
+create table if not exists public.beluer_category_approvals (
+  id uuid primary key default gen_random_uuid(),
+  beluer_profile_id uuid not null references public.beluer_profiles(id) on delete cascade,
+  category text not null constraint beluer_category_approvals_category_check check (category in ('lashes', 'nails', 'brows')),
+  status beluer_category_approval_status not null default 'pending',
+  approved_by uuid references public.profiles(id) on delete set null,
+  approved_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  constraint beluer_category_approvals_beluer_category_key unique (beluer_profile_id, category)
 );
 
 -- =====================================================
@@ -186,7 +233,7 @@ create table if not exists public.bookings (
 
   beluer_profile_id uuid references public.beluer_profiles(id),
   service_id uuid not null references public.services(id),
-  booking_mode booking_mode not null default 'managed',
+  booking_mode text not null default 'managed',
   scheduled_date date not null,
   scheduled_time time not null,
   address text not null,
@@ -194,15 +241,20 @@ create table if not exists public.bookings (
   notes text,
   is_express boolean not null default false,
   express_fee numeric(10,2) not null default 0,
-  status booking_status not null default 'pending',
+  status text not null default 'pending',
   public_price numeric(10,2) not null,
   logistic_fee numeric(10,2) not null default 0,
   base_price numeric(10,2) not null default 0,
   belu_commission_rate numeric(5,2) not null default 13,
   belu_commission_amount numeric(10,2) not null default 0,
   beluer_payment_amount numeric(10,2) not null default 0,
-  payment_status payment_status not null default 'pending',
+  payment_status text not null default 'pending',
   idempotency_key uuid,
+  service_price_snapshot numeric(10,2),
+  service_name_snapshot text,
+  service_category_snapshot text check (service_category_snapshot is null or service_category_snapshot in ('lashes', 'nails', 'brows')),
+  service_type_snapshot service_type,
+  minimum_price_snapshot numeric(10,2),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -215,7 +267,18 @@ alter table if exists public.bookings
   add column if not exists beluer_express_payout_amount numeric(10,2),
   add column if not exists beluer_total_payout_amount numeric(10,2),
   add column if not exists commission_locked_at timestamptz,
-  add column if not exists commission_locked_event text;
+  add column if not exists commission_locked_event text,
+  add column if not exists service_price_snapshot numeric(10,2),
+  add column if not exists service_name_snapshot text,
+  add column if not exists service_category_snapshot text,
+  add column if not exists service_type_snapshot service_type,
+  add column if not exists minimum_price_snapshot numeric(10,2);
+do $ begin
+  if not exists (select 1 from pg_constraint where conrelid = 'public.bookings'::regclass and conname = 'bookings_service_category_snapshot_check') then
+    alter table public.bookings add constraint bookings_service_category_snapshot_check
+      check (service_category_snapshot is null or service_category_snapshot in ('lashes', 'nails', 'brows'));
+  end if;
+end $;
 
 -- Fase 2:
 -- Para reservas combinadas, crear booking_items con snapshots por servicio:
@@ -251,7 +314,7 @@ create table if not exists public.beluer_photos (
   id uuid primary key default gen_random_uuid(),
   beluer_id uuid not null references public.beluer_profiles(id) on delete cascade,
   image_url text not null,
-  category service_category not null,
+  category text not null check (category in ('lashes', 'nails', 'brows')),
   caption text,
   is_cover boolean not null default false,
   is_featured boolean not null default false,
@@ -297,6 +360,12 @@ create index if not exists service_images_sort_order_idx
 create index if not exists idx_beluer_service_skills_beluer on public.beluer_service_skills(beluer_profile_id);
 create index if not exists idx_beluer_service_skills_service on public.beluer_service_skills(service_id);
 create index if not exists idx_beluer_service_skills_status on public.beluer_service_skills(status);
+create index if not exists beluer_service_skills_service_status_price_idx
+  on public.beluer_service_skills(service_id, status, beluer_price);
+create index if not exists beluer_category_approvals_beluer_status_idx
+  on public.beluer_category_approvals(beluer_profile_id, status);
+create index if not exists beluer_category_approvals_category_status_idx
+  on public.beluer_category_approvals(category, status);
 
 create index if not exists idx_bookings_client_profile_id on public.bookings(client_profile_id);
 create index if not exists idx_bookings_beluer_profile_id on public.bookings(beluer_profile_id);
@@ -349,6 +418,16 @@ for each row execute function public.set_updated_at();
 drop trigger if exists set_beluer_service_skills_updated_at on public.beluer_service_skills;
 create trigger set_beluer_service_skills_updated_at
 before update on public.beluer_service_skills
+for each row execute function public.set_updated_at();
+
+drop trigger if exists set_service_pricing_rules_updated_at on public.service_pricing_rules;
+create trigger set_service_pricing_rules_updated_at
+before update on public.service_pricing_rules
+for each row execute function public.set_updated_at();
+
+drop trigger if exists set_beluer_category_approvals_updated_at on public.beluer_category_approvals;
+create trigger set_beluer_category_approvals_updated_at
+before update on public.beluer_category_approvals
 for each row execute function public.set_updated_at();
 
 drop trigger if exists set_bookings_updated_at on public.bookings;
