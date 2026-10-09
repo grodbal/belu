@@ -125,12 +125,29 @@ export async function updateBeluerBookingStatusAction({
 
   const nextStatus = action === "accept" ? "confirmed" : "pending";
   const nextBeluerProfileId = action === "accept" ? beluer.id : null;
+  const rejectedFinancialSnapshots =
+    action === "reject"
+      ? {
+          beluer_level_snapshot: null,
+          commission_rate_snapshot: null,
+          belu_commission_rate: 13,
+          belu_commission_amount: 0,
+          beluer_service_payout_amount: null,
+          beluer_logistic_payout_amount: null,
+          beluer_express_payout_amount: null,
+          beluer_total_payout_amount: null,
+          beluer_payment_amount: 0,
+          commission_locked_at: null,
+          commission_locked_event: null,
+        }
+      : {};
 
   const { data: updatedBooking, error: updateError } = await supabase
     .from("bookings")
     .update({
       status: nextStatus,
       beluer_profile_id: nextBeluerProfileId,
+      ...rejectedFinancialSnapshots,
       updated_at: new Date().toISOString(),
     })
     .eq("id", bookingId)

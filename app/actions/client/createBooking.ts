@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { normalizeBookingDistrict } from "@/lib/bookings/foundation";
+import { buildBookingFinancialSnapshots } from "@/lib/bookings/financialSnapshots";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
@@ -214,11 +215,12 @@ export async function createBookingAction(
     }
 
     let beluerProfileId: string | null = null;
+    let beluerLevel: string | null = null;
 
     if (bookingMode === "libre") {
       const { data: beluer, error: beluerError } = await supabase
         .from("beluer_profiles")
-        .select("id, status, is_available, districts")
+        .select("id, status, is_available, districts, level")
         .eq("id", selectedBeluerId)
         .single();
 
@@ -274,6 +276,7 @@ export async function createBookingAction(
       }
 
       beluerProfileId = beluer.id;
+      beluerLevel = beluer.level;
     }
 
     const scheduledAt = new Date(
@@ -283,6 +286,17 @@ export async function createBookingAction(
       scheduledAt <= Date.now() + 2 * 60 * 60 * 1000;
     const isExpress = expressRequested || isAutomaticallyExpress;
     const expressFee = isExpress ? 20 : 0;
+    const financialSnapshots =
+      bookingMode === "libre"
+        ? buildBookingFinancialSnapshots({
+            beluerLevel,
+            basePrice: Number(service.base_price),
+            logisticFee: Number(service.logistic_fee),
+            expressFee,
+            lockEvent: "client_selected_beluer",
+          })
+        : null;
+
     const { error: bookingError } = await supabase.from("bookings").insert({
       client_profile_id: profile.id,
       beluer_profile_id: beluerProfileId,
@@ -301,6 +315,7 @@ export async function createBookingAction(
       base_price: Number(service.base_price),
       payment_status: "pending",
       idempotency_key: idempotencyKey,
+      ...(financialSnapshots ?? {}),
     });
 
     if (bookingError) {

@@ -50,6 +50,7 @@ export function BeluerHome({
   onNavigate,
 }: BeluerHomeProps) {
   const nextBooking = profile.nextConfirmedBooking;
+  const hasAssignedRequests = profile.assignedRequestsCount > 0;
 
   return (
     <div className={styles.home}>
@@ -120,18 +121,18 @@ export function BeluerHome({
           <span className={styles.heroMark} aria-hidden="true">✦</span>
         </article>
 
-        <article className={styles.requestsCard}>
+        <article className={`${styles.requestsCard} ${hasAssignedRequests ? styles.requestsCardActive : ""}`}>
           <div className={styles.cardTopline}>
             <span className={styles.eyebrow}>Solicitudes</span>
             {readState.bookings === "ready" ? (
-              <span className={styles.requestCount}>{profile.assignedRequestsCount}</span>
+              <span className={`${styles.requestCount} ${hasAssignedRequests ? styles.requestCountActive : ""}`}>{profile.assignedRequestsCount}</span>
             ) : null}
           </div>
           {readState.bookings === "unavailable" ? (
             <p className={styles.muted}>No fue posible consultar tus solicitudes.</p>
           ) : profile.assignedRequestsCount > 0 ? (
             <>
-              <h2>{profile.assignedRequestsCount === 1 ? "Tienes una solicitud nueva" : `Tienes ${profile.assignedRequestsCount} solicitudes nuevas`}</h2>
+              <h2>{profile.assignedRequestsCount === 1 ? "Nueva solicitud por responder" : `Tienes ${profile.assignedRequestsCount} solicitudes por responder`}</h2>
               <ul className={styles.requestList}>
                 {pendingRequests.slice(0, 2).map((booking) => (
                   <li key={booking.id}>
@@ -145,8 +146,8 @@ export function BeluerHome({
                   </li>
                 ) : null}
               </ul>
-              <button className={styles.textAction} onClick={() => onNavigate("reservas")} type="button">
-                Ver solicitudes <BeluIcon name="arrow" size={16} />
+              <button className={styles.requestAction} onClick={() => onNavigate("reservas")} type="button">
+                Revisar solicitud <BeluIcon name="arrow" size={16} />
               </button>
             </>
           ) : (

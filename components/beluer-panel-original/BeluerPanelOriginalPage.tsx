@@ -21,6 +21,9 @@ import type {
   ServicioBeluer,
 } from "./beluerPanelTypes";
 import { BeluerHome } from "@/components/belu-beluer/home/BeluerHome";
+import { BeluerBookings, type BeluerBookingFilter } from "@/components/belu-beluer/bookings/BeluerBookings";
+import { isBookingInFuture } from "@/components/belu-beluer/bookings/bookingTime";
+import { BookingDetail } from "@/components/belu-beluer/bookings/BookingDetail";
 import { BeluerShellAdapter } from "@/components/belu-beluer/shell/BeluerShellAdapter";
 import styles from "@/components/belu-beluer/shell/beluer-shell.module.css";
 
@@ -100,6 +103,7 @@ export default function BeluerPanelOriginalPage({
   const [reservas] = useState<ReservaBeluer[]>(realReservas || []);
   const [reservaDetalle, setReservaDetalle] =
     useState<ReservaBeluer | null>(null);
+  const [bookingFilter, setBookingFilter] = useState<BeluerBookingFilter>("all");
 
   const [servicios] = useState<ServicioBeluer[]>(realServicios || []);
 
@@ -146,6 +150,15 @@ export default function BeluerPanelOriginalPage({
     beluerProfile.monthlyUncalculatedCompletedCount === 0
       ? monthlyProgress
       : null;
+  const bookingFilterAsOf = Date.now();
+  const bookingCounts: Record<BeluerBookingFilter, number> = {
+    all: reservas.length,
+    requests: reservas.filter((reserva) => reserva.status === "assigned").length,
+    upcoming: reservas.filter((reserva) => reserva.status === "confirmed" && isBookingInFuture(reserva.fecha, reserva.hora, bookingFilterAsOf)).length,
+    inProgress: reservas.filter((reserva) => reserva.status === "in_progress").length,
+    completed: reservas.filter((reserva) => reserva.status === "completed").length,
+    history: reservas.filter((reserva) => ["cancelled", "redo_requested", "redo_approved"].includes(reserva.status)).length,
+  };
 
   const [monthlyGoalInput, setMonthlyGoalInput] = useState(
     String(monthlyIncomeGoal)
@@ -157,6 +170,7 @@ export default function BeluerPanelOriginalPage({
   );
 
   const goToSection = (section: BeluerSection) => {
+    setReservaDetalle(null);
     setActiveSection(section);
   };
 
@@ -270,7 +284,7 @@ export default function BeluerPanelOriginalPage({
       initials={beluerInitials}
       logoutButton={logoutButton}
     >
-      <div className={activeSection === "dashboard" ? undefined : styles.legacyScope}>
+      <div className={activeSection === "dashboard" || activeSection === "reservas" ? undefined : styles.legacyScope}>
         {activeSection === "dashboard" && (
           <BeluerHome
             profile={beluerProfile}
@@ -282,14 +296,16 @@ export default function BeluerPanelOriginalPage({
         )}
 
           {activeSection === "reservas" && (
-            <ReservasSection
+            <BeluerBookings
               reservas={reservas}
               dataAvailable={readState.bookings === "ready"}
+              activeFilter={bookingFilter}
+              counts={bookingCounts}
+              upcomingAt={bookingFilterAsOf}
+              onFilterChange={setBookingFilter}
               onAceptar={handleAceptarReserva}
               onRechazar={handleRechazarReserva}
               onVerDetalle={setReservaDetalle}
-              beluerDisplayName={beluerDisplayName}
-              beluerInitials={beluerInitials}
             />
           )}
 
@@ -400,7 +416,8 @@ export default function BeluerPanelOriginalPage({
             )}
       </div>
 
-      {reservaDetalle && (
+      {reservaDetalle && <BookingDetail reserva={reservaDetalle} onClose={() => setReservaDetalle(null)} onAceptar={handleAceptarReserva} onRechazar={handleRechazarReserva} />}
+      {reservaDetalle && activeSection !== "reservas" && (
         <div className="beluer-panel-modal-overlay">
           <div className="beluer-panel-modal">
             <button
