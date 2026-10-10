@@ -4,6 +4,10 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { redirect } from "next/navigation";
 import { getBeluerServiceCatalog } from "@/app/actions/beluer/serviceOffers";
+import {
+  getBookingClientTotal,
+  getBookingServiceName,
+} from "@/lib/bookings/bookingDisplayFinance";
 import type {
   BeluerPanelProfile,
   BeluerPanelReadState,
@@ -29,6 +33,8 @@ type BookingRow = {
   payment_status: PaymentStatus;
   public_price: number | string | null;
   base_price: number | string | null;
+  service_price_snapshot: number | string | null;
+  service_name_snapshot: string | null;
   logistic_fee: number | string | null;
   express_fee: number | string | null;
   beluer_level_snapshot: string | null;
@@ -123,10 +129,7 @@ function getBookingBeluerPayoutTotal(booking: BookingRow) {
     return moneyToNumber(booking.beluer_total_payout_amount);
   }
 
-  if (
-    booking.commission_locked_at &&
-    booking.beluer_payment_amount != null
-  ) {
+  if (booking.beluer_payment_amount != null) {
     return moneyToNumber(booking.beluer_payment_amount);
   }
 
@@ -135,8 +138,7 @@ function getBookingBeluerPayoutTotal(booking: BookingRow) {
 
 function getBookingPayoutBreakdown(booking: BookingRow) {
   const totalBeluer = getBookingBeluerPayoutTotal(booking);
-  const publicPrice = moneyToNumber(booking.public_price);
-  const logisticFee = moneyToNumber(booking.logistic_fee);
+  const clientTotal = getBookingClientTotal(booking);
   const pagoLogisticaBeluer =
     booking.beluer_logistic_payout_amount != null
       ? moneyToNumber(booking.beluer_logistic_payout_amount)
@@ -151,20 +153,18 @@ function getBookingPayoutBreakdown(booking: BookingRow) {
       : null;
 
   return {
-    publicPrice,
-    basePrice:
-      booking.base_price != null
-        ? moneyToNumber(booking.base_price)
-        : Math.max(publicPrice - logisticFee, 0),
-    logisticFee,
-    expressFee: moneyToNumber(booking.express_fee),
+    servicePrice: clientTotal.servicePrice,
+    clientTotal: clientTotal.total,
+    basePrice: clientTotal.servicePrice,
+    logisticFee: clientTotal.logisticFee,
+    expressFee: clientTotal.expressFee,
     pagoServicioBeluer,
     pagoLogisticaBeluer,
     pagoExpressBeluer,
     totalBeluer,
     nivelAplicado: booking.beluer_level_snapshot,
     comisionAplicada: nullableRateToNumber(booking.commission_rate_snapshot),
-    comisionBelu: booking.commission_locked_at
+    comisionBelu: booking.belu_commission_amount != null
       ? moneyToNumber(booking.belu_commission_amount)
       : null,
     commissionLockedAt: booking.commission_locked_at,
@@ -371,6 +371,8 @@ export default async function BeluerPanelPage() {
             payment_status,
             public_price,
             base_price,
+            service_price_snapshot,
+            service_name_snapshot,
             logistic_fee,
             express_fee,
             beluer_level_snapshot,
@@ -431,7 +433,7 @@ export default async function BeluerPanelPage() {
 
           return {
             id: booking.id,
-            servicio: booking.services?.name || "Servicio belu",
+            servicio: getBookingServiceName(booking.service_name_snapshot, booking.services?.name),
             clienta:
               client?.full_name ||
               client?.email ||
@@ -463,12 +465,12 @@ export default async function BeluerPanelPage() {
             );
 
             const payout = getBookingPayoutBreakdown(booking);
-            const totalServicio = payout.publicPrice;
+            const totalServicio = payout.servicePrice;
             const netoBeluer = payout.totalBeluer;
 
             return {
               id: booking.id,
-              servicio: booking.services?.name || "Servicio belu",
+              servicio: getBookingServiceName(booking.service_name_snapshot, booking.services?.name),
               clienta:
                 client?.full_name ||
                 client?.email ||

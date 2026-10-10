@@ -5,6 +5,10 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { createBookingAction } from "@/app/actions/client/createBooking";
 import { normalizeBookingDistrict } from "@/lib/bookings/foundation";
+import {
+  getBookingClientTotal,
+  getBookingServiceName,
+} from "@/lib/bookings/bookingDisplayFinance";
 import { updateClientProfileAction } from "@/app/actions/client/updateClientProfile";
 import LogoutButton from "@/components/auth/LogoutButton";
 import {
@@ -62,7 +66,11 @@ type ClientBooking = {
   status: string;
   payment_status: string;
   public_price: number;
+  base_price?: number | null;
   service_price_snapshot?: number | null;
+  service_name_snapshot?: string | null;
+  service_category_snapshot?: string | null;
+  service_type_snapshot?: string | null;
   logistic_fee: number | null;
   is_express: boolean | null;
   express_fee: number | null;
@@ -71,6 +79,7 @@ type ClientBooking = {
   services: {
     name: string;
     category: string;
+    service_type?: string | null;
   } | null;
   beluer_profiles: {
     public_name: string | null;
@@ -195,16 +204,15 @@ function sortServicesForReservation(services: Service[]) {
 }
 
 function getClientBookingTotal(booking: ClientBooking) {
-  const serviceAmount = Number(booking.service_price_snapshot ?? booking.public_price ?? 0);
-  const logisticFee = Number(booking.logistic_fee || 0);
-  const expressFee = booking.is_express ? Number(booking.express_fee || 0) : 0;
+  const amounts = getBookingClientTotal(booking);
+  return { ...amounts, serviceAmount: amounts.servicePrice };
+}
 
-  return {
-    serviceAmount,
-    logisticFee,
-    expressFee,
-    total: serviceAmount + logisticFee + expressFee,
-  };
+function getClientBookingServiceName(booking: ClientBooking) {
+  return getBookingServiceName(
+    booking.service_name_snapshot,
+    booking.services?.name
+  );
 }
 
 function getTimePickerParts(value: string) {
@@ -945,7 +953,7 @@ const selectedBookingService = servicioSeleccionado;
         <div>
   <span>Servicio</span>
   <strong>
-    {nextBooking?.services?.name || servicioSeleccionado?.nombre}
+    {nextBooking ? getClientBookingServiceName(nextBooking) : servicioSeleccionado?.nombre}
   </strong>
 </div>
 
@@ -1098,7 +1106,7 @@ function DashboardSection({
   };
   const bookings: BookingHeroData[] = upcomingBookings.map((booking) => ({
     id: booking.id,
-    service: booking.services?.name || "Servicio belu",
+    service: getClientBookingServiceName(booking),
     status:
       reservationStatusLabels[booking.status] || booking.status,
     date: formatDisplayDate(booking.scheduled_date),
@@ -1178,7 +1186,7 @@ function HistorialSection({
 
     return {
       id: booking.id,
-      service: booking.services?.name || "Servicio belu",
+      service: getClientBookingServiceName(booking),
       beluer:
         booking.beluer_profiles?.public_name || "Pendiente de asignación",
       date: formatDisplayDate(booking.scheduled_date),
@@ -1197,7 +1205,7 @@ function HistorialSection({
     const selectedBookingTotal = getClientBookingTotal(selectedBooking);
     const breakdown: BookingHistoryDetailData["breakdown"] = [
       {
-        label: "Servicio",
+        label: "Precio del servicio",
         value: formatSoles(selectedBookingTotal.serviceAmount),
       },
     ];
@@ -1224,7 +1232,7 @@ function HistorialSection({
 
     selectedItem = {
       id: selectedBooking.id,
-      service: selectedBooking.services?.name || "Servicio belu",
+      service: getClientBookingServiceName(selectedBooking),
       beluer:
         selectedBooking.beluer_profiles?.public_name ||
         "Pendiente de asignación",
@@ -1275,7 +1283,7 @@ function PagosSection({
     : null;
   const items: PaymentHistoryItemData[] = bookingHistory.map((booking) => ({
     id: booking.id,
-    service: booking.services?.name || "Servicio belu",
+    service: getClientBookingServiceName(booking),
     beluer:
       booking.beluer_profiles?.public_name || "Pendiente de asignación",
     date: formatDisplayDate(booking.scheduled_date),

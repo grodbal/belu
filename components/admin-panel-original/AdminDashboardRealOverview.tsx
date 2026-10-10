@@ -1,4 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getBookingClientTotal } from "@/lib/bookings/bookingDisplayFinance";
 
 type BeluerProfile = {
   id: string;
@@ -16,6 +17,10 @@ type Booking = {
   beluer_profile_id: string | null;
   status: string | null;
   public_price: number | null;
+  base_price: number | null;
+  service_price_snapshot: number | null;
+  logistic_fee: number | null;
+  express_fee: number | null;
   belu_commission_amount: number | null;
   payment_status: string | null;
   scheduled_date: string | null;
@@ -70,7 +75,7 @@ export default async function AdminDashboardRealOverview() {
     supabase
       .from("bookings")
       .select(
-        "id, beluer_profile_id, status, public_price, belu_commission_amount, payment_status, scheduled_date"
+        "id, beluer_profile_id, status, public_price, base_price, service_price_snapshot, logistic_fee, express_fee, belu_commission_amount, payment_status, scheduled_date"
       ),
   ]);
 
@@ -111,7 +116,7 @@ export default async function AdminDashboardRealOverview() {
       Boolean(booking.scheduled_date?.startsWith(monthKey))
   );
   const monthlyGross = sum(
-    monthlyPaidBookings.map((booking) => Number(booking.public_price ?? 0))
+    monthlyPaidBookings.map((booking) => getBookingClientTotal(booking).total)
   );
   const monthlyCommission = sum(
     monthlyPaidBookings.map((booking) =>
@@ -186,9 +191,9 @@ export default async function AdminDashboardRealOverview() {
           label="Pendientes asignación"
           value={String(pendingAssignment.length)}
         />
-        <KpiCard label="Ingresos mes" value={formatCurrency(monthlyGross)} />
+        <KpiCard label="Facturación cliente mes" value={formatCurrency(monthlyGross)} />
         <KpiCard
-          label="Comisión mes"
+          label="Comisión belu mes"
           value={formatCurrency(monthlyCommission)}
         />
       </div>

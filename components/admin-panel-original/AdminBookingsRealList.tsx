@@ -2,6 +2,11 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import UpdateBookingStatusForm from "@/components/admin-panel-original/UpdateBookingStatusForm";
 import UpdateBookingPaymentStatusForm from "@/components/admin-panel-original/UpdateBookingPaymentStatusForm";
 import AssignBookingBeluerForm from "@/components/admin-panel-original/AssignBookingBeluerForm";
+import {
+  getBookingClientTotal,
+  getBookingServiceCategory,
+  getBookingServiceName,
+} from "@/lib/bookings/bookingDisplayFinance";
 
 type Booking = {
   id: string;
@@ -28,6 +33,10 @@ type Booking = {
   public_price: number;
   logistic_fee: number;
   base_price: number;
+  service_price_snapshot: number | null;
+  service_name_snapshot: string | null;
+  service_category_snapshot: string | null;
+  service_type_snapshot: string | null;
   belu_commission_rate: number;
   belu_commission_amount: number;
   beluer_payment_amount: number;
@@ -193,7 +202,7 @@ export default async function AdminBookingsRealList() {
   const { data: bookings, error: bookingsError } = await supabase
     .from("bookings")
     .select(
-      "id, client_profile_id, beluer_profile_id, service_id, booking_mode, scheduled_date, scheduled_time, address, district, notes, is_express, express_fee, status, public_price, logistic_fee, base_price, belu_commission_rate, belu_commission_amount, beluer_payment_amount, beluer_level_snapshot, commission_rate_snapshot, beluer_service_payout_amount, beluer_logistic_payout_amount, beluer_express_payout_amount, beluer_total_payout_amount, commission_locked_at, commission_locked_event, payment_status, created_at"
+      "id, client_profile_id, beluer_profile_id, service_id, booking_mode, scheduled_date, scheduled_time, address, district, notes, is_express, express_fee, status, public_price, logistic_fee, base_price, service_price_snapshot, service_name_snapshot, service_category_snapshot, service_type_snapshot, belu_commission_rate, belu_commission_amount, beluer_payment_amount, beluer_level_snapshot, commission_rate_snapshot, beluer_service_payout_amount, beluer_logistic_payout_amount, beluer_express_payout_amount, beluer_total_payout_amount, commission_locked_at, commission_locked_event, payment_status, created_at"
     )
     .order("scheduled_date", { ascending: false })
     .order("scheduled_time", { ascending: false });
@@ -395,6 +404,15 @@ export default async function AdminBookingsRealList() {
             : null;
 
           const service = servicesById.get(booking.service_id);
+          const serviceName = getBookingServiceName(
+            booking.service_name_snapshot,
+            service?.name
+          );
+          const serviceCategory = getBookingServiceCategory(
+            booking.service_category_snapshot,
+            service?.category
+          );
+          const clientTotal = getBookingClientTotal(booking);
           const hasAssignedBeluer = Boolean(booking.beluer_profile_id);
           const hasCommissionSnapshot = Boolean(booking.commission_locked_at);
           const appliedLevelLabel = booking.beluer_level_snapshot
@@ -439,7 +457,7 @@ export default async function AdminBookingsRealList() {
                     ) : null}
                   </div>
 
-                  <h3>{service?.name || "Servicio no encontrado"}</h3>
+                  <h3>{serviceName}</h3>
 
                   <p>
                     {formatDate(booking.scheduled_date)} -{" "}
@@ -448,8 +466,8 @@ export default async function AdminBookingsRealList() {
                 </div>
 
                 <div className="admin-booking-admin-total">
-                  <span>Total publico</span>
-                  <strong>{formatCurrency(booking.public_price)}</strong>
+                  <span>Total clienta</span>
+                  <strong>{formatCurrency(clientTotal.total)}</strong>
                 </div>
               </div>
 
@@ -481,13 +499,13 @@ export default async function AdminBookingsRealList() {
                   <dl>
                     <div>
                       <dt>Servicio</dt>
-                      <dd>{service?.name || "Servicio no encontrado"}</dd>
+                      <dd>{serviceName}</dd>
                     </div>
 
                     <div>
                       <dt>Categoria</dt>
                       <dd>
-                        {service ? getCategoryLabel(service.category) : "-"}
+                        {serviceCategory ? getCategoryLabel(serviceCategory) : "-"}
                       </dd>
                     </div>
 
@@ -560,26 +578,26 @@ export default async function AdminBookingsRealList() {
 
                   <div className="admin-booking-money-grid">
                     <div>
-                      <span>Publico</span>
-                      <strong>{formatCurrency(booking.public_price)}</strong>
+                      <span>Precio del servicio</span>
+                      <strong>{formatCurrency(clientTotal.servicePrice)}</strong>
                     </div>
 
                     <div>
-                      <span>Base</span>
-                      <strong>{formatCurrency(booking.base_price)}</strong>
+                      <span>Cargo logístico</span>
+                      <strong>{formatCurrency(clientTotal.logisticFee)}</strong>
                     </div>
 
-                    <div>
-                      <span>Logistica</span>
-                      <strong>{formatCurrency(booking.logistic_fee)}</strong>
-                    </div>
-
-                    {booking.express_fee > 0 ? (
+                    {clientTotal.expressFee > 0 ? (
                       <div>
-                        <span>Express</span>
-                        <strong>{formatCurrency(booking.express_fee)}</strong>
+                        <span>Belu Express</span>
+                        <strong>{formatCurrency(clientTotal.expressFee)}</strong>
                       </div>
                     ) : null}
+
+                    <div>
+                      <span>Total clienta</span>
+                      <strong>{formatCurrency(clientTotal.total)}</strong>
+                    </div>
 
                     <div>
                       <span>Nivel aplicado</span>
@@ -587,7 +605,7 @@ export default async function AdminBookingsRealList() {
                     </div>
 
                     <div>
-                      <span>Comision belu</span>
+                      <span>Comisión belu</span>
                       <strong>
                         {hasAssignedBeluer
                           ? formatCurrency(booking.belu_commission_amount)
@@ -613,7 +631,7 @@ export default async function AdminBookingsRealList() {
                     </div>
 
                     <div>
-                      <span>Pago logistica Beluer</span>
+                        <span>Logística Beluer</span>
                       <strong>
                         {hasAssignedBeluer
                           ? formatMoneyOrPending(
@@ -626,7 +644,7 @@ export default async function AdminBookingsRealList() {
                     {booking.express_fee > 0 ||
                     Number(booking.beluer_express_payout_amount || 0) > 0 ? (
                       <div>
-                        <span>Pago express Beluer</span>
+                        <span>Express Beluer</span>
                         <strong>
                           {hasAssignedBeluer
                             ? formatMoneyOrPending(

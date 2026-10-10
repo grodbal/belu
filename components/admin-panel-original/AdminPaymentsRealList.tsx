@@ -1,4 +1,9 @@
 import { createAdminClient } from "@/lib/supabase/admin";
+import {
+  getBookingClientTotal,
+  getBookingServiceCategory,
+  getBookingServiceName,
+} from "@/lib/bookings/bookingDisplayFinance";
 
 type BookingPayment = {
   id: string;
@@ -14,6 +19,12 @@ type BookingPayment = {
     | "refunded"
     | "partially_refunded";
   public_price: number;
+  base_price: number | null;
+  service_price_snapshot: number | null;
+  service_name_snapshot: string | null;
+  service_category_snapshot: string | null;
+  logistic_fee: number | null;
+  express_fee: number | null;
 };
 
 type Profile = {
@@ -74,7 +85,7 @@ export default async function AdminPaymentsRealList() {
   const { data: bookings, error: bookingsError } = await supabase
     .from("bookings")
     .select(
-      "id, client_profile_id, beluer_profile_id, service_id, scheduled_date, scheduled_time, payment_status, public_price"
+      "id, client_profile_id, beluer_profile_id, service_id, scheduled_date, scheduled_time, payment_status, public_price, base_price, service_price_snapshot, service_name_snapshot, service_category_snapshot, logistic_fee, express_fee"
     )
     .order("scheduled_date", { ascending: false })
     .order("scheduled_time", { ascending: false });
@@ -220,15 +231,24 @@ export default async function AdminPaymentsRealList() {
                   ? beluersById.get(booking.beluer_profile_id)
                   : null;
                 const service = servicesById.get(booking.service_id);
+                const serviceName = getBookingServiceName(
+                  booking.service_name_snapshot,
+                  service?.name
+                );
+                const serviceCategory = getBookingServiceCategory(
+                  booking.service_category_snapshot,
+                  service?.category
+                );
+                const clientTotal = getBookingClientTotal(booking);
 
                 return (
                   <tr key={booking.id} className="align-top">
                     <td className="px-5 py-5">
                       <p className="font-black text-[#1A1A1A]">
-                        {service?.name || "Servicio no encontrado"}
+                        {serviceName}
                       </p>
                       <span className="mt-2 inline-flex rounded-full bg-[#FFD6E2] px-3 py-1 text-xs font-black text-[#E60023]">
-                        {service ? getCategoryLabel(service.category) : "—"}
+                        {serviceCategory ? getCategoryLabel(serviceCategory) : "—"}
                       </span>
                     </td>
 
@@ -260,9 +280,12 @@ export default async function AdminPaymentsRealList() {
                       <span className="inline-flex rounded-full bg-[#FFD6E2] px-3 py-1 text-xs font-black text-[#E60023]">
                         {getPaymentStatusLabel(booking.payment_status)}
                       </span>
-                      <p className="mt-2 text-sm font-black text-[#1A1A1A]">
-                        {formatCurrency(booking.public_price)}
-                      </p>
+                      <dl className="mt-2 space-y-1 text-xs text-neutral-600">
+                        <div className="flex justify-between gap-3"><dt>Precio del servicio</dt><dd>{formatCurrency(clientTotal.servicePrice)}</dd></div>
+                        {clientTotal.logisticFee > 0 && <div className="flex justify-between gap-3"><dt>Cargo logístico</dt><dd>{formatCurrency(clientTotal.logisticFee)}</dd></div>}
+                        {clientTotal.expressFee > 0 && <div className="flex justify-between gap-3"><dt>Belu Express</dt><dd>{formatCurrency(clientTotal.expressFee)}</dd></div>}
+                        <div className="flex justify-between gap-3 border-t border-neutral-100 pt-1 font-black text-[#1A1A1A]"><dt>Total clienta</dt><dd>{formatCurrency(clientTotal.total)}</dd></div>
+                      </dl>
                     </td>
 
                     <td className="px-5 py-5">

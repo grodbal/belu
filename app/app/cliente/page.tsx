@@ -23,7 +23,11 @@ type ClientBooking = {
   status: string;
   payment_status: string;
   public_price: number;
+  base_price: number | null;
   service_price_snapshot: number | null;
+  service_name_snapshot: string | null;
+  service_category_snapshot: string | null;
+  service_type_snapshot: string | null;
   logistic_fee: number;
   is_express: boolean;
   express_fee: number;
@@ -303,7 +307,11 @@ export default async function ClientePanelPage() {
         status,
         payment_status,
         public_price,
+        base_price,
         service_price_snapshot,
+        service_name_snapshot,
+        service_category_snapshot,
+        service_type_snapshot,
         logistic_fee,
         is_express,
         express_fee,
@@ -311,7 +319,8 @@ export default async function ClientePanelPage() {
         address,
         services (
           name,
-          category
+          category,
+          service_type
         ),
         beluer_profiles (
           public_name

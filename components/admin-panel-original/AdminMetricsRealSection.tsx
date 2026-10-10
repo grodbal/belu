@@ -1,4 +1,9 @@
 import { createAdminClient } from "@/lib/supabase/admin";
+import {
+  getBookingClientTotal,
+  getBookingServiceCategory,
+  getBookingServiceName,
+} from "@/lib/bookings/bookingDisplayFinance";
 
 type Booking = {
   id: string;
@@ -6,6 +11,12 @@ type Booking = {
   district: string | null;
   status: string | null;
   public_price: number | null;
+  base_price: number | null;
+  service_price_snapshot: number | null;
+  service_name_snapshot: string | null;
+  service_category_snapshot: string | null;
+  logistic_fee: number | null;
+  express_fee: number | null;
   belu_commission_amount: number | null;
   payment_status: string | null;
   scheduled_date: string | null;
@@ -88,7 +99,7 @@ export default async function AdminMetricsRealSection() {
   const { data: bookings, error: bookingsError } = await supabase
     .from("bookings")
     .select(
-      "id, service_id, district, status, public_price, belu_commission_amount, payment_status, scheduled_date"
+      "id, service_id, district, status, public_price, base_price, service_price_snapshot, service_name_snapshot, service_category_snapshot, logistic_fee, express_fee, belu_commission_amount, payment_status, scheduled_date"
     );
 
   if (bookingsError) {
@@ -161,7 +172,7 @@ export default async function AdminMetricsRealSection() {
     Boolean(booking.scheduled_date?.startsWith(monthKey))
   );
   const monthlyRevenue = sum(
-    monthlyPaidBookings.map((booking) => Number(booking.public_price ?? 0))
+    monthlyPaidBookings.map((booking) => getBookingClientTotal(booking).total)
   );
   const monthlyCommission = sum(
     monthlyPaidBookings.map((booking) =>
@@ -188,10 +199,14 @@ export default async function AdminMetricsRealSection() {
   typedBookings.forEach((booking) => {
     if (booking.service_id) {
       const service = servicesById.get(booking.service_id);
+      const category = getBookingServiceCategory(
+        booking.service_category_snapshot,
+        service?.category
+      );
       const current = serviceStats.get(booking.service_id) ?? {
         key: booking.service_id,
-        label: service?.name || "Servicio no encontrado",
-        meta: service ? getCategoryLabel(service.category) : "Sin categoría",
+        label: getBookingServiceName(booking.service_name_snapshot, service?.name),
+        meta: category ? getCategoryLabel(category) : "Sin categoría",
         bookings: 0,
         revenue: 0,
       };
@@ -199,7 +214,7 @@ export default async function AdminMetricsRealSection() {
       current.bookings += 1;
       current.revenue +=
         booking.payment_status === "paid"
-          ? Number(booking.public_price ?? 0)
+          ? getBookingClientTotal(booking).total
           : 0;
       serviceStats.set(booking.service_id, current);
     }
@@ -216,7 +231,7 @@ export default async function AdminMetricsRealSection() {
       current.bookings += 1;
       current.revenue +=
         booking.payment_status === "paid"
-          ? Number(booking.public_price ?? 0)
+          ? getBookingClientTotal(booking).total
           : 0;
       districtStats.set(booking.district, current);
     }
@@ -244,7 +259,7 @@ export default async function AdminMetricsRealSection() {
 
       <div className="admin-panel-metricas-hero">
         <div>
-          <span>Comisión estimada belu del mes</span>
+          <span>Comisión belu pagada del mes</span>
           <strong>{formatCurrency(monthlyCommission)}</strong>
           <p>
             Calculada desde reservas del mes con payment_status = paid y
@@ -254,7 +269,7 @@ export default async function AdminMetricsRealSection() {
 
         <div className="admin-panel-metricas-hero-grid">
           <div>
-            <span>Ingresos pagados del mes</span>
+            <span>Facturación cliente pagada del mes</span>
             <strong>{formatCurrency(monthlyRevenue)}</strong>
           </div>
 
@@ -319,13 +334,13 @@ export default async function AdminMetricsRealSection() {
 
         <RankingCard
           title="Servicios más reservados"
-          description="Ranking real por reservas generadas."
+          description="Reservas e importe total pagado por clientas."
           rows={topServices}
         />
 
         <RankingCard
           title="Distritos con mayor demanda"
-          description="Ranking real por reservas e ingresos pagados."
+          description="Reservas e importes de facturación pagados por clientas."
           rows={topDistricts}
         />
 

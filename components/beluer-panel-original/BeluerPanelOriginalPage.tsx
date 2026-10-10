@@ -1074,7 +1074,7 @@ function IngresosSection({
 
       <div className="beluer-panel-ingresos-summary">
         <div>
-          <span>Precio público completado</span>
+          <span>Precio del servicio completado</span>
           <strong>{dataAvailable ? `S/ ${formatMoney(totalBruto)}` : "—"}</strong>
         </div>
 
@@ -1151,7 +1151,7 @@ function IngresosSection({
 
                 <div className="beluer-panel-ingreso-numeros">
                   <div>
-                    <span>Público</span>
+                    <span>Precio del servicio</span>
                     <strong>S/ {formatMoney(ingreso.totalServicio)}</strong>
                   </div>
 

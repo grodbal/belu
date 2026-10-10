@@ -24,13 +24,23 @@ export function BookingDetail({ reserva, onClose, onAceptar, onRechazar }: Props
         <section className={styles.payoutDetail} aria-labelledby="booking-finance-title">
           <h3 id="booking-finance-title">Resumen financiero</h3>
           <div className={styles.financeSummary}>
-            <div className={styles.financeRow}><span>Total para la clienta</span><strong>{formatAmount(reserva.publicPrice)}</strong></div>
+            <div className={styles.financeRow}>
+              <span>Total clienta</span>
+              <strong>
+                {formatAmount(
+                  reserva.clientTotal ??
+                    (reserva.servicePrice ?? reserva.basePrice ?? 0) +
+                      (reserva.logisticFee ?? 0) +
+                      (reserva.expressFee ?? 0)
+                )}
+              </strong>
+            </div>
           </div>
           {(reserva.basePrice != null || reserva.logisticFee != null || (reserva.expressFee ?? 0) > 0) && <h4 className={styles.breakdownTitle}>Desglose</h4>}
           <dl className={styles.breakdown}>{[
-            ["Servicio", reserva.basePrice], ["Movilidad / logística", reserva.logisticFee], ["Express", (reserva.expressFee ?? 0) > 0 ? reserva.expressFee : null],
+            ["Precio del servicio", reserva.servicePrice ?? reserva.basePrice], ["Cargo logístico", reserva.logisticFee], ["Belu Express", (reserva.expressFee ?? 0) > 0 ? reserva.expressFee : null],
           ].filter((row) => row[1] != null).map(([label, value]) => <div key={label as string}><dt>{label}</dt><dd>S/ {(value as number).toFixed(2)}</dd></div>)}</dl>
-          <div className={`${styles.financeRow} ${styles.commissionRow}`}><span>Comisión plataforma{formatCommissionRate(reserva.comisionAplicada)}</span><strong>{formatDeduction(reserva.comisionBelu)}</strong></div>
+          <div className={`${styles.financeRow} ${styles.commissionRow}`}><span>Comisión belu{formatCommissionRate(reserva.comisionAplicada)}</span><strong>{formatDeduction(reserva.comisionBelu)}</strong></div>
           <div className={`${styles.financeRow} ${styles.payoutTotal}`}><span>Tú recibes</span><strong>{formatAmount(payout)}</strong></div>
           {(reserva.nivelAplicado || reserva.commissionLockedAt) && <p className={styles.snapshot}>{reserva.nivelAplicado && `Nivel: ${reserva.nivelAplicado}`}{reserva.commissionLockedAt && " · Comisión congelada"}</p>}
         </section>

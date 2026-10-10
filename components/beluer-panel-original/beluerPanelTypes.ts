@@ -39,6 +39,8 @@ export type ReservaBeluer = {
   metodoPago: string;
   publicPrice?: number;
   basePrice?: number;
+  servicePrice?: number;
+  clientTotal?: number;
   logisticFee?: number;
   expressFee?: number;
   pagoServicioBeluer?: number | null;
