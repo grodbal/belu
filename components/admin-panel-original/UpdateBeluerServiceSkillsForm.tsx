@@ -21,8 +21,9 @@ type UpdateBeluerServiceSkillsFormProps = {
 };
 
 function getCategoryLabel(category: string) {
-  if (category === "lashes") return "Lashes";
-  if (category === "nails") return "Nails";
+  if (category === "lashes") return "Pestañas";
+  if (category === "brows") return "Cejas";
+  if (category === "nails") return "Uñas";
   return category;
 }
 
@@ -39,7 +40,7 @@ export default function UpdateBeluerServiceSkillsForm({
   return (
     <details className="rounded-2xl border border-neutral-100 bg-white p-4">
       <summary className="cursor-pointer text-xs font-black uppercase tracking-[0.16em] text-[#E60023]">
-        Servicios que realiza
+        Asignación de servicios legacy
       </summary>
 
       <form action={formAction} className="mt-4 grid gap-3">

@@ -3,6 +3,7 @@ import BeluerPanelOriginalPage from "@/components/beluer-panel-original/BeluerPa
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { redirect } from "next/navigation";
+import { getBeluerServiceCatalog } from "@/app/actions/beluer/serviceOffers";
 import type {
   BeluerPanelProfile,
   BeluerPanelReadState,
@@ -12,8 +13,8 @@ import type {
   ReservaBeluer,
   IngresoBeluer,
   PaymentStatus,
-  ServicioBeluer,
 } from "@/components/beluer-panel-original/beluerPanelTypes";
+import type { BeluerServiceCatalogItem, ServiceCategory } from "@/app/actions/beluer/serviceOffers";
 
 type BookingRow = {
   id: string;
@@ -51,19 +52,6 @@ type ClientProfileRow = {
   full_name: string | null;
   email: string | null;
   phone: string | null;
-};
-
-type BeluerServiceSkillRow = {
-  id: string;
-  status: string | null;
-  services: {
-    id: string;
-    name: string;
-    category: string;
-    public_price: number | null;
-    base_price: number | null;
-    duration_minutes: number | null;
-  } | null;
 };
 
 type BeluerPhotoRow = {
@@ -197,27 +185,12 @@ function getClientPaymentStatusLabel(paymentStatus: PaymentStatus) {
 
 function mapServiceCategory(
   category: string | null
-): ServicioBeluer["categoria"] | null {
+): BeluerServiceCatalogItem["category"] | null {
   if (category === "lashes" || category === "nails" || category === "brows") {
     return category;
   }
 
   return null;
-}
-
-function formatDuration(minutes: number | null) {
-  if (!minutes || minutes <= 0) return "Duración no definida";
-
-  const hours = Math.floor(minutes / 60);
-  const remainingMinutes = minutes % 60;
-
-  if (hours > 0 && remainingMinutes > 0) {
-    return `${hours}h ${remainingMinutes}min`;
-  }
-
-  if (hours > 0) return `${hours}h`;
-
-  return `${remainingMinutes}min`;
 }
 
 function getLimaDateTimeKey(date = new Date()) {
@@ -235,6 +208,10 @@ function getLimaDateTimeKey(date = new Date()) {
   );
 
   return `${values.year}-${values.month}-${values.day}T${values.hour}:${values.minute}`;
+}
+
+function getCurrentTimestamp() {
+  return Date.now();
 }
 
 function getLimaWeekDateRange(now = new Date()) {
@@ -279,7 +256,8 @@ export default async function BeluerPanelPage() {
   let beluerProfile: BeluerPanelProfile | null = null;
   let realReservas: ReservaBeluer[] = [];
   let realIngresos: IngresoBeluer[] = [];
-  let realServicios: ServicioBeluer[] = [];
+  let realServicios: BeluerServiceCatalogItem[] = [];
+  let approvedCategories: ServiceCategory[] = [];
   let realPortafolio: FotoPortafolio[] = [];
   const readState: BeluerPanelReadState = {
     bookings: "ready",
@@ -331,50 +309,21 @@ export default async function BeluerPanelPage() {
       }
 
       if (beluer) {
-        const { data: serviceSkillsData, error: serviceSkillsError } = await supabase
-          .from("beluer_service_skills")
-          .select(
-            `
-            id,
-            status,
-            services (
-              id,
-              name,
-              category,
-              public_price,
-              base_price,
-              duration_minutes
-            )
-          `
-          )
-          .eq("beluer_profile_id", beluer.id);
+        const [catalogResult, approvalsResult] = await Promise.all([
+          getBeluerServiceCatalog(),
+          supabase
+            .from("beluer_category_approvals")
+            .select("category")
+            .eq("beluer_profile_id", beluer.id)
+            .eq("status", "approved"),
+        ]);
 
-        if (serviceSkillsError) readState.services = "unavailable";
-
-        realServicios = (serviceSkillsError
-          ? []
-          : (serviceSkillsData as unknown as BeluerServiceSkillRow[] | null) ||
-            [])
-          .map((skill) => {
-            const service = skill.services;
-            const category = mapServiceCategory(service?.category || null);
-
-            if (!service || !category) return null;
-
-            const publicPrice = Number(service.public_price || 0);
-            const basePrice = Number(service.base_price || publicPrice || 0);
-
-            return {
-              id: skill.id,
-              nombre: service.name,
-              categoria: category,
-              precio: publicPrice,
-              precioMinimo: basePrice,
-              duracion: formatDuration(service.duration_minutes),
-              activo: skill.status === "active",
-            };
-          })
-          .filter((service): service is ServicioBeluer => Boolean(service));
+        if (!catalogResult.ok || approvalsResult.error) {
+          readState.services = "unavailable";
+        } else {
+          realServicios = catalogResult.data;
+          approvedCategories = (approvalsResult.data ?? []).map((row) => row.category as ServiceCategory);
+        }
 
         const { data: portfolioData, error: portfolioError } = await supabase
           .from("beluer_photos")
@@ -612,6 +561,8 @@ export default async function BeluerPanelPage() {
         realReservas={realReservas}
         realIngresos={realIngresos}
         realServicios={realServicios}
+        approvedCategories={approvedCategories}
+        currentTime={getCurrentTimestamp()}
         realPortafolio={realPortafolio}
         readState={readState}
         logoutButton={<LogoutButton className="beluer-logout-button" />}

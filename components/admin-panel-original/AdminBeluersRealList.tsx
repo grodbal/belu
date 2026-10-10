@@ -5,6 +5,7 @@ import UpdateBeluerAvailabilityForm from "@/components/admin-panel-original/Upda
 import EditBeluerProfileForm from "@/components/admin-panel-original/EditBeluerProfileForm";
 import { getCanonicalBeluerCoverageDistrict } from "@/lib/bookings/foundation";
 import UpdateBeluerServiceSkillsForm from "@/components/admin-panel-original/UpdateBeluerServiceSkillsForm";
+import AdminBeluerCategoryApprovals from "@/components/admin-panel-original/AdminBeluerCategoryApprovals";
 
 type Profile = {
   id: string;
@@ -42,14 +43,22 @@ type BeluerServiceSkill = {
   service_id: string;
 };
 
-function formatDistricts(districts: BeluerProfile["districts"]) {
+type CategoryApproval = {
+  beluer_profile_id: string;
+  category: "lashes" | "brows" | "nails";
+  status: "pending" | "approved" | "rejected" | "revoked";
+};
+
+function getDistrictSummary(districts: BeluerProfile["districts"]) {
   const validDistricts = getDistrictValues(districts)
     .map(getCanonicalBeluerCoverageDistrict)
     .filter(Boolean);
 
-  return validDistricts.length > 0
-    ? validDistricts.join(", ")
-    : "Cobertura por configurar";
+  return {
+    all: validDistricts.join(", "),
+    visible: validDistricts.slice(0, 2),
+    remaining: Math.max(0, validDistricts.length - 2),
+  };
 }
 
 function getDistrictValues(districts: BeluerProfile["districts"]) {
@@ -162,7 +171,21 @@ export default async function AdminBeluersRealList() {
     );
   }
 
-  const { data: services, error: servicesError } = await supabase
+  const { data: pricingRules, error: pricingRulesError } = await supabase
+    .from("service_pricing_rules")
+    .select("service_id");
+
+  if (pricingRulesError) {
+    return (
+      <div className="rounded-[2rem] bg-[#FFD6E2] p-6 text-[#E60023]">
+        <h3 className="text-lg font-black">Error al separar el catálogo nuevo</h3>
+        <p className="mt-2 text-sm font-bold">No se pudo cargar la configuración de precios.</p>
+      </div>
+    );
+  }
+
+  const newCatalogServiceIds = new Set((pricingRules ?? []).map((rule) => rule.service_id));
+  const { data: serviceRows, error: servicesError } = await supabase
   .from("services")
   .select("id, name, category")
   .eq("status", "active")
@@ -177,6 +200,8 @@ if (servicesError) {
     </div>
   );
 }
+
+const services = (serviceRows ?? []).filter((service) => !newCatalogServiceIds.has(service.id));
 
 const { data: beluerSkills, error: skillsError } =
   beluerProfileIds.length > 0
@@ -198,11 +223,36 @@ if (skillsError) {
 const skillsByBeluerId = new Map<string, string[]>();
 
 (beluerSkills as BeluerServiceSkill[]).forEach((skill) => {
+  if (newCatalogServiceIds.has(skill.service_id)) return;
   const current = skillsByBeluerId.get(skill.beluer_profile_id) ?? [];
   skillsByBeluerId.set(skill.beluer_profile_id, [
     ...current,
     skill.service_id,
   ]);
+});
+
+const { data: categoryApprovals, error: approvalsError } =
+  beluerProfileIds.length > 0
+    ? await supabase
+        .from("beluer_category_approvals")
+        .select("beluer_profile_id, category, status")
+        .in("beluer_profile_id", beluerProfileIds)
+    : { data: [], error: null };
+
+if (approvalsError) {
+  return (
+    <div className="rounded-[2rem] bg-[#FFD6E2] p-6 text-[#E60023]">
+      <h3 className="text-lg font-black">Error al cargar categorías habilitadas</h3>
+      <p className="mt-2 text-sm font-bold">Revisa la tabla de aprobaciones por categoría.</p>
+    </div>
+  );
+}
+
+const approvalsByBeluerId = new Map<string, Partial<Record<CategoryApproval["category"], CategoryApproval["status"]>>>();
+(categoryApprovals as CategoryApproval[]).forEach((approval) => {
+  const current = approvalsByBeluerId.get(approval.beluer_profile_id) ?? {};
+  current[approval.category] = approval.status;
+  approvalsByBeluerId.set(approval.beluer_profile_id, current);
 });
 
   return (
@@ -229,13 +279,26 @@ const skillsByBeluerId = new Map<string, string[]>();
 
       <div className="overflow-hidden rounded-[1.5rem] border border-neutral-100">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[980px] border-collapse text-left text-sm">
+          <table className="w-full min-w-[1725px] table-fixed border-collapse text-left text-sm">
+            <colgroup>
+              <col style={{ width: 160 }} />
+              <col style={{ width: 190 }} />
+              <col style={{ width: 170 }} />
+              <col style={{ width: 150 }} />
+              <col style={{ width: 320 }} />
+              <col style={{ width: 140 }} />
+              <col style={{ width: 95 }} />
+              <col style={{ width: 90 }} />
+              <col style={{ width: 120 }} />
+              <col style={{ width: 290 }} />
+            </colgroup>
             <thead className="bg-[#F7F3F0] text-xs uppercase tracking-[0.16em] text-neutral-500">
               <tr>
                 <th className="px-5 py-4 font-black">Beluer</th>
 <th className="px-5 py-4 font-black">Contacto</th>
 <th className="px-5 py-4 font-black">Distritos</th>
-<th className="px-5 py-4 font-black">Servicios</th>
+<th className="bg-neutral-50 px-4 py-4 font-semibold text-neutral-400">Servicios legacy</th>
+<th className="px-4 py-4 font-black whitespace-nowrap">Categorías habilitadas</th>
 <th className="px-5 py-4 font-black">Nivel</th>
 <th className="px-5 py-4 font-black">Estado</th>
 <th className="px-5 py-4 font-black">Disponible</th>
@@ -252,6 +315,7 @@ const skillsByBeluerId = new Map<string, string[]>();
 const assignedServices = ((services as ServiceOption[]) ?? []).filter(
   (service) => assignedServiceIds.includes(service.id)
 );
+                const districtSummary = getDistrictSummary(beluer.districts);
 
                 return (
                   <tr key={beluer.id} className="align-top">
@@ -281,32 +345,50 @@ const assignedServices = ((services as ServiceOption[]) ?? []).filter(
                       </p>
                     </td>
 
-                    <td className="px-5 py-5 text-neutral-600">
-                      {formatDistricts(beluer.districts)}
+                    <td className="px-4 py-4 text-neutral-600">
+                      {districtSummary.visible.length > 0 ? (
+                        <div className="flex max-w-[150px] flex-wrap gap-1" title={districtSummary.all} aria-label={`Distritos: ${districtSummary.all}`}>
+                          {districtSummary.visible.map((district) => (
+                            <span key={district} className="rounded-full bg-[#F7F3F0] px-2 py-1 text-[11px] leading-tight text-neutral-600">
+                              {district}
+                            </span>
+                          ))}
+                          {districtSummary.remaining > 0 ? (
+                            <span
+                              className="rounded-full bg-neutral-100 px-2 py-1 text-[11px] font-bold leading-tight text-neutral-500"
+                              title={getDistrictValues(beluer.districts).map(getCanonicalBeluerCoverageDistrict).filter(Boolean).slice(2).join(", ")}
+                            >
+                              +{districtSummary.remaining} más
+                            </span>
+                          ) : null}
+                        </div>
+                      ) : <span className="text-xs text-neutral-400">Cobertura por configurar</span>}
+                    </td>
+
+                    <td className="bg-neutral-50/70 px-4 py-4">
+                      {assignedServices.length > 0 ? (
+                        <div className="flex max-w-[130px] flex-wrap gap-1.5">
+                          {assignedServices.map((service) => (
+                            <span key={service.id} className="rounded-full bg-neutral-100 px-2 py-1 text-[11px] font-medium text-neutral-500">
+                              {service.name}
+                            </span>
+                          ))}
+                        </div>
+                      ) : <span className="text-xs text-neutral-400">Sin asignaciones legacy</span>}
+                    </td>
+
+                    <td className="px-4 py-4">
+                      <div className="min-w-[260px] space-y-2">
+                        <p className="text-xs text-neutral-500">El catálogo nuevo se habilita por categoría.</p>
+                        <AdminBeluerCategoryApprovals
+                          beluerProfileId={beluer.id}
+                          approvals={approvalsByBeluerId.get(beluer.id) ?? {}}
+                        />
+                      </div>
                     </td>
 
                     <td className="px-5 py-5">
-
-                      <td className="px-5 py-5">
-  {assignedServices.length > 0 ? (
-    <div className="flex max-w-[220px] flex-wrap gap-2">
-      {assignedServices.map((service) => (
-        <span
-          key={service.id}
-          className="rounded-full bg-[#FFD6E2] px-3 py-1 text-xs font-black text-[#E60023]"
-        >
-          {service.name}
-        </span>
-      ))}
-    </div>
-  ) : (
-    <span className="text-xs font-bold text-neutral-400">
-      Sin servicios asignados
-    </span>
-  )}
-</td>
-  <div className="space-y-3">
-    <div className="space-y-2">
+                      <div className="space-y-2">
       <span className="inline-flex rounded-full bg-[#FFD6E2] px-3 py-1 text-xs font-black text-[#E60023]">
         {getBeluerLevelLabel(beluer.level)}
       </span>
@@ -332,8 +414,7 @@ const assignedServices = ((services as ServiceOption[]) ?? []).filter(
       </div>
     </div>
 
-      </div>
-</td>
+                    </td>
 
                     <td className="px-5 py-5">
   <div className="space-y-3">
@@ -382,71 +463,43 @@ const assignedServices = ((services as ServiceOption[]) ?? []).filter(
                       </p>
                     </td>
                     <td className="px-5 py-5">
-  <div className="min-w-[260px] space-y-5">
-    <div>
-      <p className="mb-2 text-[11px] font-black uppercase tracking-[0.16em] text-neutral-400">
-        Nivel
-      </p>
-
-      <UpdateBeluerLevelForm
-        beluerProfileId={beluer.id}
-        currentLevel={beluer.level || "standard"}
-      />
-    </div>
-
-    <div>
-      <p className="mb-2 text-[11px] font-black uppercase tracking-[0.16em] text-neutral-400">
-        Estado
-      </p>
-
-      <UpdateBeluerStatusForm
-        beluerProfileId={beluer.id}
-        currentStatus={beluer.status}
-      />
-    </div>
-
-    <div>
-      <p className="mb-2 text-[11px] font-black uppercase tracking-[0.16em] text-neutral-400">
-        Disponibilidad
-      </p>
-
-      <div>
-  <p className="mb-2 text-[11px] font-black uppercase tracking-[0.16em] text-neutral-400">
-    Perfil
-  </p>
-
-  <div>
-  <p className="mb-2 text-[11px] font-black uppercase tracking-[0.16em] text-neutral-400">
-    Servicios
-  </p>
-
-  <UpdateBeluerServiceSkillsForm
-    beluerProfileId={beluer.id}
-    services={(services as ServiceOption[]) ?? []}
-    assignedServiceIds={skillsByBeluerId.get(beluer.id) ?? []}
-  />
-</div>
-
-  <EditBeluerProfileForm
-    profileId={beluer.profile_id}
-    beluerProfileId={beluer.id}
-    fullName={profile?.full_name || ""}
-    publicName={beluer.public_name || profile?.full_name || ""}
-    phone={beluer.phone || profile?.phone || ""}
-    instagram={beluer.instagram || ""}
-    districts={getDistrictValues(beluer.districts)}
-    experienceYears={beluer.experience_years ?? 0}
-    bio={beluer.bio || ""}
-  />
-</div>
-
-      <UpdateBeluerAvailabilityForm
-        beluerProfileId={beluer.id}
-        isAvailable={beluer.is_available}
-      />
-    </div>
-  </div>
-</td>
+                      <div className="min-w-[260px] space-y-5">
+                        <div>
+                          <p className="mb-2 text-[11px] font-black uppercase tracking-[0.16em] text-neutral-400">Nivel</p>
+                          <UpdateBeluerLevelForm beluerProfileId={beluer.id} currentLevel={beluer.level || "standard"} />
+                        </div>
+                        <div>
+                          <p className="mb-2 text-[11px] font-black uppercase tracking-[0.16em] text-neutral-400">Estado</p>
+                          <UpdateBeluerStatusForm beluerProfileId={beluer.id} currentStatus={beluer.status} />
+                        </div>
+                        <div>
+                          <p className="mb-2 text-[11px] font-black uppercase tracking-[0.16em] text-neutral-400">Perfil</p>
+                          <EditBeluerProfileForm
+                            profileId={beluer.profile_id}
+                            beluerProfileId={beluer.id}
+                            fullName={profile?.full_name || ""}
+                            publicName={beluer.public_name || profile?.full_name || ""}
+                            phone={beluer.phone || profile?.phone || ""}
+                            instagram={beluer.instagram || ""}
+                            districts={getDistrictValues(beluer.districts)}
+                            experienceYears={beluer.experience_years ?? 0}
+                            bio={beluer.bio || ""}
+                          />
+                        </div>
+                        <div>
+                          <p className="mb-2 text-[11px] font-black uppercase tracking-[0.16em] text-neutral-400">Disponibilidad</p>
+                          <UpdateBeluerAvailabilityForm beluerProfileId={beluer.id} isAvailable={beluer.is_available} />
+                        </div>
+                        <div className="border-t border-neutral-100 pt-4">
+                          <p className="mb-2 text-[11px] font-black uppercase tracking-[0.16em] text-neutral-400">Solo catálogo legacy</p>
+                          <UpdateBeluerServiceSkillsForm
+                            beluerProfileId={beluer.id}
+                            services={services as ServiceOption[]}
+                            assignedServiceIds={skillsByBeluerId.get(beluer.id) ?? []}
+                          />
+                        </div>
+                      </div>
+                    </td>
                   </tr>
                 );
               })}

@@ -18,9 +18,10 @@ import type {
   IngresoBeluer,
   PerfilBeluer,
   ReservaBeluer,
-  ServicioBeluer,
 } from "./beluerPanelTypes";
+import type { BeluerServiceCatalogItem, ServiceCategory } from "@/app/actions/beluer/serviceOffers";
 import { BeluerHome } from "@/components/belu-beluer/home/BeluerHome";
+import { BeluerServices } from "@/components/belu-beluer/services/BeluerServices";
 import { BeluerBookings, type BeluerBookingFilter } from "@/components/belu-beluer/bookings/BeluerBookings";
 import { isBookingInFuture } from "@/components/belu-beluer/bookings/bookingTime";
 import { BookingDetail } from "@/components/belu-beluer/bookings/BookingDetail";
@@ -31,7 +32,9 @@ type BeluerPanelOriginalPageProps = {
   beluerProfile: BeluerPanelProfile;
   realReservas: ReservaBeluer[];
   realIngresos: IngresoBeluer[];
-  realServicios: ServicioBeluer[];
+  realServicios: BeluerServiceCatalogItem[];
+  approvedCategories: ServiceCategory[];
+  currentTime: number;
   realPortafolio: FotoPortafolio[];
   readState: BeluerPanelReadState;
   logoutButton: ReactNode;
@@ -93,6 +96,8 @@ export default function BeluerPanelOriginalPage({
   realReservas,
   realIngresos,
   realServicios,
+  approvedCategories,
+  currentTime,
   realPortafolio,
   readState,
   logoutButton,
@@ -105,7 +110,7 @@ export default function BeluerPanelOriginalPage({
     useState<ReservaBeluer | null>(null);
   const [bookingFilter, setBookingFilter] = useState<BeluerBookingFilter>("all");
 
-  const [servicios] = useState<ServicioBeluer[]>(realServicios || []);
+  const [servicios] = useState<BeluerServiceCatalogItem[]>(realServicios || []);
 
   const [fotosPortafolio] = useState<FotoPortafolio[]>(
     realPortafolio || []
@@ -150,7 +155,7 @@ export default function BeluerPanelOriginalPage({
     beluerProfile.monthlyUncalculatedCompletedCount === 0
       ? monthlyProgress
       : null;
-  const bookingFilterAsOf = Date.now();
+  const bookingFilterAsOf = currentTime;
   const bookingCounts: Record<BeluerBookingFilter, number> = {
     all: reservas.length,
     requests: reservas.filter((reserva) => reserva.status === "assigned").length,
@@ -208,18 +213,6 @@ export default function BeluerPanelOriginalPage({
 
     alert(result.message);
     window.location.reload();
-  };
-
-  const handleToggleServicio = (id: string) => {
-    alert("La edición de servicios se gestionará desde Admin en esta fase.");
-  };
-
-  const handleCambiarPrecioServicio = (id: string, precio: number) => {
-    alert("La edición de servicios se gestionará desde Admin en esta fase.");
-  };
-
-  const handleGuardarServicios = () => {
-    alert("La edición de servicios se gestionará desde Admin en esta fase.");
   };
 
   const handleAgregarFoto = () => {
@@ -310,14 +303,10 @@ export default function BeluerPanelOriginalPage({
           )}
 
           {activeSection === "servicios" && (
-            <ServiciosSection
+            <BeluerServices
               servicios={servicios}
               dataAvailable={readState.services === "ready"}
-              onToggleServicio={handleToggleServicio}
-              onCambiarPrecio={handleCambiarPrecioServicio}
-              onGuardar={handleGuardarServicios}
-              beluerDisplayName={beluerDisplayName}
-              beluerInitials={beluerInitials}
+              approvedCategories={approvedCategories}
             />
           )}
 
@@ -764,205 +753,6 @@ function getBookingStatusLabel(reserva: ReservaBeluer) {
   };
 
   return labels[reserva.status];
-}
-
-function ServiciosSection({
-  servicios,
-  dataAvailable,
-  onToggleServicio,
-  onCambiarPrecio,
-  onGuardar,
-  beluerDisplayName,
-  beluerInitials,
-}: {
-  servicios: ServicioBeluer[];
-  dataAvailable: boolean;
-  onToggleServicio: (id: string) => void;
-  onCambiarPrecio: (id: string, precio: number) => void;
-  onGuardar: () => void;
-  beluerDisplayName: string;
-  beluerInitials: string;
-}) {
-  const activos = servicios.filter((servicio) => servicio.activo);
-  const lashes = servicios.filter((servicio) => servicio.categoria === "lashes");
-  const nails = servicios.filter((servicio) => servicio.categoria === "nails");
-  const brows = servicios.filter((servicio) => servicio.categoria === "brows");
-
-  return (
-    <section className="beluer-panel-section active">
-      <div className="beluer-panel-top-bar">
-        <div className="beluer-panel-greeting">
-          <h1>Mis servicios</h1>
-          <p>
-            Revisa los servicios que Admin asignó a tu perfil Beluer.
-          </p>
-        </div>
-
-        <BeluerPill nombre={beluerDisplayName} iniciales={beluerInitials} />
-      </div>
-
-      <div className="beluer-panel-servicios-summary">
-        <div>
-          <span>Servicios activos</span>
-          <strong>{dataAvailable ? activos.length : "—"}</strong>
-        </div>
-
-        <div>
-          <span>Lashes</span>
-          <strong>
-            {dataAvailable
-              ? lashes.filter((servicio) => servicio.activo).length
-              : "—"}
-          </strong>
-        </div>
-
-        <div>
-          <span>Nails</span>
-          <strong>
-            {dataAvailable
-              ? nails.filter((servicio) => servicio.activo).length
-              : "—"}
-          </strong>
-        </div>
-
-        <div>
-          <span>Brows</span>
-          <strong>
-            {dataAvailable
-              ? brows.filter((servicio) => servicio.activo).length
-              : "—"}
-          </strong>
-        </div>
-      </div>
-
-      <div className="beluer-panel-servicios-alert">
-        <strong>Servicios gestionados por Admin ✦</strong>
-        <span>
-          La edición de servicios se gestionará desde Admin en esta fase.
-        </span>
-      </div>
-
-      {!dataAvailable ? (
-        <div className="beluer-panel-empty-state">
-          No fue posible cargar tus servicios en este momento.
-        </div>
-      ) : servicios.length === 0 ? (
-        <div className="beluer-panel-empty-state">
-          Aún no tienes servicios asignados.
-        </div>
-      ) : (
-        <>
-          <ServicioCategoriaBlock
-            titulo="Lashes"
-            servicios={lashes}
-            onToggleServicio={onToggleServicio}
-            onCambiarPrecio={onCambiarPrecio}
-          />
-
-          <ServicioCategoriaBlock
-            titulo="Brows"
-            servicios={brows}
-            onToggleServicio={onToggleServicio}
-            onCambiarPrecio={onCambiarPrecio}
-          />
-
-          <ServicioCategoriaBlock
-            titulo="Nails"
-            servicios={nails}
-            onToggleServicio={onToggleServicio}
-            onCambiarPrecio={onCambiarPrecio}
-          />
-        </>
-      )}
-
-      <div className="beluer-panel-servicios-footer">
-        <button
-          className="beluer-panel-btn-primary"
-          type="button"
-          onClick={onGuardar}
-        >
-          Edición gestionada por Admin
-        </button>
-      </div>
-    </section>
-  );
-}
-
-function ServicioCategoriaBlock({
-  titulo,
-  servicios,
-  onToggleServicio,
-  onCambiarPrecio,
-}: {
-  titulo: string;
-  servicios: ServicioBeluer[];
-  onToggleServicio: (id: string) => void;
-  onCambiarPrecio: (id: string, precio: number) => void;
-}) {
-  if (servicios.length === 0) return null;
-
-  return (
-    <div className="beluer-panel-servicios-block">
-      <h2>{titulo}</h2>
-
-      <div className="beluer-panel-servicios-grid">
-        {servicios.map((servicio) => (
-          <article
-            className={`beluer-panel-servicio-card ${
-              servicio.activo ? "activo" : "inactivo"
-            }`}
-            key={servicio.id}
-          >
-            <div className="beluer-panel-servicio-card-top">
-              <div>
-                <span>{servicio.categoria}</span>
-                <h3>{servicio.nombre}</h3>
-              </div>
-
-              <label className="beluer-panel-switch">
-                <input
-                  type="checkbox"
-                  checked={servicio.activo}
-                  onChange={() => onToggleServicio(servicio.id)}
-                  disabled
-                />
-                <span />
-              </label>
-            </div>
-
-            <div className="beluer-panel-servicio-meta">
-              <span>Duración: {servicio.duracion}</span>
-              <span>Mínimo belu: S/ {servicio.precioMinimo}</span>
-              <span>Estado: {servicio.activo ? "Activo" : "Inactivo"}</span>
-            </div>
-
-            <div className="beluer-panel-servicio-price">
-              <label>Tu precio</label>
-
-              <div>
-                <span>S/</span>
-                <input
-                  type="number"
-                  min={servicio.precioMinimo}
-                  value={servicio.precio}
-                  disabled
-                  onChange={(event) =>
-                    onCambiarPrecio(servicio.id, Number(event.target.value))
-                  }
-                />
-              </div>
-
-              {servicio.precio < servicio.precioMinimo && (
-                <small>
-                  El precio no puede ser menor a S/ {servicio.precioMinimo}.
-                </small>
-              )}
-            </div>
-          </article>
-        ))}
-      </div>
-    </div>
-  );
 }
 
 function PortafolioSection({
