@@ -21,6 +21,7 @@ type BeluersCatalogProps = {
 const filters: { id: BeluerCategory; label: string }[] = [
   { id: "all", label: "Todas" },
   { id: "lashes", label: "Lashes" },
+  { id: "brows", label: "Cejas" },
   { id: "nails", label: "Nails" },
   { id: "mixta", label: "Mixtas" },
 ];

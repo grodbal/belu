@@ -5,6 +5,7 @@ import { crearPlaceholder } from "@/components/cliente-panel-original/clientePan
 import type {
   Beluer,
   Service,
+  ServiceOffer,
 } from "@/components/cliente-panel-original/clientePanelTypes";
 
 type ClientProfile = {
@@ -22,6 +23,7 @@ type ClientBooking = {
   status: string;
   payment_status: string;
   public_price: number;
+  service_price_snapshot: number | null;
   logistic_fee: number;
   is_express: boolean;
   express_fee: number;
@@ -36,23 +38,15 @@ type ClientBooking = {
   } | null;
 };
 
-type BeluerServiceSkillRow = {
-  status: string;
-  services: {
-    name: string;
-    category: string;
-  } | null;
-};
-
 type ServiceRow = {
   id: string;
   name: string;
   category: Service["categoria"];
   description: string | null;
-  public_price: number;
-  logistic_fee: number;
   image_url: string | null;
   is_featured: boolean | null;
+  service_type: "primary" | "addon";
+  duration_minutes: number | null;
   service_images: {
     id: string;
     image_url: string;
@@ -68,8 +62,18 @@ type BeluerProfileRow = {
   districts: string[] | null;
   rating_average: number | null;
   total_bookings: number | null;
-  beluer_service_skills: BeluerServiceSkillRow[] | null;
+  level: string;
 };
+
+type SkillOfferRow = {
+  service_id: string;
+  beluer_profile_id: string;
+  status: string;
+  beluer_price: number | null;
+};
+
+type PricingRuleRow = { service_id: string; minimum_price: number };
+type CategoryApprovalRow = { beluer_profile_id: string; category: string; status: string };
 
 const ACTIVE_UPCOMING_BOOKING_STATUSES = new Set([
   "pending",
@@ -113,10 +117,12 @@ function normalizeBeluerCategory(categories: string[]): Beluer["categoria"] {
   const hasNails = normalizedCategories.some((category) =>
     category.includes("nail")
   );
+  const hasBrows = normalizedCategories.some((category) => category.includes("brow"));
 
-  if (hasLashes && hasNails) return "mixta";
+  if ((hasLashes && hasNails) || (hasBrows && (hasLashes || hasNails))) return "mixta";
   if (hasLashes) return "lashes";
   if (hasNails) return "nails";
+  if (hasBrows) return "brows";
 
   return "mixta";
 }
@@ -169,8 +175,8 @@ export default async function ClientePanelPage() {
         name,
         category,
         description,
-        public_price,
-        logistic_fee,
+        service_type,
+        duration_minutes,
         image_url,
         is_featured,
         service_images (
@@ -182,12 +188,54 @@ export default async function ClientePanelPage() {
       `
       )
       .eq("status", "active")
-      .in("category", ["lashes", "nails"])
+      .in("category", ["lashes", "brows", "nails"])
       .order("category", { ascending: true })
       .order("is_featured", { ascending: false })
-      .order("public_price", { ascending: true });
+      .order("name", { ascending: true });
 
-    realServices = ((servicesData as ServiceRow[] | null) || []).map(
+    const services = (servicesData as ServiceRow[] | null) || [];
+    const serviceIds = services.map((service) => service.id);
+    const [{ data: skillsData }, { data: rulesData }] = serviceIds.length
+      ? await Promise.all([
+          supabase.from("beluer_service_skills").select("service_id,beluer_profile_id,status,beluer_price").in("service_id", serviceIds).eq("status", "active").not("beluer_price", "is", null),
+          supabase.from("service_pricing_rules").select("service_id,minimum_price").in("service_id", serviceIds),
+        ])
+      : [{ data: [] }, { data: [] }];
+    const skills = (skillsData as SkillOfferRow[] | null) || [];
+    const rules = (rulesData as PricingRuleRow[] | null) || [];
+    const profileIds = [...new Set(skills.map((skill) => skill.beluer_profile_id))];
+    const [{ data: profilesData }, { data: approvalsData }] = profileIds.length
+      ? await Promise.all([
+          supabase.from("beluer_profiles").select("id,public_name,profile_photo_url,districts,rating_average,total_bookings,level").in("id", profileIds).eq("status", "approved").eq("is_available", true),
+          supabase.from("beluer_category_approvals").select("beluer_profile_id,category,status").in("beluer_profile_id", profileIds).eq("status", "approved"),
+        ])
+      : [{ data: [] }, { data: [] }];
+    const profiles = (profilesData as BeluerProfileRow[] | null) || [];
+    const approvals = (approvalsData as CategoryApprovalRow[] | null) || [];
+    const ruleByService = new Map((rules as PricingRuleRow[]).map((rule) => [rule.service_id, Number(rule.minimum_price)]));
+    const profileById = new Map(profiles.map((beluer) => [beluer.id, beluer]));
+    const serviceById = new Map(services.map((service) => [service.id, service]));
+    const offersByService = new Map<string, ServiceOffer[]>();
+    skills.forEach((skill) => {
+      const service = serviceById.get(skill.service_id);
+      const profile = profileById.get(skill.beluer_profile_id);
+      const minimumPrice = ruleByService.get(skill.service_id);
+      if (!service || !profile || minimumPrice == null || skill.beluer_price == null || Number(skill.beluer_price) < minimumPrice) return;
+      if (!approvals.some((approval) => approval.beluer_profile_id === profile.id && approval.category === service.category)) return;
+      const offer: ServiceOffer = {
+        beluerProfileId: profile.id,
+        nombre: profile.public_name || "Beluer verificada",
+        foto: profile.profile_photo_url || "",
+        nivel: profile.level,
+        rating: profile.rating_average == null ? "Sin calificación" : Number(profile.rating_average).toFixed(1),
+        citas: Number(profile.total_bookings || 0),
+        distritos: profile.districts || [],
+        beluerPrice: Number(skill.beluer_price),
+      };
+      offersByService.set(skill.service_id, [...(offersByService.get(skill.service_id) || []), offer]);
+    });
+
+    realServices = services.map(
       (service): Service => {
         const galleryImages = [...(service.service_images || [])].sort(
           (first, second) => {
@@ -205,8 +253,8 @@ export default async function ClientePanelPage() {
         return {
           id: service.id,
           nombre: service.name,
-          precio: Number(service.public_price),
-          logisticFee: Number(service.logistic_fee || 0),
+          precio: Math.min(...(offersByService.get(service.id) || []).map((offer) => offer.beluerPrice), Number.POSITIVE_INFINITY),
+          logisticFee: 10,
           desc: service.description || "",
           foto:
             service.image_url ||
@@ -215,70 +263,37 @@ export default async function ClientePanelPage() {
               service.category === "nails" ? "D81B60" : "AD1457"
             ),
           categoria: service.category,
+          serviceType: service.service_type,
+          durationMinutes: service.duration_minutes,
+          offers: (offersByService.get(service.id) || []).sort((a, b) => a.beluerPrice - b.beluerPrice),
           image_url: service.image_url,
           is_featured: service.is_featured,
           gallery_images: galleryImages,
         };
       }
     );
-
-    const { data: beluersData } = await supabase
-      .from("beluer_profiles")
-      .select(
-        `
-        id,
-        public_name,
-        profile_photo_url,
-        districts,
-        rating_average,
-        total_bookings,
-        beluer_service_skills (
-          status,
-          services (
-            name,
-            category
-          )
-        )
-      `
-      )
-      .eq("status", "approved")
-      .eq("is_available", true)
-      .order("rating_average", { ascending: false });
-
-    realBeluers = ((beluersData as BeluerProfileRow[] | null) || [])
-      .map((beluer): Beluer => {
-        const activeSkills =
-          beluer.beluer_service_skills?.filter(
-            (skill) => skill.status === "active"
-          ) || [];
-
-        const servicios = activeSkills
-          .map((skill) => skill.services?.name)
-          .filter((name): name is string => Boolean(name));
-
-        const categorias = activeSkills
-          .map((skill) => skill.services?.category)
-          .filter((category): category is string => Boolean(category));
-
-        return {
-          id: beluer.id,
-          nombre: beluer.public_name || "Beluer verificada",
-          foto: beluer.profile_photo_url || "",
-          espec:
-            servicios.length > 0
-              ? servicios.slice(0, 2).join(" + ")
-              : "Especialista belu",
-          categoria: normalizeBeluerCategory(categorias),
-          rating:
-            beluer.rating_average == null
-              ? "Sin calificación"
-              : Number(beluer.rating_average).toFixed(1),
-          citas: Number(beluer.total_bookings || 0),
-          serviciosActivos: servicios,
-          distritos: beluer.districts || [],
-        };
-      })
-      .filter((beluer) => beluer.serviciosActivos.length > 0);
+    realServices = realServices.filter((service) => (service.offers || []).length > 0);
+    const beluerOfferMap = new Map<string, { profile: BeluerProfileRow; services: string[]; categories: string[] }>();
+    realServices.forEach((service) => (service.offers || []).forEach((offer) => {
+      const profile = profileById.get(offer.beluerProfileId);
+      if (!profile) return;
+      const current = beluerOfferMap.get(profile.id) || { profile, services: [], categories: [] };
+      current.services.push(service.nombre);
+      current.categories.push(service.categoria);
+      beluerOfferMap.set(profile.id, current);
+    }));
+    realBeluers = [...beluerOfferMap.values()].map(({ profile, services: activeServices, categories }): Beluer => ({
+      id: profile.id,
+      nombre: profile.public_name || "Beluer verificada",
+      foto: profile.profile_photo_url || "",
+      espec: activeServices.slice(0, 2).join(" + ") || "Especialista belu",
+      categoria: normalizeBeluerCategory(categories),
+      rating: profile.rating_average == null ? "Sin calificación" : Number(profile.rating_average).toFixed(1),
+      citas: Number(profile.total_bookings || 0),
+      serviciosActivos: [...new Set(activeServices)],
+      distritos: profile.districts || [],
+      nivel: profile.level,
+    }));
 
     if (profile) {
       const bookingsSelect = `
@@ -288,6 +303,7 @@ export default async function ClientePanelPage() {
         status,
         payment_status,
         public_price,
+        service_price_snapshot,
         logistic_fee,
         is_express,
         express_fee,

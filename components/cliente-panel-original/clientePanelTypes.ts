@@ -19,6 +19,9 @@ export type Service = {
   desc: string;
   foto: string;
   categoria: ServiceCategory;
+  serviceType?: "primary" | "addon";
+  durationMinutes?: number | null;
+  offers?: ServiceOffer[];
   image_url?: string | null;
   is_featured?: boolean | null;
   gallery_images?: {
@@ -27,6 +30,17 @@ export type Service = {
     sort_order: number;
     created_at?: string;
   }[];
+};
+
+export type ServiceOffer = {
+  beluerProfileId: string;
+  nombre: string;
+  foto: string;
+  nivel: string;
+  rating: string;
+  citas: number;
+  distritos: string[];
+  beluerPrice: number;
 };
 
 export type Addon = {
@@ -45,6 +59,7 @@ export type Beluer = {
   foto: string;
   serviciosActivos: string[];
   distritos: string[];
+  nivel?: string;
 };
 
 export type HistorialItem = {

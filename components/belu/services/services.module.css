@@ -139,6 +139,17 @@
   backdrop-filter: blur(6px);
 }
 
+.addon {
+  position: absolute;
+  top: 13px;
+  right: 13px;
+  border-radius: 999px;
+  background: rgba(26, 26, 26, 0.78);
+  padding: 7px 10px;
+  color: #fff;
+  font: 700 0.67rem/1 var(--font-nunito), Nunito, sans-serif;
+}
+
 .selected {
   top: auto;
   bottom: 13px;

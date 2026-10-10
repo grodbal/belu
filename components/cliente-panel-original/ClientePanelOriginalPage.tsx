@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { createBookingAction } from "@/app/actions/client/createBooking";
 import { normalizeBookingDistrict } from "@/lib/bookings/foundation";
@@ -43,6 +44,7 @@ import type {
   Beluer,
   PanelSection,
   Service,
+  ServiceOffer,
 } from "./clientePanelTypes";
 
 type ClientProfile = {
@@ -60,6 +62,7 @@ type ClientBooking = {
   status: string;
   payment_status: string;
   public_price: number;
+  service_price_snapshot?: number | null;
   logistic_fee: number | null;
   is_express: boolean | null;
   express_fee: number | null;
@@ -154,6 +157,27 @@ function formatSoles(value: number) {
   return `S/ ${displayValue}`;
 }
 
+function getCategoryLabel(category: Service["categoria"]) {
+  if (category === "lashes") return "Pestañas";
+  if (category === "brows") return "Cejas";
+  return "Uñas";
+}
+
+function getBeluerLevelLabel(level: string) {
+  if (level === "top") return "Beluer Top ✦";
+  if (level === "premium" || level === "verificada") return "Beluer Verificada";
+  return "Beluer Nueva";
+}
+
+function getRatingLabel(value: string) {
+  const rating = Number(value);
+  if (!value || value === "Sin calificación" || !Number.isFinite(rating) || rating <= 0) {
+    return "Sin reseñas";
+  }
+
+  return `★ ${rating.toFixed(1)}`;
+}
+
 function sortServicesForReservation(services: Service[]) {
   return [...services].sort((first, second) => {
     const featuredDifference =
@@ -171,7 +195,7 @@ function sortServicesForReservation(services: Service[]) {
 }
 
 function getClientBookingTotal(booking: ClientBooking) {
-  const serviceAmount = Number(booking.public_price || 0);
+  const serviceAmount = Number(booking.service_price_snapshot ?? booking.public_price ?? 0);
   const logisticFee = Number(booking.logistic_fee || 0);
   const expressFee = booking.is_express ? Number(booking.express_fee || 0) : 0;
 
@@ -291,8 +315,7 @@ const [bookingLoading, setBookingLoading] = useState(false);
 const [bookingError, setBookingError] = useState("");
 const [bookingModalError, setBookingModalError] = useState("");
 const [urgencia, setUrgencia] = useState(false);
-  const [modoAsignacion, setModoAsignacion] =
-    useState<AssignmentMode>("gestionado");
+  const modoAsignacion: AssignmentMode = "libre";
   const [beluerSeleccionada, setBeluerSeleccionada] = useState("");
   const [pagoOpen, setPagoOpen] = useState(false);
 const [confirmacionOpen, setConfirmacionOpen] = useState(false);
@@ -361,45 +384,22 @@ const horaHelpText = noAvailableTimesToday
     setSidebarOpen(false);
   };
 
-const normalizarTexto = (texto: string) =>
-  texto
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .trim();
-
 const urgenciaAutomatica = isWithinNextTwoHours(fecha, hora);
 const urgenciaEfectiva = urgenciaAutomatica || urgencia;
 
-const beluersDisponibles = useMemo(() => {
+const ofertasDisponibles = useMemo(() => {
   if (!servicioSeleccionado) return [];
-
-  const servicioRequerido = normalizarTexto(servicioSeleccionado.nombre);
   const distritoRequerido = normalizeBookingDistrict(distritoReserva);
-
   if (!distritoRequerido) return [];
-
-  return realBeluers.filter((beluer) => {
-    const serviciosBeluer = beluer.serviciosActivos.map((servicio) =>
-      normalizarTexto(servicio)
-    );
-
-    const realizaServicio = serviciosBeluer.some(
-      (servicioBeluer) =>
-        servicioBeluer.includes(servicioRequerido) ||
-        servicioRequerido.includes(servicioBeluer)
-    );
-
-    const cubreDistrito = beluer.distritos.some(
+  return (servicioSeleccionado.offers || []).filter((offer) =>
+    offer.distritos.some(
       (district) => normalizeBookingDistrict(district) === distritoRequerido
-    );
+    )
+  );
+}, [distritoReserva, servicioSeleccionado]);
 
-    return realizaServicio && cubreDistrito;
-  });
-}, [distritoReserva, servicioSeleccionado, realBeluers]);
-
-const beluerSeleccionadaDetalle = realBeluers.find(
-  (beluer) => beluer.id === beluerSeleccionada
+const beluerSeleccionadaDetalle = (servicioSeleccionado?.offers || []).find(
+  (offer) => offer.beluerProfileId === beluerSeleccionada
 );
 const beluerSeleccionadaNombre = beluerSeleccionadaDetalle?.nombre || "";
 
@@ -415,8 +415,8 @@ useEffect(() => {
   }
 }, [urgenciaAutomatica]);
 
-  const precioServicio = servicioSeleccionado?.precio ?? 0;
-  const cargoLogistico = servicioSeleccionado?.logisticFee ?? 0;
+  const precioServicio = beluerSeleccionadaDetalle?.beluerPrice ?? 0;
+  const cargoLogistico = servicioSeleccionado ? 10 : 0;
   const recargoExpress = urgenciaEfectiva && servicioSeleccionado ? 20 : 0;
   const subtotal = precioServicio + cargoLogistico;
   const total = subtotal + recargoExpress;
@@ -424,12 +424,6 @@ useEffect(() => {
   const handleServicioClick = (servicio: Service) => {
     setServicioSeleccionado(servicio);
     setBeluerSeleccionada("");
-  };
-
-  const selectServiceForBooking = (servicio: Service) => {
-    handleServicioClick(servicio);
-    setActiveSection("reserva");
-    setSidebarOpen(false);
   };
 
 const handleConfirmarReserva = () => {
@@ -458,7 +452,7 @@ const handleConfirmarReserva = () => {
     return;
   }
 
-  if (modoAsignacion === "libre" && !beluerSeleccionada) {
+  if (!beluerSeleccionada || !ofertasDisponibles.some((offer) => offer.beluerProfileId === beluerSeleccionada)) {
     alert("Elige a tu beluer antes de continuar.");
     return;
   }
@@ -466,6 +460,13 @@ const handleConfirmarReserva = () => {
   setPagoOpen(true);
   setBookingError("");
   setBookingModalError("");
+};
+
+const selectOfferForBooking = (servicio: Service, offer: ServiceOffer) => {
+  handleServicioClick(servicio);
+  setBeluerSeleccionada(offer.beluerProfileId);
+  setActiveSection("reserva");
+  setSidebarOpen(false);
 };
 
 const handleConfirmarPago = async () => {
@@ -482,7 +483,7 @@ const handleConfirmarPago = async () => {
   try {
     const attemptFingerprint = JSON.stringify({
       serviceId: servicioSeleccionado.id,
-      modoAsignacion,
+      bookingMode: "libre",
       beluerSeleccionada,
       fecha,
       hora,
@@ -504,7 +505,7 @@ const handleConfirmarPago = async () => {
     if (servicioSeleccionado.id) {
       formData.append("serviceId", servicioSeleccionado.id);
     }
-    formData.append("bookingMode", modoAsignacion);
+    formData.append("bookingMode", "libre");
     formData.append("selectedBeluerId", beluerSeleccionada);
     formData.append("scheduledDate", fecha);
     formData.append("scheduledTime", hora);
@@ -520,14 +521,21 @@ const handleConfirmarPago = async () => {
     );
 
     if (!result.success) {
-      if (result.code === "BELUER_DISTRICT_MISMATCH") {
+      const retryMessages: Record<string, string> = {
+        TIME_SLOT_UNAVAILABLE: "Esta especialista ya no está disponible en ese horario. Elige otro horario.",
+        BELUER_LEVEL_CHANGED_RETRY: "Las condiciones de la especialista se actualizaron. Intenta reservar nuevamente.",
+        OFFER_PRICE_CHANGED_RETRY: "El precio de esta oferta se actualizó. Revisa el servicio e inténtalo nuevamente.",
+        MINIMUM_PRICE_CHANGED_RETRY: "El precio mínimo de este servicio se actualizó. Revisa la oferta e inténtalo nuevamente.",
+        BOOKING_SERVICE_CHANGED_RETRY: "Este servicio cambió. Vuelve a elegirlo e intenta reservar nuevamente.",
+      };
+      if (["BELUER_DISTRICT_MISMATCH", "DISTRICT_NOT_COVERED"].includes(result.code || "")) {
         setPagoOpen(false);
         setBeluerSeleccionada("");
-        setBookingError(result.message);
+        setBookingError("La especialista seleccionada no cubre el distrito indicado. Elige otra especialista.");
         return;
       }
 
-      setBookingModalError(result.message);
+      setBookingModalError(retryMessages[result.code || ""] || result.message);
       return;
     }
 
@@ -620,22 +628,22 @@ const selectedBookingService = servicioSeleccionado;
             <BookingFlow
               eyebrow="Nueva reserva"
               title="Agenda tu nueva cita"
-              description="Elige tu servicio, fecha y dirección. belu coordina el resto."
+              description="Elige tu servicio, especialista, fecha y lugar."
               summary={
                 <BookingSummary
                   serviceName={servicioSeleccionado?.nombre}
                   serviceDescription={servicioSeleccionado?.desc || undefined}
-                  servicePrice={servicioSeleccionado ? `S/ ${precioServicio}` : undefined}
+                  servicePrice={beluerSeleccionadaDetalle ? formatSoles(precioServicio) : undefined}
                   date={formatDisplayDate(fecha)}
                   time={formatDisplayTime(hora)}
                   district={distritoReserva}
                   address={direccionReserva.trim()}
-                  logisticFee={servicioSeleccionado ? `S/ ${cargoLogistico}` : undefined}
-                  expressFee={urgenciaEfectiva && servicioSeleccionado ? `S/ ${recargoExpress}` : undefined}
-                  total={servicioSeleccionado ? `S/ ${total}` : undefined}
+                  logisticFee={beluerSeleccionadaDetalle ? formatSoles(cargoLogistico) : undefined}
+                  expressFee={urgenciaEfectiva && beluerSeleccionadaDetalle ? formatSoles(recargoExpress) : undefined}
+                  total={beluerSeleccionadaDetalle ? formatSoles(total) : undefined}
                   expressNote={
                     urgenciaEfectiva && servicioSeleccionado
-                      ? "Te confirmamos una beluer en máximo 30 minutos o te reembolsamos el recargo."
+                      ? "Recargo por atención prioritaria."
                       : undefined
                   }
                   onConfirm={handleConfirmarReserva}
@@ -663,12 +671,12 @@ const selectedBookingService = servicioSeleccionado;
                         </span>
                       )
                     }
-                    eyebrow={servicioSeleccionado.categoria === "lashes" ? "Lashes" : "Nails"}
+                    eyebrow={getCategoryLabel(servicioSeleccionado.categoria)}
                     title={servicioSeleccionado.nombre}
                     description={servicioSeleccionado.desc || undefined}
                     meta={
                       <>
-                        <strong>{formatSoles(servicioSeleccionado.precio)}</strong>
+                        <strong>{beluerSeleccionadaDetalle ? formatSoles(precioServicio) : `Desde ${formatSoles(servicioSeleccionado.precio)}`}</strong>
                         <span>{getServiceDuration(servicioSeleccionado) || "Duración por confirmar"}</span>
                       </>
                     }
@@ -678,7 +686,7 @@ const selectedBookingService = servicioSeleccionado;
                 ) : (
                   <BookingOption
                     title="Elige el servicio que quieres reservar"
-                    description="Explora Lashes y Nails, revisa los detalles y selecciona una opción para continuar."
+                    description="Explora pestañas, cejas y uñas, revisa las ofertas y elige una especialista."
                     actionLabel="Ver servicios"
                     onAction={() => goToSection("servicios")}
                     empty
@@ -797,9 +805,9 @@ const selectedBookingService = servicioSeleccionado;
 
               <BookingStep
                 number="04"
-                eyebrow="Preferencias"
-                title="Express y asignación"
-                description="Define la modalidad y agrega indicaciones para tu cita."
+                eyebrow="Especialista"
+                title="Elige tu Beluer"
+                description="Revisa el precio de su oferta para este servicio y elige quién te atenderá."
               >
                 <BookingFields>
                   <BookingToggle
@@ -820,70 +828,44 @@ const selectedBookingService = servicioSeleccionado;
                     }}
                   />
 
-                  <BookingField label="Modo de asignación" fullWidth>
-                    <select
-                      value={modoAsignacion}
-                      onChange={(event) => {
-                        setModoAsignacion(event.target.value as AssignmentMode);
-                        setBeluerSeleccionada("");
-                      }}
-                    >
-                      <option value="gestionado">Gestionado (belu elige por ti)</option>
-                      <option value="libre">Libre (tú eliges a tu beluer)</option>
-                    </select>
-                  </BookingField>
-
-                  {modoAsignacion === "gestionado" ? (
-                    <BookingNotice
-                      title="¿Cómo funciona el Modo Gestionado?"
-                      footer="Precio fijo garantizado. Sin sorpresas."
-                    >
-                      Publicamos tu solicitud en nuestro canal interno. La primera beluer
-                      disponible en tu zona aceptará y recibirás confirmación inmediata.
+                  {bookingError ? (
+                    <BookingNotice title="Revisa tu selección">
+                      {bookingError}
                     </BookingNotice>
                   ) : null}
-
-                  {modoAsignacion === "libre" ? (
-                    <>
-                      {bookingError ? (
-                        <BookingNotice title="Revisa tu selección">
-                          {bookingError}
-                        </BookingNotice>
-                      ) : null}
-                      <BookingChoiceGrid
-                        title="Elige a tu beluer (precio fijo para todas):"
-                        hint="Solo se muestran especialistas que realizan el servicio y cubren el distrito indicado."
-                      >
-                        {beluersDisponibles.length > 0 ? (
-                          beluersDisponibles.map((beluer) => (
-                          <BookingChoice
-                            key={beluer.id}
-                            media={
-                              beluer.foto ? (
-                                <img src={beluer.foto} alt={beluer.nombre} />
-                              ) : (
-                                <span aria-hidden="true">
-                                  <b>{beluer.nombre.slice(0, 1).toUpperCase()}</b>
-                                  <small>Beluer</small>
-                                </span>
-                              )
-                            }
-                            title={beluer.nombre}
-                            meta={`⭐ ${beluer.rating} · ${beluer.citas} citas`}
-                            selected={beluerSeleccionada === beluer.id}
-                            onSelect={() => setBeluerSeleccionada(beluer.id)}
-                          />
-                          ))
-                        ) : (
-                          <p>
-                            {distritoReserva.trim()
-                              ? "No hay Beluers disponibles para ese servicio y distrito."
-                              : "Ingresa primero el distrito donde recibirás el servicio."}
-                          </p>
-                        )}
-                      </BookingChoiceGrid>
-                    </>
-                  ) : null}
+                  <BookingChoiceGrid
+                    title="Especialistas disponibles para tu distrito"
+                    hint="Cada especialista muestra su precio para este servicio."
+                  >
+                    {ofertasDisponibles.length > 0 ? (
+                      ofertasDisponibles.map((offer) => (
+                        <BookingChoice
+                          key={offer.beluerProfileId}
+                          media={
+                            offer.foto ? (
+                              <Image src={offer.foto} alt={offer.nombre} width={48} height={48} unoptimized />
+                            ) : (
+                              <span aria-hidden="true">
+                                <b>{offer.nombre.slice(0, 1).toUpperCase()}</b>
+                                <small>Beluer</small>
+                              </span>
+                            )
+                          }
+                          title={offer.nombre}
+                          meta={`${getBeluerLevelLabel(offer.nivel)} · ${getRatingLabel(offer.rating)} · ${offer.citas} citas · ${offer.distritos.slice(0, 2).join(", ")}`}
+                          price={formatSoles(offer.beluerPrice)}
+                          selected={beluerSeleccionada === offer.beluerProfileId}
+                          onSelect={() => setBeluerSeleccionada(offer.beluerProfileId)}
+                        />
+                      ))
+                    ) : (
+                      <p>
+                        {distritoReserva.trim()
+                          ? "No hay especialistas disponibles para ese servicio y distrito."
+                          : "Ingresa primero el distrito donde recibirás el servicio."}
+                      </p>
+                    )}
+                  </BookingChoiceGrid>
 
                   <BookingField
                     label="Instrucciones adicionales"
@@ -905,7 +887,7 @@ const selectedBookingService = servicioSeleccionado;
             <ServiciosSection
               services={realServices}
               selectedService={servicioSeleccionado}
-              onSelectServiceForBooking={selectServiceForBooking}
+              onSelectServiceForBooking={selectOfferForBooking}
             />
           )}
 
@@ -941,7 +923,7 @@ const selectedBookingService = servicioSeleccionado;
           onClick={() => goToSection("reserva")}
         >
           <span>Reservar {selectedBookingService.nombre}</span>
-          <strong>Total desde {formatSoles(total)}</strong>
+          <strong>Desde {formatSoles(selectedBookingService.precio)}</strong>
         </button>
       ) : null}
 
@@ -989,15 +971,11 @@ const selectedBookingService = servicioSeleccionado;
           <strong>S/ {total}</strong>
         </div>
 
-        {modoAsignacion === "libre" && beluerSeleccionadaNombre ? (
+        {beluerSeleccionadaNombre ? (
           <div className="cliente-panel-beluer-info-pago">
             Tu servicio será realizado por <strong>{beluerSeleccionadaNombre}</strong>.
           </div>
-        ) : (
-          <div className="cliente-panel-beluer-info-pago gestionado">
-            belu asignará una Beluer disponible para tu horario.
-          </div>
-        )}
+        ) : null}
       </div>
 
       <div className="cliente-panel-metodos-pago">
@@ -1060,13 +1038,11 @@ const selectedBookingService = servicioSeleccionado;
         </p>
 
         <div className="beluer-confirm">
-          {modoAsignacion === "libre" && beluerSeleccionadaNombre ? (
+          {beluerSeleccionadaNombre ? (
             <>
               Beluer asignada: <strong>{beluerSeleccionadaNombre}</strong>
             </>
-          ) : (
-            <>belu asignará una Beluer disponible en tu zona.</>
-          )}
+          ) : null}
         </div>
       </div>
 
@@ -1151,7 +1127,7 @@ function DashboardSection({
     .map((service, index) => ({
       id: service.id || `${service.nombre}-${index}`,
       name: service.nombre,
-      category: service.categoria === "lashes" ? "Lashes" : "Nails",
+      category: getCategoryLabel(service.categoria),
       price: formatSoles(service.precio),
       imageUrl: service.image_url ? service.foto : undefined,
     }));
@@ -1401,7 +1377,7 @@ function EspecialistasSection({
         beluer.rating === "Sin calificación" ||
         Number.isNaN(numericRating) ||
         numericRating <= 0,
-      level: "Verificada",
+      level: getBeluerLevelLabel(beluer.nivel || ""),
       services: beluer.serviciosActivos,
       categoryKey: beluer.categoria,
     };
@@ -1420,13 +1396,11 @@ function ServiceDetailModal({
   selected,
   onChoose,
   onClose,
-  primaryLabel = "Elegir este servicio",
 }: {
   servicio: Service;
   selected: boolean;
-  onChoose: () => void;
+  onChoose: (offer: ServiceOffer) => void;
   onClose: () => void;
-  primaryLabel?: string;
 }) {
   const duration = getServiceDuration(servicio);
   const galleryImages = getServiceGalleryImages(servicio);
@@ -1511,7 +1485,7 @@ function ServiceDetailModal({
         <div className="cliente-panel-service-detail-content">
           <span className="cliente-panel-service-detail-kickers">
             <span className="cliente-panel-servicio-category">
-              {servicio.categoria === "lashes" ? "Lashes" : "Nails"}
+              {getCategoryLabel(servicio.categoria)}
             </span>
             {servicio.is_featured ? (
               <span className="cliente-panel-service-featured-mini">
@@ -1527,8 +1501,8 @@ function ServiceDetailModal({
 
           <div className="cliente-panel-service-detail-facts">
             <span>
-              Precio
-              <strong>S/ {servicio.precio}</strong>
+              Desde
+              <strong>{formatSoles(servicio.precio)}</strong>
             </span>
             <span>
               Duración
@@ -1536,14 +1510,16 @@ function ServiceDetailModal({
             </span>
           </div>
 
+          <div className="cliente-panel-service-offers">
+            <h3>Elige especialista y precio</h3>
+            {(servicio.offers || []).map((offer) => (
+              <button key={offer.beluerProfileId} type="button" onClick={() => onChoose(offer)}>
+                <span>{offer.nombre} · {getBeluerLevelLabel(offer.nivel)} · {getRatingLabel(offer.rating)}</span>
+                <strong>{formatSoles(offer.beluerPrice)}</strong>
+              </button>
+            ))}
+          </div>
           <div className="cliente-panel-service-detail-actions">
-            <button
-              className="cliente-panel-btn-r cliente-panel-full-btn"
-              type="button"
-              onClick={onChoose}
-            >
-              {primaryLabel}
-            </button>
             <button
               className="cliente-panel-service-detail-secondary"
               type="button"
@@ -1610,9 +1586,17 @@ function getServiceDuration(servicio: Service) {
   };
 
   const minutes =
-    serviceWithDuration.duration_minutes ?? serviceWithDuration.duracionMinutos;
+    servicio.durationMinutes ?? serviceWithDuration.duration_minutes ?? serviceWithDuration.duracionMinutos;
 
-  if (typeof minutes === "number" && minutes > 0) return `${minutes} min`;
+  if (typeof minutes === "number" && minutes > 0) {
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+
+    if (hours === 0) return `${minutes} min`;
+    return remainingMinutes > 0
+      ? `${hours} h ${remainingMinutes} min`
+      : `${hours} h`;
+  }
   if (serviceWithDuration.duracion) return serviceWithDuration.duracion;
   if (serviceWithDuration.duration) return serviceWithDuration.duration;
 
@@ -1626,7 +1610,7 @@ function ServiciosSection({
 }: {
   services: Service[];
   selectedService: Service | null;
-  onSelectServiceForBooking: (servicio: Service) => void;
+  onSelectServiceForBooking: (servicio: Service, offer: ServiceOffer) => void;
 }) {
   const [detailService, setDetailService] = useState<Service | null>(null);
 
@@ -1644,7 +1628,7 @@ function ServiciosSection({
       const viewModel: ServiceCatalogItem = {
         id,
         name: servicio.nombre,
-        category: servicio.categoria === "lashes" ? "Lashes" : "Nails",
+        category: getCategoryLabel(servicio.categoria),
         categoryKey: servicio.categoria,
         price: formatSoles(servicio.precio),
         imageUrl: servicio.image_url ? servicio.foto : undefined,
@@ -1652,6 +1636,7 @@ function ServiciosSection({
         duration: getServiceDuration(servicio) || undefined,
         isFeatured: Boolean(servicio.is_featured),
         isSelected: isServiceSelected(servicio),
+        isAddon: servicio.serviceType === "addon",
       };
 
       return { id, servicio, viewModel };
@@ -1664,9 +1649,9 @@ function ServiciosSection({
     if (entry) setDetailService(entry.servicio);
   };
 
-  const handleReserveFromDetail = (servicio: Service) => {
+  const handleReserveFromDetail = (servicio: Service, offer: ServiceOffer) => {
     setDetailService(null);
-    onSelectServiceForBooking(servicio);
+    onSelectServiceForBooking(servicio, offer);
   };
 
   return (
@@ -1680,8 +1665,7 @@ function ServiciosSection({
         <ServiceDetailModal
           servicio={detailService}
           selected={isServiceSelected(detailService)}
-          primaryLabel="Reservar este servicio"
-          onChoose={() => handleReserveFromDetail(detailService)}
+          onChoose={(offer) => handleReserveFromDetail(detailService, offer)}
           onClose={() => setDetailService(null)}
         />
       ) : null}

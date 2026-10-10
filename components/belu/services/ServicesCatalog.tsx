@@ -7,7 +7,7 @@ import { FilterChips } from "../ui/FilterChips";
 import { ServiceCard, type ServiceCardData } from "./ServiceCard";
 import styles from "./services.module.css";
 
-type ServiceCatalogFilter = "all" | "featured" | "lashes" | "nails";
+type ServiceCatalogFilter = "all" | "featured" | "lashes" | "brows" | "nails";
 
 export type ServiceCatalogItem = ServiceCardData & {
   categoryKey: "lashes" | "nails" | "brows";
@@ -21,8 +21,9 @@ type ServicesCatalogProps = {
 const filters: { id: ServiceCatalogFilter; label: string }[] = [
   { id: "all", label: "Todos" },
   { id: "featured", label: "Destacados ✦" },
-  { id: "lashes", label: "Lashes" },
-  { id: "nails", label: "Nails" },
+  { id: "lashes", label: "Pestañas" },
+  { id: "brows", label: "Cejas" },
+  { id: "nails", label: "Uñas" },
 ];
 
 function normalizeText(value: string) {
@@ -46,7 +47,7 @@ export function ServicesCatalog({
       services.filter((service) => {
         if (filter === "featured" && !service.isFeatured) return false;
         if (
-          (filter === "lashes" || filter === "nails") &&
+          (filter === "lashes" || filter === "brows" || filter === "nails") &&
           service.categoryKey !== filter
         ) {
           return false;
@@ -71,7 +72,7 @@ export function ServicesCatalog({
     {
       id: "lashes",
       eyebrow: "Pestañas",
-      title: "Lashes",
+      title: "Pestañas",
       services: filteredServices.filter(
         (service) => service.categoryKey === "lashes"
       ),
@@ -79,10 +80,16 @@ export function ServicesCatalog({
     {
       id: "nails",
       eyebrow: "Manos",
-      title: "Nails",
+      title: "Uñas",
       services: filteredServices.filter(
         (service) => service.categoryKey === "nails"
       ),
+    },
+    {
+      id: "brows",
+      eyebrow: "Cejas",
+      title: "Brows",
+      services: filteredServices.filter((service) => service.categoryKey === "brows"),
     },
   ];
   const sections = (
@@ -100,7 +107,7 @@ export function ServicesCatalog({
         eyebrow="Catálogo"
         accent
         title="Explora servicios"
-        description="Lashes y nails a domicilio, cuando quieras."
+        description="Pestañas, cejas y uñas a domicilio, cuando quieras."
         titleId="services-catalog-title"
       />
 
@@ -124,7 +131,9 @@ export function ServicesCatalog({
         />
 
         <div className={styles.catalogSummary} aria-live="polite">
-          <strong>{filteredServices.length} servicios</strong>
+          <strong>
+            {filteredServices.length} {filteredServices.length === 1 ? "servicio" : "servicios"}
+          </strong>
           <span>Elige uno para ver sus fotos y reservar.</span>
         </div>
       </div>

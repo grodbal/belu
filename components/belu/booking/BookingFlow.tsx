@@ -202,6 +202,7 @@ type BookingChoiceProps = {
   media: ReactNode;
   title: string;
   meta: string;
+  price?: string;
   selected: boolean;
   onSelect: () => void;
 };
@@ -210,6 +211,7 @@ export function BookingChoice({
   media,
   title,
   meta,
+  price,
   selected,
   onSelect,
 }: BookingChoiceProps) {
@@ -224,6 +226,7 @@ export function BookingChoice({
       <span>
         <strong>{title}</strong>
         <small>{meta}</small>
+        {price ? <b className={styles.choicePrice}>{price}</b> : null}
       </span>
     </button>
   );

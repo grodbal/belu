@@ -394,6 +394,16 @@
   font: 500 0.68rem/1.35 var(--font-nunito), Nunito, sans-serif;
 }
 
+.choicePrice {
+  display: block;
+  width: max-content;
+  max-width: 100%;
+  margin-top: 5px;
+  color: #e60023;
+  font: 800 0.88rem/1.2 var(--font-nunito), Nunito, sans-serif;
+  white-space: nowrap;
+}
+
 .choiceBlock > small {
   display: block;
   margin-top: 10px;

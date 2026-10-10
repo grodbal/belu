@@ -15,6 +15,7 @@ export type ServiceCardData = {
   duration?: string;
   isFeatured?: boolean;
   isSelected?: boolean;
+  isAddon?: boolean;
 };
 
 type ServiceCardProps = {
@@ -70,6 +71,9 @@ export function ServiceCard({
           ) : null}
           {isCatalog && service.isSelected ? (
             <span className={styles.selected}>Seleccionado</span>
+          ) : null}
+          {isCatalog && service.isAddon ? (
+            <span className={styles.addon}>Adicional</span>
           ) : null}
           <span className={styles.arrow} aria-hidden="true">
             <BeluIcon name="arrow" size={18} />

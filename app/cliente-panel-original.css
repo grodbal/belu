@@ -6781,3 +6781,42 @@
   display: block;
   margin: 0;
 }
+
+.cliente-panel-service-offers {
+  display: grid;
+  gap: 10px;
+  margin: 22px 0;
+}
+
+.cliente-panel-service-offers h3 {
+  margin: 0;
+}
+
+.cliente-panel-service-offers button {
+  display: flex;
+  min-height: 52px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border: 1px solid #eadde0;
+  border-radius: 12px;
+  background: #fff;
+  padding: 12px 14px;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.cliente-panel-service-offers button:hover,
+.cliente-panel-service-offers button:focus-visible {
+  border-color: #e60023;
+  outline: none;
+}
+
+@media (max-width: 640px) {
+  .cliente-panel-service-offers button {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+}
