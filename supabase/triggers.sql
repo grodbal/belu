@@ -9,30 +9,7 @@
 -- =====================================================
 
 -- =====================================================
--- 1. SYNC BOOKING PAYMENT STATUS FROM PAYMENTS
--- =====================================================
-
-create or replace function public.sync_booking_payment_status()
-returns trigger as $$
-begin
-  update public.bookings
-  set
-    payment_status = new.status,
-    updated_at = now()
-  where id = new.booking_id;
-
-  return new;
-end;
-$$ language plpgsql;
-
-drop trigger if exists sync_booking_payment_status_trigger on public.payments;
-create trigger sync_booking_payment_status_trigger
-after insert or update on public.payments
-for each row
-execute function public.sync_booking_payment_status();
-
--- =====================================================
--- 2. RECALCULATE BELUER TOTAL BOOKINGS AFTER BOOKING CHANGES
+-- 1. RECALCULATE BELUER TOTAL BOOKINGS AFTER BOOKING CHANGES
 -- =====================================================
 
 drop trigger if exists update_beluer_total_bookings_trigger on public.bookings;

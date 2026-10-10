@@ -10,6 +10,7 @@ export type ReservaEstado = "pendiente" | "aceptada" | "rechazada";
 
 export type BookingStatus =
   | "pending"
+  | "payment_pending"
   | "assigned"
   | "confirmed"
   | "in_progress"

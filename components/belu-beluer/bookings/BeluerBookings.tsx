@@ -101,7 +101,8 @@ function BookingCard({ reserva, onVerDetalle, onAceptar, onRechazar }: Pick<Prop
 }
 
 export function getStatus(status: ReservaBeluer["status"]) {
-  const labels = {
+  const labels: Record<string, { label: string; tone: "neutral" | "warning" | "info" | "accent" | "success" }> = {
+    payment_pending: { label: "Estado no disponible", tone: "neutral" },
     pending: { label: "Pendiente de asignación", tone: "neutral" },
     assigned: { label: "Solicitud", tone: "warning" },
     confirmed: { label: "Cita confirmada", tone: "info" },
@@ -111,5 +112,5 @@ export function getStatus(status: ReservaBeluer["status"]) {
     redo_requested: { label: "Retoque solicitado", tone: "warning" },
     redo_approved: { label: "Retoque aprobado", tone: "info" },
   } as const;
-  return labels[status];
+  return labels[status] ?? { label: "Estado no disponible", tone: "neutral" };
 }

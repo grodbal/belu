@@ -21,6 +21,7 @@ type ClientBooking = {
   scheduled_date: string;
   scheduled_time: string;
   status: string;
+  hold_expires_at: string | null;
   payment_status: string;
   public_price: number;
   base_price: number | null;
@@ -80,6 +81,7 @@ type PricingRuleRow = { service_id: string; minimum_price: number };
 type CategoryApprovalRow = { beluer_profile_id: string; category: string; status: string };
 
 const ACTIVE_UPCOMING_BOOKING_STATUSES = new Set([
+  "payment_pending",
   "pending",
   "assigned",
   "confirmed",
@@ -305,6 +307,7 @@ export default async function ClientePanelPage() {
         scheduled_date,
         scheduled_time,
         status,
+        hold_expires_at,
         payment_status,
         public_price,
         base_price,
@@ -336,11 +339,15 @@ export default async function ClientePanelPage() {
 
       bookingHistory = (historyData as ClientBooking[] | null) || [];
       const nowInLima = getLimaDateTimeKey();
+      const nowEpoch = new Date(`${nowInLima}:00-05:00`).getTime();
 
       upcomingBookings = bookingHistory
         .filter(
           (booking) =>
             ACTIVE_UPCOMING_BOOKING_STATUSES.has(booking.status) &&
+            (booking.status !== "payment_pending" ||
+              (booking.hold_expires_at !== null &&
+                new Date(booking.hold_expires_at).getTime() > nowEpoch)) &&
             getBookingDateTimeKey(booking) >= nowInLima
         )
         .sort((first, second) =>

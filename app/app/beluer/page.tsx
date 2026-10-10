@@ -392,6 +392,7 @@ export default async function BeluerPanelPage() {
           `
           )
           .eq("beluer_profile_id", beluer.id)
+          .neq("status", "payment_pending")
           .order("scheduled_date", { ascending: true })
           .order("scheduled_time", { ascending: true });
 

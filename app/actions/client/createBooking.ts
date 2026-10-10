@@ -42,7 +42,12 @@ const PUBLIC_BOOKING_ERROR =
   "No pudimos registrar tu reserva. Inténtalo nuevamente.";
 const LOGISTIC_FEE = 10;
 const EXPRESS_FEE = 20;
-const BUSY_BOOKING_STATUSES = ["assigned", "confirmed", "in_progress"];
+const BUSY_BOOKING_STATUSES = [
+  "payment_pending",
+  "assigned",
+  "confirmed",
+  "in_progress",
+];
 
 function failure(code: CreateBookingErrorCode, message: string): CreateBookingState {
   return { success: false, code, message };
@@ -359,7 +364,7 @@ export async function createBookingAction(
     const newEnd = newStart + durationMinutes;
     const { data: existingBookings, error: scheduleError } = await supabase
       .from("bookings")
-      .select("scheduled_date, scheduled_time, service_id")
+      .select("scheduled_date, scheduled_time, service_id, status, hold_expires_at")
       .eq("beluer_profile_id", beluer.id)
       .in("status", BUSY_BOOKING_STATUSES)
       .gte("scheduled_date", shiftDate(scheduledDate, -1))
@@ -389,6 +394,13 @@ export async function createBookingAction(
       ])
     );
     const hasOverlap = (existingBookings || []).some((booking) => {
+      if (
+        booking.status === "payment_pending" &&
+        (!booking.hold_expires_at ||
+          new Date(booking.hold_expires_at).getTime() <= Date.now())
+      ) {
+        return false;
+      }
       const existingDuration = durationByServiceId.get(booking.service_id) ?? 0;
       if (!Number.isFinite(existingDuration) || existingDuration <= 0) return false;
       const existingStart = asLocalLimaMinutes(
@@ -460,7 +472,7 @@ export async function createBookingAction(
     revalidatePath("/app/admin");
     return {
       success: true,
-      message: "Reserva registrada. El pago con Yape continúa pendiente.",
+      message: "Reserva pendiente de pago. Tienes 15 minutos para completar el pago.",
     };
   } catch (error) {
     console.error("createBooking: unexpected failure", error);

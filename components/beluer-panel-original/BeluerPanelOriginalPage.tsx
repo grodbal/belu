@@ -742,6 +742,7 @@ function ReservaPayoutSummary({ reserva }: { reserva: ReservaBeluer }) {
 
 function getBookingStatusLabel(reserva: ReservaBeluer) {
   const labels: Record<ReservaBeluer["status"], string> = {
+    payment_pending: "Estado no disponible",
     pending: "Pendiente de asignación",
     assigned: "Solicitud asignada",
     confirmed: "Confirmada",
@@ -752,7 +753,7 @@ function getBookingStatusLabel(reserva: ReservaBeluer) {
     redo_approved: "Retoque aprobado",
   };
 
-  return labels[reserva.status];
+  return labels[reserva.status] ?? "Estado no disponible";
 }
 
 function PortafolioSection({

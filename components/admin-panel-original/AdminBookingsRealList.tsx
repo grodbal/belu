@@ -23,6 +23,7 @@ type Booking = {
   express_fee: number;
   status:
     | "pending"
+    | "payment_pending"
     | "assigned"
     | "confirmed"
     | "in_progress"
@@ -106,6 +107,7 @@ function formatRate(value: number | null | undefined) {
 
 function getStatusLabel(status: Booking["status"]) {
   const labels: Record<Booking["status"], string> = {
+    payment_pending: "Pendiente de pago",
     pending: "Pendiente",
     assigned: "Asignada",
     confirmed: "Confirmada",
@@ -565,12 +567,18 @@ export default async function AdminBookingsRealList() {
                     </div>
                   ) : null}
 
-                  <AssignBookingBeluerForm
-                    bookingId={booking.id}
-                    currentStatus={booking.status}
-                    currentBeluerProfileId={booking.beluer_profile_id}
-                    availableBeluers={availableBeluerOptions}
-                  />
+                  {booking.status === "payment_pending" ? (
+                    <p className="text-sm text-neutral-500">
+                      La asignación operativa estará disponible después del pago.
+                    </p>
+                  ) : (
+                    <AssignBookingBeluerForm
+                      bookingId={booking.id}
+                      currentStatus={booking.status}
+                      currentBeluerProfileId={booking.beluer_profile_id}
+                      availableBeluers={availableBeluerOptions}
+                    />
+                  )}
                 </section>
 
                 <section className="admin-booking-admin-block">
@@ -690,10 +698,16 @@ export default async function AdminBookingsRealList() {
                   <div className="admin-booking-admin-form-area">
                     <p>Cambiar estado</p>
 
-                    <UpdateBookingStatusForm
-                      bookingId={booking.id}
-                      currentStatus={booking.status}
-                    />
+                    {booking.status === "payment_pending" ? (
+                      <p className="text-sm text-neutral-500">
+                        El estado operativo cambia después de confirmar el pago.
+                      </p>
+                    ) : (
+                      <UpdateBookingStatusForm
+                        bookingId={booking.id}
+                        currentStatus={booking.status}
+                      />
+                    )}
                   </div>
                 </section>
 
@@ -710,6 +724,7 @@ export default async function AdminBookingsRealList() {
                     <UpdateBookingPaymentStatusForm
                       bookingId={booking.id}
                       currentPaymentStatus={booking.payment_status}
+                      bookingStatus={booking.status}
                     />
                   </div>
                 </section>

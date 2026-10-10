@@ -95,6 +95,7 @@ type ClientePanelOriginalPageProps = {
 };
 
 const bookingStatusPresentation: Record<string, StatusBadgeData> = {
+  payment_pending: { label: "Pendiente de pago", tone: "warning" },
   pending: { label: "Pendiente", tone: "warning" },
   assigned: { label: "Asignada", tone: "info" },
   confirmed: { label: "Confirmada", tone: "success" },
@@ -1020,8 +1021,8 @@ const selectedBookingService = servicioSeleccionado;
     <div className="cliente-panel-popup-content">
       <div className="cliente-panel-popup-logo">belu ✦</div>
 
-      <h2>Reserva registrada</h2>
-      <p>Recibimos tu solicitud. El pago todavía está pendiente.</p>
+      <h2>Reserva pendiente de pago</h2>
+      <p>El horario queda reservado durante 15 minutos mientras completas el pago.</p>
 
       <div className="cliente-panel-detalle-reserva">
         <p>
@@ -1097,6 +1098,7 @@ function DashboardSection({
   realServices: Service[];
 }) {
   const reservationStatusLabels: Record<string, string> = {
+    payment_pending: "Pendiente de pago",
     pending: "Pendiente",
     assigned: "Asignada",
     confirmed: "Confirmada",

@@ -13,6 +13,7 @@ type BookingPaymentStatus = "pending" | "paid" | "failed" | "refunded";
 type UpdateBookingPaymentStatusFormProps = {
   bookingId: string;
   currentPaymentStatus: BookingPaymentStatus;
+  bookingStatus: string;
 };
 
 const paymentStatusOptions: {
@@ -28,6 +29,7 @@ const paymentStatusOptions: {
 export default function UpdateBookingPaymentStatusForm({
   bookingId,
   currentPaymentStatus,
+  bookingStatus,
 }: UpdateBookingPaymentStatusFormProps) {
   const [state, formAction, isPending] = useActionState(
     updateBookingPaymentStatusAction,
@@ -37,7 +39,7 @@ export default function UpdateBookingPaymentStatusForm({
   return (
     <div className="space-y-2">
       <div className="flex max-w-[260px] flex-wrap gap-2">
-        {paymentStatusOptions.map((option) => {
+        {paymentStatusOptions.filter((option) => bookingStatus !== "payment_pending" || option.value !== "paid").map((option) => {
           const isActive = currentPaymentStatus === option.value;
 
           return (
@@ -64,6 +66,12 @@ export default function UpdateBookingPaymentStatusForm({
           );
         })}
       </div>
+
+      {bookingStatus === "payment_pending" ? (
+        <p className="text-xs text-neutral-500">
+          El pago se confirmará automáticamente mediante la pasarela.
+        </p>
+      ) : null}
 
       {state.message ? (
         <p

@@ -70,5 +70,5 @@ function formatCommissionRate(value: number | null | undefined) {
 
 function paymentLabel(status: ReservaBeluer["paymentStatus"]) {
   const labels = { pending: "Pendiente", paid: "Pagado", failed: "Fallido", refunded: "Reembolsado" };
-  return labels[status];
+  return labels[status] ?? "Estado no disponible";
 }

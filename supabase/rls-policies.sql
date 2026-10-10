@@ -92,6 +92,8 @@ alter table public.services enable row level security;
 alter table public.beluer_service_skills enable row level security;
 alter table public.bookings enable row level security;
 alter table public.payments enable row level security;
+alter table public.payment_webhook_events enable row level security;
+alter table public.integration_outbox enable row level security;
 alter table public.beluer_photos enable row level security;
 alter table public.automations_log enable row level security;
 
@@ -130,6 +132,12 @@ grant select, insert, update, delete on table public.bookings to service_role;
 revoke insert, update, delete on table public.payments from authenticated;
 grant select on table public.payments to authenticated;
 grant select, insert, update, delete on table public.payments to service_role;
+
+revoke all privileges on table public.payment_webhook_events from anon, authenticated;
+grant select, insert, update, delete on table public.payment_webhook_events to service_role;
+
+revoke all privileges on table public.integration_outbox from anon, authenticated;
+grant select, insert, update, delete on table public.integration_outbox to service_role;
 
 revoke insert, update, delete on table public.beluer_photos from authenticated;
 grant select on table public.beluer_photos to anon, authenticated;
@@ -264,14 +272,18 @@ using (
 -- =====================================================
 
 drop policy if exists "bookings_select_owner_beluer_or_admin" on public.bookings;
-create policy "bookings_select_owner_beluer_or_admin"
+drop policy if exists "bookings_select_client_beluer_or_admin" on public.bookings;
+create policy "bookings_select_client_beluer_or_admin"
 on public.bookings
 for select
 to authenticated
 using (
   client_profile_id = public.current_profile_id()
-  or beluer_profile_id = public.current_beluer_profile_id()
   or public.is_admin()
+  or (
+    beluer_profile_id = public.current_beluer_profile_id()
+    and status <> 'payment_pending'
+  )
 );
 
 drop policy if exists "bookings_insert_client_or_admin" on public.bookings;
@@ -291,8 +303,17 @@ on public.payments
 for select
 to authenticated
 using (
-  client_profile_id = public.current_profile_id()
-  or public.is_admin()
+  public.is_admin()
+  or (
+    client_profile_id = public.current_profile_id()
+    and exists (
+      select 1
+      from public.bookings booking
+      where booking.id = payments.booking_id
+        and booking.client_profile_id = payments.client_profile_id
+        and booking.client_profile_id = public.current_profile_id()
+    )
+  )
 );
 
 drop policy if exists "payments_insert_client_or_admin" on public.payments;
@@ -300,6 +321,9 @@ drop policy if exists "payments_update_admin" on public.payments;
 
 -- No client direct inserts into payments for MVP.
 -- Real gateway integration should write via webhooks/service_role.
+
+drop policy if exists "payment_webhook_events_no_authenticated_access" on public.payment_webhook_events;
+drop policy if exists "integration_outbox_no_authenticated_access" on public.integration_outbox;
 
 -- =====================================================
 -- BELUER_PHOTOS

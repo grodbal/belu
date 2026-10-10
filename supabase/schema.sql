@@ -70,21 +70,6 @@ exception when duplicate_object then null;
 end $$;
 
 do $$ begin
-  create type payment_status as enum ('pending', 'paid', 'failed', 'refunded');
-exception when duplicate_object then null;
-end $$;
-
-do $$ begin
-  create type payment_provider as enum ('manual', 'culqi', 'niubiz', 'yape');
-exception when duplicate_object then null;
-end $$;
-
-do $$ begin
-  create type payment_method as enum ('manual', 'card', 'yape', 'plin');
-exception when duplicate_object then null;
-end $$;
-
-do $$ begin
   create type photo_status as enum ('pending_review', 'approved', 'rejected');
 exception when duplicate_object then null;
 end $$;
@@ -242,6 +227,7 @@ create table if not exists public.bookings (
   is_express boolean not null default false,
   express_fee numeric(10,2) not null default 0,
   status text not null default 'pending',
+  hold_expires_at timestamptz,
   public_price numeric(10,2) not null,
   logistic_fee numeric(10,2) not null default 0,
   base_price numeric(10,2) not null default 0,
@@ -256,7 +242,11 @@ create table if not exists public.bookings (
   service_type_snapshot service_type,
   minimum_price_snapshot numeric(10,2),
   created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
+  updated_at timestamptz not null default now(),
+  constraint bookings_id_client_owner_key unique (id, client_profile_id),
+  constraint bookings_status_check check (status in ('pending', 'payment_pending', 'assigned', 'confirmed', 'in_progress', 'completed', 'cancelled', 'redo_requested', 'redo_approved')),
+  constraint bookings_payment_status_check check (payment_status in ('pending', 'paid', 'failed', 'refunded')),
+  constraint bookings_payment_pending_hold_check check (status <> 'payment_pending' or (payment_status = 'pending' and hold_expires_at is not null))
 );
 
 alter table if exists public.bookings
@@ -272,7 +262,19 @@ alter table if exists public.bookings
   add column if not exists service_name_snapshot text,
   add column if not exists service_category_snapshot text,
   add column if not exists service_type_snapshot service_type,
-  add column if not exists minimum_price_snapshot numeric(10,2);
+  add column if not exists minimum_price_snapshot numeric(10,2),
+  add column if not exists hold_expires_at timestamptz;
+
+alter table public.bookings
+  drop constraint if exists bookings_status_check;
+alter table public.bookings
+  add constraint bookings_status_check
+  check (status in ('pending', 'payment_pending', 'assigned', 'confirmed', 'in_progress', 'completed', 'cancelled', 'redo_requested', 'redo_approved'));
+alter table public.bookings
+  drop constraint if exists bookings_payment_pending_hold_check;
+alter table public.bookings
+  add constraint bookings_payment_pending_hold_check
+  check (status <> 'payment_pending' or (payment_status = 'pending' and hold_expires_at is not null));
 do $ begin
   if not exists (select 1 from pg_constraint where conrelid = 'public.bookings'::regclass and conname = 'bookings_service_category_snapshot_check') then
     alter table public.bookings add constraint bookings_service_category_snapshot_check
@@ -290,23 +292,65 @@ end $;
 -- PAYMENTS / PORTFOLIO / AUTOMATIONS
 -- =====================================================
 
--- La app MVP no usa aun una tabla payments real; Admin Pagos lee bookings.
--- Esta tabla queda como base para Culqi/Niubiz/Yape/manual cuando se conecte pasarela.
 create table if not exists public.payments (
   id uuid primary key default gen_random_uuid(),
-  booking_id uuid not null references public.bookings(id) on delete cascade,
-  client_profile_id uuid not null references public.profiles(id),
-  provider payment_provider not null default 'manual',
-  method payment_method not null default 'manual',
-  status payment_status not null default 'pending',
-  amount numeric(10,2) not null default 0,
-  currency text not null default 'PEN',
-  transaction_id text,
-  receipt_url text,
+  booking_id uuid not null,
+  client_profile_id uuid not null references public.profiles(id) on delete restrict,
+  provider text not null check (length(btrim(provider)) > 0),
+  provider_order_id text,
+  provider_payment_id text,
+  amount_minor bigint not null check (amount_minor > 0),
+  currency text not null default 'PEN' check (currency = 'PEN'),
+  method text,
+  status text not null default 'pending' check (status in ('pending', 'processing', 'paid', 'failed', 'expired', 'refunded')),
+  idempotency_key uuid not null,
+  failure_code text,
+  failure_message_safe text,
+  expires_at timestamptz,
   paid_at timestamptz,
+  refunded_amount_minor bigint not null default 0 check (refunded_amount_minor >= 0 and refunded_amount_minor <= amount_minor),
+  refunded_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (client_profile_id, idempotency_key),
+  foreign key (booking_id, client_profile_id)
+    references public.bookings(id, client_profile_id) on delete restrict
+);
+
+create table if not exists public.payment_webhook_events (
+  id uuid primary key default gen_random_uuid(),
+  provider text not null check (length(btrim(provider)) > 0),
+  provider_event_id text not null check (length(btrim(provider_event_id)) > 0),
+  payment_id uuid references public.payments(id) on delete set null,
+  event_type text,
+  payload_hash text check (payload_hash is null or payload_hash ~ '^[0-9a-f]{64}$'),
+  received_at timestamptz not null default now(),
+  processed_at timestamptz,
+  processing_status text not null default 'received' check (processing_status in ('received', 'processing', 'processed', 'failed', 'ignored')),
+  error_safe text,
+  unique (provider, provider_event_id)
+);
+
+create table if not exists public.integration_outbox (
+  id uuid primary key default gen_random_uuid(),
+  event_type text not null check (length(btrim(event_type)) > 0),
+  aggregate_type text not null check (length(btrim(aggregate_type)) > 0),
+  aggregate_id uuid not null,
+  payload jsonb not null default '{}'::jsonb,
+  deduplication_key text not null unique,
+  status text not null default 'pending' check (status in ('pending', 'processing', 'processed', 'failed')),
+  attempts integer not null default 0 check (attempts >= 0),
+  available_at timestamptz not null default now(),
+  processed_at timestamptz,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+create unique index if not exists payments_provider_order_id_idx on public.payments(provider, provider_order_id) where provider_order_id is not null;
+create unique index if not exists payments_provider_payment_id_idx on public.payments(provider, provider_payment_id) where provider_payment_id is not null;
+create unique index if not exists payments_one_active_attempt_per_booking_idx on public.payments(booking_id) where status in ('pending', 'processing');
+create index if not exists payments_booking_created_at_idx on public.payments(booking_id, created_at desc);
+create index if not exists integration_outbox_delivery_idx on public.integration_outbox(status, available_at) where status in ('pending', 'failed');
 
 -- Tabla futura/remota opcional para portafolio real + Supabase Storage.
 -- AdminPhotosRealList tolera que no exista en remoto y muestra empty state.
@@ -369,6 +413,8 @@ create index if not exists beluer_category_approvals_category_status_idx
 
 create index if not exists idx_bookings_client_profile_id on public.bookings(client_profile_id);
 create index if not exists idx_bookings_beluer_profile_id on public.bookings(beluer_profile_id);
+create index if not exists bookings_beluer_schedule_status_idx
+  on public.bookings (beluer_profile_id, scheduled_date, scheduled_time, status);
 create index if not exists idx_bookings_service_id on public.bookings(service_id);
 create index if not exists idx_bookings_status on public.bookings(status);
 create index if not exists idx_bookings_payment_status on public.bookings(payment_status);
@@ -545,7 +591,10 @@ begin
     join public.services existing_service
       on existing_service.id = existing_booking.service_id
     where existing_booking.beluer_profile_id = v_beluer_profile_id
-      and existing_booking.status in ('assigned', 'confirmed', 'in_progress')
+      and (
+        existing_booking.status in ('assigned', 'confirmed', 'in_progress')
+        or (existing_booking.status = 'payment_pending' and existing_booking.hold_expires_at > now())
+      )
       and v_start < (
         existing_booking.scheduled_date
         + existing_booking.scheduled_time
@@ -561,7 +610,7 @@ begin
   insert into public.bookings (
     client_profile_id, beluer_profile_id, service_id, booking_mode,
     scheduled_date, scheduled_time, address, district, notes,
-    is_express, express_fee, status, public_price, logistic_fee, base_price,
+    is_express, express_fee, status, hold_expires_at, public_price, logistic_fee, base_price,
     payment_status, service_price_snapshot, service_name_snapshot,
     service_category_snapshot, service_type_snapshot, minimum_price_snapshot,
     beluer_level_snapshot, commission_rate_snapshot, belu_commission_rate,
@@ -574,7 +623,7 @@ begin
     v_scheduled_date, v_scheduled_time,
     p_booking ->> 'address', p_booking ->> 'district', p_booking ->> 'notes',
     (p_booking ->> 'is_express')::boolean,
-    (p_booking ->> 'express_fee')::numeric, 'assigned',
+    (p_booking ->> 'express_fee')::numeric, 'payment_pending', now() + interval '15 minutes',
     (p_booking ->> 'public_price')::numeric,
     (p_booking ->> 'logistic_fee')::numeric,
     (p_booking ->> 'base_price')::numeric, 'pending',
@@ -623,8 +672,41 @@ revoke all on function public.create_booking_with_schedule_lock(jsonb)
 grant execute on function public.create_booking_with_schedule_lock(jsonb)
   to service_role;
 
-create index if not exists idx_payments_booking_id on public.payments(booking_id);
-create index if not exists idx_payments_status on public.payments(status);
+create or replace function public.expire_booking_payment_hold(p_booking_id uuid)
+returns boolean
+language plpgsql
+security definer
+set search_path = pg_catalog, public
+as $$
+declare
+  v_beluer_profile_id uuid;
+begin
+  select beluer_profile_id into v_beluer_profile_id
+  from public.bookings where id = p_booking_id;
+  if not found or v_beluer_profile_id is null then return false; end if;
+
+  perform pg_catalog.pg_advisory_xact_lock(
+    pg_catalog.hashtextextended(v_beluer_profile_id::text, 811477)
+  );
+
+  update public.bookings
+  set status = 'cancelled', updated_at = now()
+  where id = p_booking_id
+    and beluer_profile_id = v_beluer_profile_id
+    and status = 'payment_pending'
+    and payment_status <> 'paid'
+    and hold_expires_at <= now();
+
+  if not found then return false; end if;
+
+  update public.payments
+  set status = 'expired', updated_at = now()
+  where booking_id = p_booking_id and status in ('pending', 'processing');
+  return true;
+end;
+$$;
+revoke all on function public.expire_booking_payment_hold(uuid) from public, anon, authenticated;
+grant execute on function public.expire_booking_payment_hold(uuid) to service_role;
 
 create index if not exists idx_beluer_photos_beluer_id on public.beluer_photos(beluer_id);
 create index if not exists idx_beluer_photos_status on public.beluer_photos(status);
@@ -684,6 +766,11 @@ for each row execute function public.set_updated_at();
 drop trigger if exists set_payments_updated_at on public.payments;
 create trigger set_payments_updated_at
 before update on public.payments
+for each row execute function public.set_updated_at();
+
+drop trigger if exists set_integration_outbox_updated_at on public.integration_outbox;
+create trigger set_integration_outbox_updated_at
+before update on public.integration_outbox
 for each row execute function public.set_updated_at();
 
 drop trigger if exists set_beluer_photos_updated_at on public.beluer_photos;
