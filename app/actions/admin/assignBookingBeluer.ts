@@ -45,7 +45,9 @@ export async function assignBookingBeluerAction(
 
   const { data: booking, error: bookingError } = await supabase
     .from("bookings")
-    .select("id, status, public_price, logistic_fee, base_price, express_fee")
+    .select(
+      "id, status, public_price, logistic_fee, base_price, express_fee, service_price_snapshot"
+    )
     .eq("id", bookingId)
     .single();
 
@@ -105,6 +107,11 @@ export async function assignBookingBeluerAction(
       : toSafeNumber(booking.base_price);
   const snapshots = buildBookingFinancialSnapshots({
     beluerLevel: beluer.level,
+    servicePriceSnapshot:
+      booking.service_price_snapshot === null ||
+      booking.service_price_snapshot === undefined
+        ? null
+        : toSafeNumber(booking.service_price_snapshot),
     basePrice,
     logisticFee,
     expressFee: toSafeNumber(booking.express_fee),

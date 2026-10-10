@@ -6,6 +6,7 @@ export type CommissionLockEvent =
 
 type BookingFinancialSnapshotInput = {
   beluerLevel: string | null | undefined;
+  servicePriceSnapshot?: number | null;
   basePrice: number;
   logisticFee: number;
   expressFee: number;
@@ -89,13 +90,14 @@ function roundMoney(value: number) {
 
 export function buildBookingFinancialSnapshots({
   beluerLevel,
+  servicePriceSnapshot,
   basePrice,
   logisticFee,
   expressFee,
   lockEvent,
 }: BookingFinancialSnapshotInput) {
   const commission = resolveBeluerCommissionRate(beluerLevel);
-  const safeBasePrice = toSafeNumber(basePrice);
+  const safeBasePrice = toSafeNumber(servicePriceSnapshot ?? basePrice);
   const safeLogisticFee = toSafeNumber(logisticFee);
   const safeExpressFee = toSafeNumber(expressFee);
   const beluCommissionAmount = roundMoney(

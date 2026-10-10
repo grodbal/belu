@@ -10,7 +10,7 @@ import styles from "./services.module.css";
 type ServiceCatalogFilter = "all" | "featured" | "lashes" | "nails";
 
 export type ServiceCatalogItem = ServiceCardData & {
-  categoryKey: "lashes" | "nails";
+  categoryKey: "lashes" | "nails" | "brows";
 };
 
 type ServicesCatalogProps = {

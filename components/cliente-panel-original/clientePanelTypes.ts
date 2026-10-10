@@ -7,7 +7,7 @@ export type PanelSection =
   | "pagos"
   | "perfil";
 
-export type ServiceCategory = "lashes" | "nails";
+export type ServiceCategory = "lashes" | "nails" | "brows";
 
 export type AssignmentMode = "gestionado" | "libre";
 

@@ -387,6 +387,12 @@ using (
 
 -- Writes remain Server Action/service_role only, with server-side authorization.
 
+-- B4.3C1: atomic booking insert RPC is callable only by trusted Server Actions.
+revoke all on function public.create_booking_with_schedule_lock(jsonb)
+  from public, anon, authenticated;
+grant execute on function public.create_booking_with_schedule_lock(jsonb)
+  to service_role;
+
 -- =====================================================
 -- END
 -- =====================================================

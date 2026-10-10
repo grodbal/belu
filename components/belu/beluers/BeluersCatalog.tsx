@@ -7,7 +7,7 @@ import { FilterChips } from "../ui/FilterChips";
 import { BeluerCard, type BeluerCardData } from "./BeluerCard";
 import styles from "./beluers.module.css";
 
-type BeluerCategory = "all" | "lashes" | "nails" | "mixta";
+type BeluerCategory = "all" | "lashes" | "nails" | "brows" | "mixta";
 
 export type BeluerCatalogItem = BeluerCardData & {
   categoryKey: Exclude<BeluerCategory, "all">;
