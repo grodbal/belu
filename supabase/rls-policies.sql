@@ -235,24 +235,28 @@ using (
 -- =====================================================
 
 drop policy if exists "beluer_service_skills_select_related_or_admin" on public.beluer_service_skills;
-create policy "beluer_service_skills_select_related_or_admin"
+drop policy if exists beluer_service_skills_select_visible_owner_or_admin on public.beluer_service_skills;
+create policy beluer_service_skills_select_visible_owner_or_admin
 on public.beluer_service_skills
 for select
 to anon, authenticated
 using (
-  exists (
-    select 1
-    from public.beluer_profiles bp
-    where bp.id = beluer_service_skills.beluer_profile_id
-      and (
-        bp.status = 'approved'
-        or bp.profile_id = public.current_profile_id()
-        or public.is_admin()
-      )
+  public.is_admin()
+  or (
+    auth.role() = 'authenticated'
+    and exists (
+      select 1
+      from public.beluer_profiles own_beluer
+      where own_beluer.id = beluer_service_skills.beluer_profile_id
+        and own_beluer.profile_id = public.current_profile_id()
+    )
   )
+  or public.is_publicly_visible_beluer_service_skill(beluer_service_skills.id)
 );
 
--- Skill assignment is Admin-only through updateBeluerServiceSkillsAction.
+-- Legacy skill assignment is Admin-only through updateBeluerServiceSkillsAction.
+-- That action excludes services with pricing rules; new-catalog offer writes
+-- use authenticated Server Actions with server-side authorization.
 -- No direct authenticated insert/update/delete policy.
 
 -- =====================================================
@@ -353,8 +357,10 @@ using (
     select 1
     from public.services s
     join public.beluer_category_approvals a on a.category = s.category
+    join public.beluer_profiles bp on bp.id = a.beluer_profile_id
     where s.id = service_pricing_rules.service_id
-      and a.beluer_profile_id = public.current_beluer_profile_id()
+      and bp.profile_id = public.current_profile_id()
+      and bp.status = 'approved'
       and a.status = 'approved'
   )
 );

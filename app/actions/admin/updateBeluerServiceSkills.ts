@@ -19,7 +19,8 @@ export async function updateBeluerServiceSkillsAction(
   const serviceIds = formData
     .getAll("serviceIds")
     .map((value) => String(value))
-    .filter(Boolean);
+    .filter(Boolean)
+    .filter((value, index, values) => values.indexOf(value) === index);
 
   if (!beluerProfileId) {
     return {
@@ -30,10 +31,52 @@ export async function updateBeluerServiceSkillsAction(
 
   const supabase = createAdminClient();
 
-  const { error: deleteError } = await supabase
+  // This legacy Admin assignment flow must not delete or recreate offers from
+  // the new catalog. Those rows (and their Beluer-set prices) belong to the
+  // Beluer offer actions and are identified by service_pricing_rules.
+  const { data: pricedServices, error: rulesError } = await supabase
+    .from("service_pricing_rules")
+    .select("service_id");
+
+  if (rulesError) {
+    return {
+      success: false,
+      message: "No se pudo validar el catálogo de servicios.",
+    };
+  }
+
+  const newCatalogServiceIds = new Set(
+    (pricedServices ?? []).map((rule) => rule.service_id)
+  );
+  if (serviceIds.some((serviceId) => newCatalogServiceIds.has(serviceId))) {
+    return {
+      success: false,
+      message: "Los servicios del nuevo catálogo se gestionan desde las ofertas de la Beluer.",
+    };
+  }
+
+  const { data: currentSkills, error: skillsError } = await supabase
     .from("beluer_service_skills")
-    .delete()
+    .select("id, service_id")
     .eq("beluer_profile_id", beluerProfileId);
+
+  if (skillsError) {
+    return {
+      success: false,
+      message: "No se pudieron leer los servicios anteriores.",
+    };
+  }
+
+  const legacySkillIds = (currentSkills ?? [])
+    .filter((skill) => !newCatalogServiceIds.has(skill.service_id))
+    .map((skill) => skill.id);
+
+  const { error: deleteError } = legacySkillIds.length
+    ? await supabase
+        .from("beluer_service_skills")
+        .delete()
+        .in("id", legacySkillIds)
+    : { error: null };
 
   if (deleteError) {
     return {
