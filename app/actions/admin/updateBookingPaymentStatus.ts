@@ -37,6 +37,41 @@ export async function updateBookingPaymentStatusAction(
 
   const supabase = createAdminClient();
 
+  const { data: booking, error: bookingError } = await supabase
+    .from("bookings")
+    .select("id, status, hold_expires_at")
+    .eq("id", bookingId)
+    .maybeSingle();
+
+  if (bookingError) {
+    return { success: false, message: "No se pudo verificar el estado de pago." };
+  }
+  if (!booking) {
+    return { success: false, message: "No se encontró la reserva." };
+  }
+
+  const { data: attempts, error: attemptsError } = await supabase
+    .from("payments")
+    .select("id")
+    .eq("booking_id", bookingId)
+    .limit(1);
+
+  if (attemptsError) {
+    return { success: false, message: "No se pudo verificar el historial de pago." };
+  }
+
+  const hasProviderPaymentState = booking.status === "payment_pending" ||
+    booking.hold_expires_at !== null || (attempts && attempts.length > 0);
+  if (hasProviderPaymentState) {
+    return {
+      success: false,
+      code: paymentStatus === "paid"
+        ? "PAYMENT_PENDING_REQUIRES_PROVIDER_CONFIRMATION"
+        : "PAYMENT_ATTEMPT_REQUIRES_PROVIDER_CONFIRMATION",
+      message: "El estado de pago de esta reserva lo determina el intento registrado con el proveedor.",
+    };
+  }
+
   let updateQuery = supabase
     .from("bookings")
     .update({

@@ -2,6 +2,9 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import UpdateBookingStatusForm from "@/components/admin-panel-original/UpdateBookingStatusForm";
 import UpdateBookingPaymentStatusForm from "@/components/admin-panel-original/UpdateBookingPaymentStatusForm";
 import AssignBookingBeluerForm from "@/components/admin-panel-original/AssignBookingBeluerForm";
+import AdminBookingPaymentDetails from "@/components/admin-panel-original/AdminBookingPaymentDetails";
+import { getAdminPaymentData } from "@/lib/payments/adminPaymentData";
+import { getAdminPaymentPresentation } from "@/lib/payments/adminPaymentPresentation";
 import {
   getBookingClientTotal,
   getBookingServiceCategory,
@@ -50,6 +53,7 @@ type Booking = {
   commission_locked_at: string | null;
   commission_locked_event: string | null;
   payment_status: "pending" | "paid" | "failed" | "refunded";
+  hold_expires_at: string | null;
   created_at: string;
 };
 
@@ -121,23 +125,8 @@ function getStatusLabel(status: Booking["status"]) {
   return labels[status];
 }
 
-function getPaymentStatusLabel(status: Booking["payment_status"]) {
-  const labels: Record<Booking["payment_status"], string> = {
-    pending: "Pendiente",
-    paid: "Pagado",
-    failed: "Fallido",
-    refunded: "Reembolsado",
-  };
-
-  return labels[status];
-}
-
 function getStatusBadgeClass(status: Booking["status"]) {
   return `admin-booking-badge ${status}`;
-}
-
-function getPaymentBadgeClass(status: Booking["payment_status"]) {
-  return `admin-payment-badge ${status}`;
 }
 
 function getCategoryLabel(category: string) {
@@ -204,7 +193,7 @@ export default async function AdminBookingsRealList() {
   const { data: bookings, error: bookingsError } = await supabase
     .from("bookings")
     .select(
-      "id, client_profile_id, beluer_profile_id, service_id, booking_mode, scheduled_date, scheduled_time, address, district, notes, is_express, express_fee, status, public_price, logistic_fee, base_price, service_price_snapshot, service_name_snapshot, service_category_snapshot, service_type_snapshot, belu_commission_rate, belu_commission_amount, beluer_payment_amount, beluer_level_snapshot, commission_rate_snapshot, beluer_service_payout_amount, beluer_logistic_payout_amount, beluer_express_payout_amount, beluer_total_payout_amount, commission_locked_at, commission_locked_event, payment_status, created_at"
+      "id, client_profile_id, beluer_profile_id, service_id, booking_mode, scheduled_date, scheduled_time, address, district, notes, is_express, express_fee, status, public_price, logistic_fee, base_price, service_price_snapshot, service_name_snapshot, service_category_snapshot, service_type_snapshot, belu_commission_rate, belu_commission_amount, beluer_payment_amount, beluer_level_snapshot, commission_rate_snapshot, beluer_service_payout_amount, beluer_logistic_payout_amount, beluer_express_payout_amount, beluer_total_payout_amount, commission_locked_at, commission_locked_event, payment_status, hold_expires_at, created_at"
     )
     .order("scheduled_date", { ascending: false })
     .order("scheduled_time", { ascending: false });
@@ -240,6 +229,7 @@ export default async function AdminBookingsRealList() {
     .filter(Boolean) as string[];
 
   const serviceIds = bookings.map((booking) => booking.service_id);
+  const paymentData = await getAdminPaymentData(bookings.map((booking) => booking.id));
 
   const { data: clientProfiles, error: clientProfilesError } =
     clientProfileIds.length > 0
@@ -416,20 +406,26 @@ export default async function AdminBookingsRealList() {
           );
           const clientTotal = getBookingClientTotal(booking);
           const hasAssignedBeluer = Boolean(booking.beluer_profile_id);
+          const hasOperationalBeluer = hasAssignedBeluer && booking.status !== "payment_pending";
           const hasCommissionSnapshot = Boolean(booking.commission_locked_at);
-          const appliedLevelLabel = booking.beluer_level_snapshot
-            ? getBeluerLevelLabel(booking.beluer_level_snapshot)
-            : hasAssignedBeluer
-              ? "Pendiente de snapshot"
-              : "Pendiente";
+          const appliedLevelLabel = !hasOperationalBeluer
+            ? "Pendiente"
+            : booking.beluer_level_snapshot
+              ? getBeluerLevelLabel(booking.beluer_level_snapshot)
+              : "Pendiente de snapshot";
           const appliedRateLabel =
-            booking.commission_rate_snapshot !== null
+            hasOperationalBeluer && booking.commission_rate_snapshot !== null
               ? `${formatRate(booking.commission_rate_snapshot)}%`
-              : hasAssignedBeluer
-                ? "Pendiente"
-                : "Pendiente";
+              : "Pendiente";
           const beluerTotalPayout =
             booking.beluer_total_payout_amount ?? booking.beluer_payment_amount;
+          const paymentAttempts = paymentData.attemptsByBooking.get(booking.id) || [];
+          const paymentPresentation = getAdminPaymentPresentation(
+            booking.payment_status,
+            booking.status,
+            paymentAttempts[0],
+            paymentData.reviewAttemptIds
+          );
 
           return (
             <article key={booking.id} className="admin-booking-admin-card">
@@ -441,9 +437,9 @@ export default async function AdminBookingsRealList() {
                     </span>
 
                     <span
-                      className={getPaymentBadgeClass(booking.payment_status)}
+                      className={`admin-payment-badge ${paymentPresentation.state}`}
                     >
-                      Pago: {getPaymentStatusLabel(booking.payment_status)}
+                      Pago: {paymentPresentation.label}
                     </span>
 
                     <span className="admin-booking-meta-pill">
@@ -541,19 +537,21 @@ export default async function AdminBookingsRealList() {
                 </section>
 
                 <section className="admin-booking-admin-block">
-                  <h4>Beluer</h4>
+                  <h4>{booking.status === "payment_pending" ? "Beluer seleccionada" : "Beluer"}</h4>
 
                   <p className="admin-booking-admin-beluer-name">
                     {beluer?.public_name || "Sin Beluer asignada"}
                   </p>
 
                   <p className="admin-booking-admin-muted">
-                    {hasAssignedBeluer
-                      ? "Especialista asignada a esta reserva."
-                      : "Pendiente de asignacion por Admin."}
+                    {booking.status === "payment_pending"
+                      ? "La reserva aún no está activa; la selección se activará al confirmar el pago."
+                      : hasAssignedBeluer
+                        ? "Especialista asignada a esta reserva."
+                        : "Pendiente de asignación por Admin."}
                   </p>
 
-                  {hasAssignedBeluer ? (
+                  {hasOperationalBeluer ? (
                     <div className="admin-booking-money-grid">
                       <div>
                         <span>Nivel aplicado</span>
@@ -615,11 +613,11 @@ export default async function AdminBookingsRealList() {
                     <div>
                       <span>Comisión belu</span>
                       <strong>
-                        {hasAssignedBeluer
+                        {hasOperationalBeluer
                           ? formatCurrency(booking.belu_commission_amount)
                           : "Pendiente"}
                       </strong>
-                      {hasAssignedBeluer ? (
+                      {hasOperationalBeluer ? (
                         <small>
                           Tasa registrada:{" "}
                           {formatSnapshotRate(booking)}
@@ -630,7 +628,7 @@ export default async function AdminBookingsRealList() {
                     <div>
                       <span>Pago servicio Beluer</span>
                       <strong>
-                        {hasAssignedBeluer
+                        {hasOperationalBeluer
                           ? formatMoneyOrPending(
                               booking.beluer_service_payout_amount
                             )
@@ -641,7 +639,7 @@ export default async function AdminBookingsRealList() {
                     <div>
                         <span>Logística Beluer</span>
                       <strong>
-                        {hasAssignedBeluer
+                        {hasOperationalBeluer
                           ? formatMoneyOrPending(
                               booking.beluer_logistic_payout_amount
                             )
@@ -654,7 +652,7 @@ export default async function AdminBookingsRealList() {
                       <div>
                         <span>Express Beluer</span>
                         <strong>
-                          {hasAssignedBeluer
+                          {hasOperationalBeluer
                             ? formatMoneyOrPending(
                                 booking.beluer_express_payout_amount
                               )
@@ -666,7 +664,7 @@ export default async function AdminBookingsRealList() {
                     <div>
                       <span>Total Beluer</span>
                       <strong>
-                        {hasAssignedBeluer
+                        {hasOperationalBeluer
                           ? formatMoneyOrPending(beluerTotalPayout)
                           : "Pendiente"}
                       </strong>
@@ -675,11 +673,13 @@ export default async function AdminBookingsRealList() {
                     <div>
                       <span>Estado comision</span>
                       <strong>
-                        {hasCommissionSnapshot
+                        {booking.status === "payment_pending"
+                          ? "Se activa después del pago"
+                          : hasCommissionSnapshot
                           ? "Comision congelada"
                           : "Pendiente de congelar"}
                       </strong>
-                      {booking.commission_locked_at ? (
+                      {booking.commission_locked_at && booking.status !== "payment_pending" ? (
                         <small>
                           {formatDate(booking.commission_locked_at.slice(0, 10))}
                         </small>
@@ -712,19 +712,33 @@ export default async function AdminBookingsRealList() {
                 </section>
 
                 <section className="admin-booking-admin-block admin-booking-admin-control-block">
-                  <h4>Estado pago</h4>
+                  <AdminBookingPaymentDetails
+                    bookingId={booking.id}
+                    bookingStatus={booking.status}
+                    bookingPaymentStatus={booking.payment_status}
+                    holdExpiresAt={booking.hold_expires_at}
+                    attempts={paymentAttempts}
+                    reviewAttemptIds={Array.from(paymentData.reviewAttemptIds)}
+                    attemptsUnavailable={paymentData.attemptsError}
+                    reviewsUnavailable={paymentData.reviewError}
+                  />
 
-                  <span className={getPaymentBadgeClass(booking.payment_status)}>
-                    {getPaymentStatusLabel(booking.payment_status)}
+                  <span className={`admin-payment-badge ${paymentPresentation.state}`}>
+                    {paymentPresentation.label}
                   </span>
 
                   <div className="admin-booking-admin-form-area">
-                    <p>Cambiar pago</p>
+                    <p>Estado de pago</p>
 
                     <UpdateBookingPaymentStatusForm
                       bookingId={booking.id}
                       currentPaymentStatus={booking.payment_status}
                       bookingStatus={booking.status}
+                      allowManualUpdate={
+                        booking.status !== "payment_pending" &&
+                        booking.hold_expires_at === null &&
+                        paymentAttempts.length === 0
+                      }
                     />
                   </div>
                 </section>

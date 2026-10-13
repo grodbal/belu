@@ -14,6 +14,7 @@ type UpdateBookingPaymentStatusFormProps = {
   bookingId: string;
   currentPaymentStatus: BookingPaymentStatus;
   bookingStatus: string;
+  allowManualUpdate: boolean;
 };
 
 const paymentStatusOptions: {
@@ -30,16 +31,27 @@ export default function UpdateBookingPaymentStatusForm({
   bookingId,
   currentPaymentStatus,
   bookingStatus,
+  allowManualUpdate,
 }: UpdateBookingPaymentStatusFormProps) {
   const [state, formAction, isPending] = useActionState(
     updateBookingPaymentStatusAction,
     initialState
   );
 
+  if (!allowManualUpdate) {
+    return (
+      <p className="text-xs text-neutral-500">
+        El estado de pago se actualiza mediante el intento registrado con el proveedor.
+      </p>
+    );
+  }
+
   return (
     <div className="space-y-2">
       <div className="flex max-w-[260px] flex-wrap gap-2">
-        {paymentStatusOptions.filter((option) => bookingStatus !== "payment_pending" || option.value !== "paid").map((option) => {
+        {paymentStatusOptions.filter((option) =>
+          bookingStatus !== "payment_pending" || option.value !== "paid"
+        ).map((option) => {
           const isActive = currentPaymentStatus === option.value;
 
           return (

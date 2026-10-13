@@ -12,6 +12,22 @@ export type PaymentAttemptStatus =
 
 export type PaymentCurrency = "PEN";
 
+export type PaymentAttempt = {
+  id: string;
+  booking_id: string;
+  provider: string;
+  provider_order_id: string | null;
+  provider_payment_id: string | null;
+  amount_minor: number | string;
+  currency: string;
+  method: string | null;
+  status: PaymentAttemptStatus | "unknown";
+  paid_at: string | null;
+  created_at: string;
+};
+
+export type PaymentReviewState = "none" | "required";
+
 export type CreatePaymentAttemptInput = {
   bookingId: string;
   provider: PaymentProvider;

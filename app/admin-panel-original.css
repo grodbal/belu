@@ -2460,6 +2460,31 @@
   color: var(--r);
 }
 
+.admin-payment-badge.late_review {
+  background: rgba(230, 0, 35, 0.12);
+  color: #b0001b;
+}
+
+.admin-payment-badge.awaiting_confirmation {
+  background: rgba(230, 0, 35, 0.08);
+  color: var(--r);
+}
+
+.admin-payment-badge.expired {
+  background: rgba(184, 110, 0, 0.12);
+  color: #8a5200;
+}
+
+.admin-payment-badge.processing {
+  background: rgba(32, 127, 158, 0.12);
+  color: #207f9e;
+}
+
+.admin-payment-badge.unknown {
+  background: rgba(26, 26, 26, 0.08);
+  color: rgba(26, 26, 26, 0.62);
+}
+
 .admin-booking-money-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -3118,6 +3143,16 @@
 }
 
 .admin-bookings-admin-page .admin-payment-badge.pending {
+  background: var(--payment-pending-bg);
+  color: var(--payment-pending-text);
+}
+
+.admin-bookings-admin-page .admin-payment-badge.late_review {
+  background: rgba(230, 0, 35, 0.12);
+  color: #b0001b;
+}
+
+.admin-bookings-admin-page .admin-payment-badge.awaiting_confirmation {
   background: var(--payment-pending-bg);
   color: var(--payment-pending-text);
 }

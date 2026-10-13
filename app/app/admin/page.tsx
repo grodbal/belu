@@ -103,7 +103,7 @@ function PaymentsSection() {
         <div className="admin-panel-greeting">
           <h1>Pagos</h1>
           <p>
-            Vista básica de pagos basada en reservas reales y su estado de pago.
+            Revisa intentos, montos procesados, vencimientos y pagos que requieren revisión.
           </p>
         </div>
 

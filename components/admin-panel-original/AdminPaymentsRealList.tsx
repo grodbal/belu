@@ -4,6 +4,9 @@ import {
   getBookingServiceCategory,
   getBookingServiceName,
 } from "@/lib/bookings/bookingDisplayFinance";
+import AdminBookingPaymentDetails from "@/components/admin-panel-original/AdminBookingPaymentDetails";
+import { getAdminPaymentData } from "@/lib/payments/adminPaymentData";
+import { getAdminPaymentPresentation } from "@/lib/payments/adminPaymentPresentation";
 
 type BookingPayment = {
   id: string;
@@ -12,6 +15,8 @@ type BookingPayment = {
   service_id: string;
   scheduled_date: string;
   scheduled_time: string;
+  status: string;
+  hold_expires_at: string | null;
   payment_status:
     | "pending"
     | "paid"
@@ -60,18 +65,6 @@ function formatDate(value: string) {
   }).format(new Date(`${value}T00:00:00`));
 }
 
-function getPaymentStatusLabel(status: BookingPayment["payment_status"]) {
-  const labels: Record<BookingPayment["payment_status"], string> = {
-    pending: "Pago pendiente de confirmación",
-    paid: "Pago confirmado",
-    failed: "Pago fallido",
-    refunded: "Pago reembolsado",
-    partially_refunded: "Pago parcialmente reembolsado",
-  };
-
-  return labels[status];
-}
-
 function getCategoryLabel(category: string) {
   if (category === "lashes") return "Lashes";
   if (category === "nails") return "Nails";
@@ -85,7 +78,7 @@ export default async function AdminPaymentsRealList() {
   const { data: bookings, error: bookingsError } = await supabase
     .from("bookings")
     .select(
-      "id, client_profile_id, beluer_profile_id, service_id, scheduled_date, scheduled_time, payment_status, public_price, base_price, service_price_snapshot, service_name_snapshot, service_category_snapshot, logistic_fee, express_fee"
+      "id, client_profile_id, beluer_profile_id, service_id, scheduled_date, scheduled_time, status, hold_expires_at, payment_status, public_price, base_price, service_price_snapshot, service_name_snapshot, service_category_snapshot, logistic_fee, express_fee"
     )
     .order("scheduled_date", { ascending: false })
     .order("scheduled_time", { ascending: false });
@@ -117,6 +110,7 @@ export default async function AdminPaymentsRealList() {
   }
 
   const typedBookings = bookings as BookingPayment[];
+  const paymentData = await getAdminPaymentData(typedBookings.map((booking) => booking.id));
   const clientProfileIds = typedBookings
     .map((booking) => booking.client_profile_id)
     .filter(Boolean) as string[];
@@ -240,6 +234,13 @@ export default async function AdminPaymentsRealList() {
                   service?.category
                 );
                 const clientTotal = getBookingClientTotal(booking);
+                const paymentAttempts = paymentData.attemptsByBooking.get(booking.id) || [];
+                const paymentPresentation = getAdminPaymentPresentation(
+                  booking.payment_status,
+                  booking.status,
+                  paymentAttempts[0],
+                  paymentData.reviewAttemptIds
+                );
 
                 return (
                   <tr key={booking.id} className="align-top">
@@ -277,8 +278,8 @@ export default async function AdminPaymentsRealList() {
                     </td>
 
                     <td className="px-5 py-5">
-                      <span className="inline-flex rounded-full bg-[#FFD6E2] px-3 py-1 text-xs font-black text-[#E60023]">
-                        {getPaymentStatusLabel(booking.payment_status)}
+                      <span className={`admin-payment-badge ${paymentPresentation.state}`}>
+                        {paymentPresentation.label}
                       </span>
                       <dl className="mt-2 space-y-1 text-xs text-neutral-600">
                         <div className="flex justify-between gap-3"><dt>Precio del servicio</dt><dd>{formatCurrency(clientTotal.servicePrice)}</dd></div>
@@ -286,6 +287,18 @@ export default async function AdminPaymentsRealList() {
                         {clientTotal.expressFee > 0 && <div className="flex justify-between gap-3"><dt>Belu Express</dt><dd>{formatCurrency(clientTotal.expressFee)}</dd></div>}
                         <div className="flex justify-between gap-3 border-t border-neutral-100 pt-1 font-black text-[#1A1A1A]"><dt>Total clienta</dt><dd>{formatCurrency(clientTotal.total)}</dd></div>
                       </dl>
+                      <div className="mt-4 border-t border-neutral-100 pt-3">
+                        <AdminBookingPaymentDetails
+                          bookingId={booking.id}
+                          bookingStatus={booking.status}
+                          bookingPaymentStatus={booking.payment_status}
+                          holdExpiresAt={booking.hold_expires_at}
+                          attempts={paymentAttempts}
+                          reviewAttemptIds={Array.from(paymentData.reviewAttemptIds)}
+                          attemptsUnavailable={paymentData.attemptsError}
+                          reviewsUnavailable={paymentData.reviewError}
+                        />
+                      </div>
                     </td>
 
                     <td className="px-5 py-5">
