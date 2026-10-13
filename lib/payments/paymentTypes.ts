@@ -52,3 +52,36 @@ export type PaymentAttemptResult =
       code: CreatePaymentAttemptErrorCode;
       message: string;
     };
+
+export type ConfirmPaymentInput = {
+  paymentAttemptId: string;
+  provider: PaymentProvider;
+  providerPaymentId: string;
+  providerOrderId?: string | null;
+  paidAt?: string | null;
+};
+
+export type ConfirmPaymentCode =
+  | "OK"
+  | "PAYMENT_ALREADY_CONFIRMED"
+  | "PAYMENT_ATTEMPT_NOT_FOUND"
+  | "PAYMENT_ATTEMPT_NOT_CONFIRMABLE"
+  | "PAYMENT_PROVIDER_MISMATCH"
+  | "PAYMENT_AMOUNT_MISMATCH"
+  | "PAYMENT_PROVIDER_ID_CONFLICT"
+  | "BOOKING_NOT_FOUND"
+  | "BOOKING_PAYMENT_STATE_INVALID"
+  | "PAYMENT_LATE_AFTER_EXPIRY"
+  | "INVALID_REQUEST"
+  | "INTERNAL_ERROR";
+
+export type ConfirmPaymentResult = {
+  ok: boolean;
+  code: ConfirmPaymentCode;
+  bookingId: string | null;
+  paymentAttemptId: string | null;
+  bookingStatus: string | null;
+  bookingPaymentStatus: string | null;
+  paymentStatus: string | null;
+  outboxEventId: string | null;
+};
