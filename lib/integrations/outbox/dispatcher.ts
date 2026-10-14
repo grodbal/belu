@@ -9,13 +9,20 @@ import {
   type OutboxEvent,
   type SafeOutboxError,
 } from "@/lib/integrations/outbox";
-import { handleBookingPaymentConfirmed } from "@/lib/integrations/outbox/handlers/bookingPaymentConfirmed";
-import { handleLatePaidRequiresReview } from "@/lib/integrations/outbox/handlers/latePaidRequiresReview";
+import {
+  getBookingPaymentConfirmedReadiness,
+  handleBookingPaymentConfirmed,
+} from "@/lib/integrations/outbox/handlers/bookingPaymentConfirmed";
+import {
+  getLatePaidRequiresReviewReadiness,
+  handleLatePaidRequiresReview,
+} from "@/lib/integrations/outbox/handlers/latePaidRequiresReview";
 import {
   parseOutboxEvent,
   type SupportedOutboxEvent,
   type SupportedOutboxEventType,
 } from "@/lib/integrations/outbox/eventTypes";
+import type { HandlerReadiness } from "@/lib/integrations/outbox/handlerReadiness";
 
 export type DispatchOutboxBatchInput = {
   workerId: string;
@@ -42,6 +49,17 @@ export type DispatchEventResult =
 
 export type DispatchOutboxBatchResult =
   | {
+      ok: false;
+      workerId: string;
+      reason: "NOT_READY";
+      claimed: 0;
+      processed: 0;
+      failed: 0;
+      alreadyProcessed: 0;
+      ackFailed: 0;
+      results: [];
+    }
+  | {
       ok: true;
       workerId: string;
       claimed: number;
@@ -63,7 +81,8 @@ export type DispatchOutboxBatchResult =
       results: [];
     };
 
-export type DispatchOutboxDependencies = {
+type ProductionDependencies = {
+  readiness: () => Promise<HandlerReadiness>;
   claim: typeof claimOutboxEvents;
   markProcessed: typeof markOutboxProcessed;
   markFailed: typeof markOutboxFailed;
@@ -71,7 +90,16 @@ export type DispatchOutboxDependencies = {
   handleLatePaidRequiresReview: typeof handleLatePaidRequiresReview;
 };
 
-const defaultDependencies: DispatchOutboxDependencies = {
+const productionDependencies: ProductionDependencies = {
+  readiness: async () => {
+    const readiness = await Promise.all([
+      getBookingPaymentConfirmedReadiness(),
+      getLatePaidRequiresReviewReadiness(),
+    ]);
+    return readiness.every((handler) => handler.ready)
+      ? { ready: true }
+      : { ready: false, reason: "NOT_IMPLEMENTED" };
+  },
   claim: claimOutboxEvents,
   markProcessed: markOutboxProcessed,
   markFailed: markOutboxFailed,
@@ -85,27 +113,20 @@ const isWorkerId = (value: unknown): value is string =>
 const isLimit = (value: unknown): value is number =>
   typeof value === "number" && Number.isInteger(value) && value >= 1 && value <= 100;
 
-async function routeEvent(
-  event: SupportedOutboxEvent,
-  dependencies: DispatchOutboxDependencies
-): Promise<void> {
+async function routeEvent(event: SupportedOutboxEvent): Promise<void> {
   switch (event.event_type) {
     case "booking.payment_confirmed":
-      await dependencies.handleBookingPaymentConfirmed(event);
+      await productionDependencies.handleBookingPaymentConfirmed(event);
       return;
     case "payment.late_paid_requires_review":
-      await dependencies.handleLatePaidRequiresReview(event);
+      await productionDependencies.handleLatePaidRequiresReview(event);
       return;
   }
 }
 
 function safeEventType(event: OutboxEvent): SupportedOutboxEventType | "unsupported" {
-  if (event.event_type === "booking.payment_confirmed") {
-    return "booking.payment_confirmed";
-  }
-  if (event.event_type === "payment.late_paid_requires_review") {
-    return "payment.late_paid_requires_review";
-  }
+  if (event.event_type === "booking.payment_confirmed") return "booking.payment_confirmed";
+  if (event.event_type === "payment.late_paid_requires_review") return "payment.late_paid_requires_review";
   return "unsupported";
 }
 
@@ -113,44 +134,24 @@ async function acknowledgeFailure(
   event: OutboxEvent,
   workerId: string,
   safeError: SafeOutboxError,
-  eventType: SupportedOutboxEventType | "unsupported",
-  dependencies: DispatchOutboxDependencies
+  eventType: SupportedOutboxEventType | "unsupported"
 ): Promise<DispatchEventResult> {
   let ack: OutboxAckResult;
   try {
-    ack = await dependencies.markFailed(event.id, workerId, safeError);
+    ack = await productionDependencies.markFailed(event.id, workerId, safeError);
   } catch {
-    return {
-      eventId: event.id,
-      eventType,
-      status: "ack_failed",
-      operation: "failed",
-      code: "INTERNAL_ERROR",
-    };
+    return { eventId: event.id, eventType, status: "ack_failed", operation: "failed", code: "INTERNAL_ERROR" };
   }
 
-  // MAX_ATTEMPTS_REACHED is returned after SQL has persisted the terminal failed state.
   if (ack.code === "OK" || ack.code === "MAX_ATTEMPTS_REACHED") {
-    return {
-      eventId: event.id,
-      eventType,
-      status: "failed",
-      safeError,
-      ackCode: ack.code,
-    };
+    return { eventId: event.id, eventType, status: "failed", safeError, ackCode: ack.code };
   }
-  return {
-    eventId: event.id,
-    eventType,
-    status: "ack_failed",
-    operation: "failed",
-    code: ack.code,
-  };
+  return { eventId: event.id, eventType, status: "ack_failed", operation: "failed", code: ack.code };
 }
 
+/** Production entry point. Readiness and all side-effect dependencies are module-owned. */
 export async function dispatchOutboxBatch(
-  input: DispatchOutboxBatchInput,
-  dependencies: DispatchOutboxDependencies = defaultDependencies
+  input: DispatchOutboxBatchInput
 ): Promise<DispatchOutboxBatchResult> {
   if (!isWorkerId(input?.workerId) || !isLimit(input?.limit)) {
     return {
@@ -167,7 +168,28 @@ export async function dispatchOutboxBatch(
   }
 
   const workerId = input.workerId.trim();
-  const claim = await dependencies.claim(input.limit, workerId);
+  let readiness: HandlerReadiness;
+  try {
+    readiness = await productionDependencies.readiness();
+  } catch {
+    readiness = { ready: false, reason: "DEPENDENCY_UNAVAILABLE" };
+  }
+
+  if (!readiness.ready) {
+    return {
+      ok: false,
+      workerId,
+      reason: "NOT_READY",
+      claimed: 0,
+      processed: 0,
+      failed: 0,
+      alreadyProcessed: 0,
+      ackFailed: 0,
+      results: [],
+    };
+  }
+
+  const claim = await productionDependencies.claim(input.limit, workerId);
   if (!claim.ok) {
     return {
       ok: false,
@@ -186,35 +208,26 @@ export async function dispatchOutboxBatch(
   for (const event of claim.events) {
     const parsed = parseOutboxEvent(event);
     if (!parsed.ok) {
-      const safeError = parsed.reason === "invalid_payload"
-        ? "INVALID_RESPONSE"
-        : "PROCESSING_FAILED";
+      const safeError = parsed.reason === "invalid_payload" ? "INVALID_RESPONSE" : "PROCESSING_FAILED";
       results.push(await acknowledgeFailure(
         event,
         workerId,
         safeError,
-        parsed.reason === "unsupported_event" ? "unsupported" : safeEventType(event),
-        dependencies
+        parsed.reason === "unsupported_event" ? "unsupported" : safeEventType(event)
       ));
       continue;
     }
 
     try {
-      await routeEvent(parsed.event, dependencies);
+      await routeEvent(parsed.event);
     } catch {
-      results.push(await acknowledgeFailure(
-        event,
-        workerId,
-        "PROCESSING_FAILED",
-        parsed.event.event_type,
-        dependencies
-      ));
+      results.push(await acknowledgeFailure(event, workerId, "PROCESSING_FAILED", parsed.event.event_type));
       continue;
     }
 
     let ack: OutboxAckResult;
     try {
-      ack = await dependencies.markProcessed(event.id, workerId);
+      ack = await productionDependencies.markProcessed(event.id, workerId);
     } catch {
       results.push({
         eventId: event.id,
@@ -229,11 +242,7 @@ export async function dispatchOutboxBatch(
     if (ack.ok && ack.code === "OK") {
       results.push({ eventId: event.id, eventType: parsed.event.event_type, status: "processed" });
     } else if (ack.ok && ack.code === "ALREADY_PROCESSED") {
-      results.push({
-        eventId: event.id,
-        eventType: parsed.event.event_type,
-        status: "already_processed",
-      });
+      results.push({ eventId: event.id, eventType: parsed.event.event_type, status: "already_processed" });
     } else {
       results.push({
         eventId: event.id,
