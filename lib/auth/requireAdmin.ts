@@ -1,41 +1,14 @@
 import "server-only";
 
 import { redirect } from "next/navigation";
-import { createAdminClient } from "@/lib/supabase/admin";
-import { createClient } from "@/lib/supabase/server";
+import { resolveAdminActor } from "@/lib/auth/serviceOfferActor";
 
 export async function requireAdmin() {
-  const authClient = await createClient();
+  const actorResult = await resolveAdminActor();
 
-  const {
-    data: { user },
-    error: userError,
-  } = await authClient.auth.getUser();
-
-  if (userError || !user) {
+  if (!actorResult.ok) {
     redirect("/login?redirectTo=/app/admin");
   }
 
-  const supabase = createAdminClient();
-
-  const {
-    data: { user: freshUser },
-    error: freshUserError,
-  } = await supabase.auth.admin.getUserById(user.id);
-
-  if (freshUserError || freshUser?.app_metadata?.role !== "admin") {
-    redirect("/login?redirectTo=/app/admin");
-  }
-
-  const { data: profile, error: profileError } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("auth_user_id", user.id)
-    .single();
-
-  if (profileError || profile?.role !== "admin") {
-    redirect("/login?redirectTo=/app/admin");
-  }
-
-  return user;
+  return actorResult.actor.user;
 }

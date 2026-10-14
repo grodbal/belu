@@ -1,5 +1,7 @@
 import "server-only";
 
+import type { User } from "@supabase/supabase-js";
+import { getAdminAuthorizationFailure } from "@/lib/auth/adminAuthorization";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -26,7 +28,7 @@ export type BeluerActorResult =
   | { ok: false; code: ServiceOfferActorError };
 
 export type AdminActorResult =
-  | { ok: true; actor: ActorBase }
+  | { ok: true; actor: ActorBase & { user: User } }
   | { ok: false; code: "UNAUTHORIZED" | "PROFILE_NOT_FOUND" };
 
 async function resolveProfile(expectedRole: "beluer" | "admin") {
@@ -95,5 +97,74 @@ export async function resolveApprovedBeluerActor(): Promise<BeluerActorResult> {
 }
 
 export async function resolveAdminActor(): Promise<AdminActorResult> {
-  return resolveProfile("admin");
+  const authClient = await createClient();
+  const {
+    data: { user },
+    error: authError,
+  } = await authClient.auth.getUser();
+
+  if (authError || !user) {
+    return {
+      ok: false,
+      code:
+        getAdminAuthorizationFailure({
+          authenticated: false,
+          profileFound: false,
+          profileError: false,
+        }) ?? "UNAUTHORIZED",
+    };
+  }
+
+  const supabase = createAdminClient();
+  const {
+    data: { user: freshUser },
+    error: freshUserError,
+  } = await supabase.auth.admin.getUserById(user.id);
+
+  const appMetadataRole = freshUserError
+    ? undefined
+    : freshUser?.app_metadata?.role;
+  if (appMetadataRole !== "admin") {
+    return {
+      ok: false,
+      code:
+        getAdminAuthorizationFailure({
+          authenticated: true,
+          appMetadataRole,
+          profileFound: false,
+          profileError: false,
+        }) ?? "UNAUTHORIZED",
+    };
+  }
+
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("id, role")
+    .eq("auth_user_id", user.id)
+    .maybeSingle();
+
+  const authorizationFailure = getAdminAuthorizationFailure({
+    authenticated: true,
+    appMetadataRole,
+    profileFound: Boolean(profile),
+    profileRole: profile?.role,
+    profileError: Boolean(profileError),
+  });
+  if (authorizationFailure) {
+    return { ok: false, code: authorizationFailure };
+  }
+
+  if (!profile || !freshUser) {
+    return { ok: false, code: "UNAUTHORIZED" };
+  }
+
+  return {
+    ok: true,
+    actor: {
+      userId: user.id,
+      profileId: profile.id,
+      supabase,
+      user: freshUser,
+    },
+  };
 }
