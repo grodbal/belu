@@ -5,18 +5,16 @@ import { randomUUID } from "crypto";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
 import { createAdminClient } from "@/lib/supabase/admin";
+import {
+  getServiceImageExtension,
+  isServiceImageSizeAllowed,
+} from "@/lib/images/serviceImageUpload";
 
 type AddServiceImageState = {
   success: boolean;
   message: string;
 };
 
-const allowedImageTypes = new Map([
-  ["image/jpeg", "jpg"],
-  ["image/png", "png"],
-  ["image/webp", "webp"],
-]);
-const maxImageSize = 5 * 1024 * 1024;
 const maxGalleryImages = 5;
 
 export async function addServiceImageAction(
@@ -38,12 +36,13 @@ export async function addServiceImageAction(
     return { success: false, message: "Selecciona una foto para subir." };
   }
 
-  if (!allowedImageTypes.has(imageFile.type)) {
+  const imageExtension = getServiceImageExtension(imageFile.type);
+  if (!imageExtension) {
     return { success: false, message: "La foto debe ser JPG, PNG o WebP." };
   }
 
-  if (imageFile.size > maxImageSize) {
-    return { success: false, message: "La foto no puede superar 5 MB." };
+  if (!isServiceImageSizeAllowed(imageFile.size)) {
+    return { success: false, message: "La foto no puede superar 3 MiB." };
   }
 
   const supabase = createAdminClient();
@@ -102,7 +101,7 @@ export async function addServiceImageAction(
 
   const sortOrder =
     typeof lastImage?.sort_order === "number" ? lastImage.sort_order + 1 : 0;
-  const extension = allowedImageTypes.get(imageFile.type)!;
+  const extension = imageExtension;
   const storagePath = `services/${serviceId}/gallery/${Date.now()}-${randomUUID()}.${extension}`;
   const imageBytes = Buffer.from(await imageFile.arrayBuffer());
 

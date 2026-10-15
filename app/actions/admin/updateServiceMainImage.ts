@@ -5,18 +5,15 @@ import { randomUUID } from "crypto";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
 import { createAdminClient } from "@/lib/supabase/admin";
+import {
+  getServiceImageExtension,
+  isServiceImageSizeAllowed,
+} from "@/lib/images/serviceImageUpload";
 
 type UpdateServiceMainImageState = {
   success: boolean;
   message: string;
 };
-
-const allowedImageTypes = new Map([
-  ["image/jpeg", "jpg"],
-  ["image/png", "png"],
-  ["image/webp", "webp"],
-]);
-const maxImageSize = 5 * 1024 * 1024;
 
 function getServiceImageStoragePath(imageUrl: string) {
   const marker = "/service-images/";
@@ -49,12 +46,13 @@ export async function updateServiceMainImageAction(
     return { success: false, message: "Selecciona una foto principal." };
   }
 
-  if (!allowedImageTypes.has(imageFile.type)) {
+  const imageExtension = getServiceImageExtension(imageFile.type);
+  if (!imageExtension) {
     return { success: false, message: "La foto debe ser JPG, PNG o WebP." };
   }
 
-  if (imageFile.size > maxImageSize) {
-    return { success: false, message: "La foto no puede superar 5 MB." };
+  if (!isServiceImageSizeAllowed(imageFile.size)) {
+    return { success: false, message: "La foto no puede superar 3 MiB." };
   }
 
   const supabase = createAdminClient();
@@ -76,7 +74,7 @@ export async function updateServiceMainImageAction(
     return { success: false, message: "El servicio no existe." };
   }
 
-  const extension = allowedImageTypes.get(imageFile.type)!;
+  const extension = imageExtension;
   const storagePath = `services/${Date.now()}-${randomUUID()}.${extension}`;
   const imageBytes = Buffer.from(await imageFile.arrayBuffer());
 

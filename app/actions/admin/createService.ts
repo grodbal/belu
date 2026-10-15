@@ -5,6 +5,10 @@ import { randomUUID } from "crypto";
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
+import {
+  getServiceImageExtension,
+  isServiceImageSizeAllowed,
+} from "@/lib/images/serviceImageUpload";
 
 type CreateServiceState = {
   success: boolean;
@@ -13,13 +17,6 @@ type CreateServiceState = {
 
 const allowedCategories = ["lashes", "nails"];
 const allowedStatuses = ["active", "inactive"];
-const allowedImageTypes = new Map([
-  ["image/jpeg", "jpg"],
-  ["image/png", "png"],
-  ["image/webp", "webp"],
-]);
-const maxImageSize = 5 * 1024 * 1024;
-
 function parseMoney(value: FormDataEntryValue | null) {
   return Number(String(value ?? "").trim());
 }
@@ -43,6 +40,9 @@ export async function createServiceAction(
   const rawImage = formData.get("image");
   const imageFile =
     rawImage instanceof File && rawImage.size > 0 ? rawImage : null;
+  const imageExtension = imageFile
+    ? getServiceImageExtension(imageFile.type)
+    : null;
 
   if (!name) {
     return { success: false, message: "Ingresa el nombre del servicio." };
@@ -83,17 +83,17 @@ export async function createServiceAction(
   }
 
   if (imageFile) {
-    if (!allowedImageTypes.has(imageFile.type)) {
+    if (!imageExtension) {
       return {
         success: false,
         message: "La foto debe ser JPG, PNG o WebP.",
       };
     }
 
-    if (imageFile.size > maxImageSize) {
+    if (!isServiceImageSizeAllowed(imageFile.size)) {
       return {
         success: false,
-        message: "La foto no puede superar 5 MB.",
+        message: "La foto no puede superar 3 MiB.",
       };
     }
   }
@@ -103,7 +103,7 @@ export async function createServiceAction(
   let uploadedImagePath: string | null = null;
 
   if (imageFile) {
-    const extension = allowedImageTypes.get(imageFile.type)!;
+    const extension = imageExtension!;
     const storagePath = `services/${Date.now()}-${randomUUID()}.${extension}`;
     const imageBytes = Buffer.from(await imageFile.arrayBuffer());
 
